@@ -17,7 +17,7 @@ public class RegistryBlocks {
                 if (Modifier.isStatic(f.getModifiers())) {
                     if (Block.class.isAssignableFrom(f.getType())) {
                         String name = f.getName();
-                        Plonk.log.info("Registering Block: " + name);
+                        Plonk.LOG.info("Registering Block: " + name);
                         Block block = (Block) f.get(null);
                         block.setBlockName(name);
                         block.setBlockTextureName(Plonk.MOD_ID + ":" + name);

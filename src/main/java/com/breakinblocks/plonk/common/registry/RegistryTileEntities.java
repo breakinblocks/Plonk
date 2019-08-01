@@ -20,7 +20,7 @@ public class RegistryTileEntities {
                         if (TileEntity.class.isAssignableFrom(clazz)) {
                             Class<TileEntity> tileClass = (Class<TileEntity>) clazz;
                             String name = f.getName();
-                            Plonk.log.info("Registering TileEntity: " + name);
+                            Plonk.LOG.info("Registering TileEntity: " + name);
                             GameRegistry.registerTileEntity(tileClass, name);
                         }
                     }

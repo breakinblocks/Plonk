@@ -1,6 +1,7 @@
 package com.breakinblocks.plonk.common;
 
 import com.breakinblocks.plonk.common.registry.RegistryBlocks;
+import com.breakinblocks.plonk.common.registry.RegistryPackets;
 import com.breakinblocks.plonk.common.registry.RegistryTileEntities;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
@@ -10,6 +11,7 @@ public class CommonProxy {
     public void preInit(FMLPreInitializationEvent event) {
         RegistryBlocks.init();
         RegistryTileEntities.init();
+        RegistryPackets.init();
     }
 
     public void init(FMLInitializationEvent event) {

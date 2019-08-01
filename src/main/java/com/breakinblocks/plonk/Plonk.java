@@ -18,23 +18,23 @@ public class Plonk {
     public static final String NAME = "Plonk";
     public static final String VERSION = "@VERSION@";
 
-    public static Logger log = LogManager.getLogger(MOD_ID);
+    public static final Logger LOG = LogManager.getLogger(MOD_ID);
+    public static final SimpleNetworkWrapper CHANNEL = NetworkRegistry.INSTANCE.newSimpleChannel(Plonk.MOD_ID);
     @SidedProxy(clientSide = "com.breakinblocks.plonk.client.ClientProxy", serverSide = "com.breakinblocks.plonk.common.CommonProxy")
-    public static CommonProxy proxy;
+    public static CommonProxy PROXY;
 
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
-        Plonk.log = event.getModLog();
-        proxy.preInit(event);
+        PROXY.preInit(event);
     }
 
     @EventHandler
     public void init(FMLInitializationEvent event) {
-        proxy.init(event);
+        PROXY.init(event);
     }
 
     @EventHandler
     public void postInit(FMLPostInitializationEvent event) {
-        proxy.postInit(event);
+        PROXY.postInit(event);
     }
 }
