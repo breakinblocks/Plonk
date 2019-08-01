@@ -15,6 +15,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
     private ItemStack[] contents = new ItemStack[this.getSizeInventory()];
 
     public TilePlacedItems() {
+        this.markDirty();
     }
 
     @Override
@@ -55,12 +56,12 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
     public Packet getDescriptionPacket() {
         NBTTagCompound tag = new NBTTagCompound();
         this.writeToNBT(tag);
-        return new S35PacketUpdateTileEntity(xCoord, yCoord, xCoord, 0, tag);
+        return new S35PacketUpdateTileEntity(xCoord, yCoord, zCoord, 0, tag);
     }
 
     @Override
     public void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity pkt) {
-        readFromNBT(pkt.func_148857_g());
+        this.readFromNBT(pkt.func_148857_g());
     }
 
     @Override

@@ -1,6 +1,6 @@
 package com.breakinblocks.plonk.common.block;
 
-import com.breakinblocks.plonk.common.registry.RegistryMaterial;
+import com.breakinblocks.plonk.common.registry.RegistryMaterials;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
 import com.breakinblocks.plonk.common.util.ItemUtils;
 import net.minecraft.block.Block;
@@ -16,7 +16,7 @@ import java.util.Random;
 public class BlockPlacedItems extends Block {
 
     public BlockPlacedItems() {
-        super(RegistryMaterial.placed_items);
+        super(RegistryMaterials.placed_items);
         this.setHardness(0.5f);
         this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 0.125F, 1.0F);
     }
