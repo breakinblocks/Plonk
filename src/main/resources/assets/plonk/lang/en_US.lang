@@ -1,5 +1,8 @@
 # blocks
-tile.placed_items.name=Placed Item
+tile.placed_items.name=Placed Items
+
+# containers
+container.placed_items=Placed Items
 
 # key bindings
 key.plonk.category=Plonk

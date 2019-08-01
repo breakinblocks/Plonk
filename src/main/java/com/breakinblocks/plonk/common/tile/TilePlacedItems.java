@@ -1,9 +1,110 @@
 package com.breakinblocks.plonk.common.tile;
 
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.ISidedInventory;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 
-public class TilePlacedItems extends TileEntity {
-    public TilePlacedItems() {
+public class TilePlacedItems extends TileEntity implements ISidedInventory {
 
+    private ItemStack[] contents = new ItemStack[4];
+
+    public TilePlacedItems() {
+    }
+
+    @Override
+    public int getSizeInventory() {
+        return contents.length;
+    }
+
+    @Override
+    public ItemStack getStackInSlot(int slot) {
+        return contents[slot];
+    }
+
+    @Override
+    public ItemStack decrStackSize(int slot, int maxAmount) {
+        //TODO: Update null items
+        ItemStack current = contents[slot];
+        if (maxAmount > 0 && current != null && current.stackSize > 0) {
+            int amount = Math.min(current.stackSize, maxAmount);
+
+            ItemStack extractedStack = current.copy();
+            extractedStack.stackSize = amount;
+
+            current.stackSize -= amount;
+
+            if (current.stackSize == 0) {
+                contents[slot] = null;
+            }
+
+            this.markDirty();
+            return extractedStack;
+        }
+        return null;
+    }
+
+    @Override
+    public ItemStack getStackInSlotOnClosing(int slot) {
+        return contents[slot];
+    }
+
+    @Override
+    public void setInventorySlotContents(int slot, ItemStack stack) {
+        contents[slot] = stack;
+
+        if (stack != null && stack.stackSize > this.getInventoryStackLimit()) {
+            stack.stackSize = this.getInventoryStackLimit();
+        }
+
+        this.markDirty();
+    }
+
+    @Override
+    public String getInventoryName() {
+        return "container.placed_items";
+    }
+
+    @Override
+    public boolean hasCustomInventoryName() {
+        return false;
+    }
+
+    @Override
+    public int getInventoryStackLimit() {
+        return 64;
+    }
+
+    @Override
+    public boolean isUseableByPlayer(EntityPlayer player) {
+        return false;
+    }
+
+    @Override
+    public void openInventory() {
+    }
+
+    @Override
+    public void closeInventory() {
+    }
+
+    @Override
+    public boolean isItemValidForSlot(int slot, ItemStack stack) {
+        return true;
+    }
+
+    @Override
+    public int[] getAccessibleSlotsFromSide(int side) {
+        return new int[0];
+    }
+
+    @Override
+    public boolean canInsertItem(int slot, ItemStack stack, int side) {
+        return false;
+    }
+
+    @Override
+    public boolean canExtractItem(int slot, ItemStack stack, int side) {
+        return false;
     }
 }

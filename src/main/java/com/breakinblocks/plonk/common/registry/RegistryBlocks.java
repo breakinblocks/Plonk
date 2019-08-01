@@ -21,7 +21,7 @@ public class RegistryBlocks {
                         Block block = (Block) f.get(null);
                         block.setBlockName(name);
                         block.setBlockTextureName(Plonk.MOD_ID + ":" + name);
-                        GameRegistry.registerBlock(block, f.getName());
+                        GameRegistry.registerBlock(block, null, name);
                     }
                 }
             } catch (IllegalAccessException e) {
