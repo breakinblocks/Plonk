@@ -3,18 +3,69 @@ package com.breakinblocks.plonk.common.tile;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.network.NetworkManager;
+import net.minecraft.network.Packet;
+import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 
 public class TilePlacedItems extends TileEntity implements ISidedInventory {
 
-    private ItemStack[] contents = new ItemStack[4];
+    private ItemStack[] contents = new ItemStack[this.getSizeInventory()];
 
     public TilePlacedItems() {
     }
 
     @Override
+    public void readFromNBT(NBTTagCompound tag) {
+        super.readFromNBT(tag);
+        NBTTagList tagItems = tag.getTagList("Items", 10);
+        this.contents = new ItemStack[this.getSizeInventory()];
+
+        for (int i = 0; i < tagItems.tagCount(); i++) {
+            NBTTagCompound tagItem = tagItems.getCompoundTagAt(i);
+            int slot = tagItem.getByte("Slot") & 255;
+
+            if (slot >= 0 && slot < this.contents.length) {
+                this.contents[slot] = ItemStack.loadItemStackFromNBT(tagItem);
+            }
+        }
+
+    }
+
+    @Override
+    public void writeToNBT(NBTTagCompound tag) {
+        super.writeToNBT(tag);
+        NBTTagList tagItems = new NBTTagList();
+
+        for (int slot = 0; slot < this.contents.length; slot++) {
+            if (this.contents[slot] != null) {
+                NBTTagCompound tagItem = new NBTTagCompound();
+                tagItem.setByte("Slot", (byte) slot);
+                this.contents[slot].writeToNBT(tagItem);
+                tagItems.appendTag(tagItem);
+            }
+        }
+
+        tag.setTag("Items", tagItems);
+    }
+
+    @Override
+    public Packet getDescriptionPacket() {
+        NBTTagCompound tag = new NBTTagCompound();
+        this.writeToNBT(tag);
+        return new S35PacketUpdateTileEntity(xCoord, yCoord, xCoord, 0, tag);
+    }
+
+    @Override
+    public void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity pkt) {
+        readFromNBT(pkt.func_148857_g());
+    }
+
+    @Override
     public int getSizeInventory() {
-        return contents.length;
+        return 4;
     }
 
     @Override
