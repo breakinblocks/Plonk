@@ -7,17 +7,18 @@ import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.network.NetworkRegistry;
+import cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 @Mod(modid = Plonk.MOD_ID, name = Plonk.NAME, version = Plonk.VERSION)
 public class Plonk {
-    public static final String MOD_ID = "assets/plonk";
+    public static final String MOD_ID = "plonk";
     public static final String NAME = "Plonk";
     public static final String VERSION = "@VERSION@";
 
     public static Logger log = LogManager.getLogger(MOD_ID);
-
     @SidedProxy(clientSide = "com.breakinblocks.plonk.client.ClientProxy", serverSide = "com.breakinblocks.plonk.common.CommonProxy")
     public static CommonProxy proxy;
 

@@ -1,3 +1,6 @@
+# blocks
+tile.placed_items.name=Placed Item
+
 # key bindings
 key.plonk.category=Plonk
 key.plonk.place.desc=Place Item

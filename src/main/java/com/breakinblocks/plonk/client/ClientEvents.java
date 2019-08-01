@@ -1,5 +1,6 @@
 package com.breakinblocks.plonk.client;
 
+import cpw.mods.fml.client.FMLClientHandler;
 import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -8,7 +9,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiIngame;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.util.ChatComponentText;
-import net.minecraftforge.common.MinecraftForge;
 import org.lwjgl.input.Keyboard;
 
 public class ClientEvents {
@@ -22,10 +22,12 @@ public class ClientEvents {
     public void onKeyInput(InputEvent.KeyInputEvent event) {
         Minecraft mc = Minecraft.getMinecraft();
         GuiIngame ingameGUI = mc.ingameGUI;
-        if (KEY_PLACE.isPressed()) {
-            if (ingameGUI != null) {
-                ingameGUI.getChatGUI().printChatMessage(new ChatComponentText("PLONK!"));
-                // TODO: Implement
+        if (FMLClientHandler.instance().getClient().inGameHasFocus) {
+            if (KEY_PLACE.isPressed()) {
+                if (ingameGUI != null) {
+                    ingameGUI.getChatGUI().printChatMessage(new ChatComponentText("PLONK!"));
+                    // TODO: Implement
+                }
             }
         }
     }
