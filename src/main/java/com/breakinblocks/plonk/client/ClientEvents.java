@@ -14,7 +14,6 @@ import net.minecraft.client.gui.GuiIngame;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.Facing;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 import org.lwjgl.input.Keyboard;
@@ -38,10 +37,10 @@ public class ClientEvents {
                     MovingObjectPosition hit = mc.objectMouseOver;
                     if (hit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
                         EnumFacing hitSide = EnumFacing.getFront(hit.sideHit);
-                        int x = hit.blockX + hitSide.getFrontOffsetX();
-                        int y = hit.blockY + hitSide.getFrontOffsetY();
-                        int z = hit.blockZ + hitSide.getFrontOffsetZ();
-                        int side = Facing.oppositeSide[hit.sideHit];
+                        int x = hit.blockX;
+                        int y = hit.blockY;
+                        int z = hit.blockZ;
+                        int side = hit.sideHit;
                         float hitX = (float) hit.hitVec.xCoord;
                         float hitY = (float) hit.hitVec.yCoord;
                         float hitZ = (float) hit.hitVec.zCoord;

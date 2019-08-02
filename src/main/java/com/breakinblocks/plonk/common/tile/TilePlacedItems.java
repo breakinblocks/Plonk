@@ -147,16 +147,16 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
 
     @Override
     public int[] getAccessibleSlotsFromSide(int side) {
-        return new int[0];
+        return new int[]{0, 1, 2, 3};
     }
 
     @Override
     public boolean canInsertItem(int slot, ItemStack stack, int side) {
-        return false;
+        return true;
     }
 
     @Override
     public boolean canExtractItem(int slot, ItemStack stack, int side) {
-        return false;
+        return true;
     }
 }
