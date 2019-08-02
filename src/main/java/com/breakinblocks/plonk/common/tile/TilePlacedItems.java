@@ -15,7 +15,6 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
     private ItemStack[] contents = new ItemStack[this.getSizeInventory()];
 
     public TilePlacedItems() {
-        this.markDirty();
     }
 
     @Override
@@ -86,7 +85,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
 
             current.stackSize -= amount;
 
-            if (current.stackSize == 0) {
+            if (current.stackSize <= 0) {
                 contents[slot] = null;
             }
 
@@ -103,12 +102,15 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
 
     @Override
     public void setInventorySlotContents(int slot, ItemStack stack) {
-        contents[slot] = stack;
-
-        if (stack != null && stack.stackSize > this.getInventoryStackLimit()) {
-            stack.stackSize = this.getInventoryStackLimit();
+        //TODO: Update null items
+        if (stack == null || stack.stackSize <= 0) {
+            contents[slot] = null;
+        } else {
+            if (stack.stackSize > this.getInventoryStackLimit()) {
+                stack.stackSize = this.getInventoryStackLimit();
+            }
+            contents[slot] = stack;
         }
-
         this.markDirty();
     }
 

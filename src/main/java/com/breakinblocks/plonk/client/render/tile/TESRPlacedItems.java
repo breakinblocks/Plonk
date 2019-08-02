@@ -38,10 +38,24 @@ public class TESRPlacedItems extends TileEntitySpecialRenderer {
     @Override
     public void renderTileEntityAt(TileEntity tileIn, double x, double y, double z, float partialTicks) {
         GL11.glPushMatrix();
-        GL11.glTranslated(x + 0.5, y, z + 0.5);
+        GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5);
+
+        //Rotate Facing
+        GL11.glRotated(90, 1.0, 0.0, 0.0);
+
+        GL11.glTranslated(0.0, -0.5, 0.0);
 
         World world = tileIn.getWorldObj();
         TilePlacedItems tile = (TilePlacedItems) tileIn;
+
+        int num = 0;
+        int size = tile.getSizeInventory();
+        for (int slot = 0; slot < size; slot++) {
+            ItemStack stack = tile.getStackInSlot(slot);
+            if (stack == null) break;
+            num++;
+        }
+
         ItemStack stack = tile.getStackInSlot(0);
         if (stack != null) {
             //TODO: Render Items
@@ -66,14 +80,12 @@ public class TESRPlacedItems extends TileEntitySpecialRenderer {
             entityItem.hoverStart = 0.0f;
             boolean isRenderBlock = isGoingToRenderAsBlock(entityItem);
 
-            // Raise above the ground
-            GL11.glTranslated(0, 0.0625, 0);
-
-            GL11.glScaled(2.0, 2.0, 2.0);
-
             if (isRenderBlock) {
+                GL11.glScaled(1.5, 1.5, 1.5);
                 //GL11.glRotated(-90, 0.0, 1.0, 0.0);
             } else {
+                GL11.glScaled(1.5, 1.5, 1.5);
+                GL11.glTranslated(0, 0.03125, 0.0);
                 GL11.glRotated(-90, 1.0, 0.0, 0.0);
                 GL11.glTranslated(0, -0.2, 0.0);
             }
