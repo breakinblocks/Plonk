@@ -9,6 +9,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.Facing;
 import net.minecraft.world.World;
 
 import java.util.Random;
@@ -58,8 +59,11 @@ public class BlockPlacedItems extends Block {
     }
 
     @Override
-    public int onBlockPlaced(World p_149660_1_, int p_149660_2_, int p_149660_3_, int p_149660_4_, int p_149660_5_, float p_149660_6_, float p_149660_7_, float p_149660_8_, int p_149660_9_) {
-        return super.onBlockPlaced(p_149660_1_, p_149660_2_, p_149660_3_, p_149660_4_, p_149660_5_, p_149660_6_, p_149660_7_, p_149660_8_, p_149660_9_);
+    public int onBlockPlaced(World world, int x, int y, int z, int side, float hitX, float hitY, float hitZ, int itemMeta) {
+        if (side >= 0 && side < 6) {
+            return Facing.oppositeSide[side];
+        }
+        return super.onBlockPlaced(world, x, y, z, side, hitX, hitY, hitZ, itemMeta);
     }
 
     @Override
