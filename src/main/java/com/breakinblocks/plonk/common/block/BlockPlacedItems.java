@@ -10,7 +10,9 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.Facing;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import org.lwjgl.opengl.GL11;
 
 import java.util.Random;
 
@@ -64,6 +66,33 @@ public class BlockPlacedItems extends Block {
             return Facing.oppositeSide[side];
         }
         return super.onBlockPlaced(world, x, y, z, side, hitX, hitY, hitZ, itemMeta);
+    }
+
+    @Override
+    public void setBlockBoundsBasedOnState(IBlockAccess iba, int x, int y, int z) {
+        int meta = iba.getBlockMetadata(x, y, z);
+        switch (meta) {
+            case 0: // DOWN
+                this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 0.125F, 1.0F);
+                break;
+            case 1: // UP
+                this.setBlockBounds(0.0F, 0.875F, 0.0F, 1.0F, 1.0F, 1.0F);
+                break;
+            case 2: // NORTH
+                this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 1.0F, 0.125F);
+                break;
+            case 3: // SOUTH
+                this.setBlockBounds(0.0F, 0.0F, 0.875F, 1.0F, 1.0F, 1.0F);
+                break;
+            case 4: // WEST
+                this.setBlockBounds(0.0F, 0.0F, 0.0F, 0.125F, 1.0F, 1.0F);
+                break;
+            case 5: // EAST
+                this.setBlockBounds(0.875F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F);
+                break;
+            default:
+                this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F);
+        }
     }
 
     @Override
