@@ -13,8 +13,33 @@ import net.minecraft.tileentity.TileEntity;
 public class TilePlacedItems extends TileEntity implements ISidedInventory {
 
     private ItemStack[] contents = new ItemStack[this.getSizeInventory()];
+    private ItemStack[] contentsDisplay = new ItemStack[0];
 
     public TilePlacedItems() {
+    }
+
+    /**
+     * Clean the tile by compacting it and such, also updates contentsDisplay
+     */
+    private void clean() {
+        int count = 0;
+        for (int i = contents.length - 1; i >= 0; i--) {
+            // TODO: Update null check
+            if (contents[i] == null) continue;
+            // Move stack towards start if has room
+            if (i > 0 && contents[i - 1] == null) {
+                contents[i - 1] = contents[i];
+                // TODO: Update null stack
+                contents[i] = null;
+            }
+            // TODO: Update null check
+            if (contents[i] != null) {
+                count++;
+            }
+        }
+        ItemStack[] displayedStacks = new ItemStack[count];
+        System.arraycopy(contents, 0, displayedStacks, 0, count);
+        contentsDisplay = displayedStacks;
     }
 
     @Override
@@ -31,7 +56,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
                 this.contents[slot] = ItemStack.loadItemStackFromNBT(tagItem);
             }
         }
-
+        clean();
     }
 
     @Override
@@ -49,6 +74,12 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
         }
 
         tag.setTag("Items", tagItems);
+    }
+
+    @Override
+    public void markDirty() {
+        clean();
+        super.markDirty();
     }
 
     @Override
@@ -160,5 +191,9 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
     @Override
     public boolean canExtractItem(int slot, ItemStack stack, int side) {
         return true;
+    }
+
+    public ItemStack[] getContentsDisplay() {
+        return contentsDisplay;
     }
 }

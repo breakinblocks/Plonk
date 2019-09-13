@@ -21,8 +21,7 @@ import static net.minecraftforge.client.IItemRenderer.ItemRendererHelper.BLOCK_3
 public class TESRPlacedItems extends TileEntitySpecialRenderer {
     private final RenderBlocks renderBlocks = new RenderBlocks();
 
-    public static boolean isGoingToRenderAsBlock(EntityItem entityItem) {
-        ItemStack itemstack = entityItem.getEntityItem();
+    public static boolean isGoingToRenderAsBlock(ItemStack itemstack) {
         IItemRenderer customRenderer = MinecraftForgeClient.getItemRenderer(itemstack, ENTITY);
         if (customRenderer != null) {
             boolean is3D = customRenderer.shouldUseRenderHelper(ENTITY, itemstack, BLOCK_3D);
@@ -72,14 +71,8 @@ public class TESRPlacedItems extends TileEntitySpecialRenderer {
         World world = tileIn.getWorldObj();
         TilePlacedItems tile = (TilePlacedItems) tileIn;
 
-        int num = 0;
-        int size = tile.getSizeInventory();
-
-        for (int slot = 0; slot < size; slot++) {
-            ItemStack stack = tile.getStackInSlot(slot);
-            if (stack == null) break;
-            num++;
-        }
+        ItemStack[] contents = tile.getContentsDisplay();
+        int num = contents.length;
 
         if (num > 0) {
             boolean halfSize = num > 1;
@@ -128,7 +121,7 @@ public class TESRPlacedItems extends TileEntitySpecialRenderer {
             EntityItem entityItem = new EntityItem(world, 0.0, 0.0, 0.0, stack);
             entityItem.getEntityItem().stackSize = 1;
             entityItem.hoverStart = 0.0f;
-            boolean isRenderBlock = isGoingToRenderAsBlock(entityItem);
+            boolean isRenderBlock = isGoingToRenderAsBlock(stack);
             double t = world.getTotalWorldTime() + partialTicks;
 
             if (halfSize || isRenderBlock) {
