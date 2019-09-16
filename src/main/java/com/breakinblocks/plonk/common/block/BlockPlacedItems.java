@@ -5,6 +5,7 @@ import com.breakinblocks.plonk.common.tile.TilePlacedItems;
 import com.breakinblocks.plonk.common.util.ItemUtils;
 import net.minecraft.block.Block;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
@@ -87,7 +88,8 @@ public class BlockPlacedItems extends Block {
 
     private boolean collisionChk = false;
     private int collisionIndex = 0;
-    private AxisAlignedBB collisionBB = null;
+    private int collisionLastIndex = 0;
+    private AxisAlignedBB collisionLastBB = null;
 
     public BlockPlacedItems() {
         super(RegistryMaterials.placed_items);
@@ -106,8 +108,8 @@ public class BlockPlacedItems extends Block {
 
     @Override
     public AxisAlignedBB getSelectedBoundingBoxFromPool(World world, int x, int y, int z) {
-        if (collisionBB != null) {
-            return collisionBB;
+        if (collisionLastBB != null) {
+            return collisionLastBB;
         }
         return super.getSelectedBoundingBoxFromPool(world, x, y, z);
     }
@@ -167,11 +169,12 @@ public class BlockPlacedItems extends Block {
         }
 
         if (nearestMopIndex >= 0) {
-            collisionIndex = nearestMopIndex;
+            collisionLastIndex = nearestMopIndex;
             this.setBlockBoundsBasedOnState(world, x, y, z);
-            collisionBB = AxisAlignedBB.getBoundingBox((double) x + this.minX, (double) y + this.minY, (double) z + this.minZ, (double) x + this.maxX, (double) y + this.maxY, (double) z + this.maxZ);
+            collisionLastBB = AxisAlignedBB.getBoundingBox((double) x + this.minX, (double) y + this.minY, (double) z + this.minZ, (double) x + this.maxX, (double) y + this.maxY, (double) z + this.maxZ);
         } else {
-            collisionBB = null;
+            collisionLastIndex = 0;
+            collisionLastBB = null;
         }
 
         collisionIndex = 0;
@@ -297,5 +300,12 @@ public class BlockPlacedItems extends Block {
     @Override
     public TileEntity createTileEntity(World world, int metadata) {
         return new TilePlacedItems();
+    }
+
+    @Override
+    public ItemStack getPickBlock(MovingObjectPosition target, World world, int x, int y, int z, EntityPlayer player) {
+        int slot = collisionLastIndex <= 0 ? 0 : collisionLastIndex - 1;
+        TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(x, y, z);
+        return tile.getStackInSlot(slot);
     }
 }
