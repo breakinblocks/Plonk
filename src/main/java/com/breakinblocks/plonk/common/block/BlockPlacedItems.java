@@ -6,7 +6,6 @@ import com.breakinblocks.plonk.common.util.ItemUtils;
 import net.minecraft.block.Block;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
@@ -31,7 +30,7 @@ public class BlockPlacedItems extends Block {
         float[][][] temp = new float[5][5][4];
 
         // Base plate for 0, 1, 2, 3, 4 items
-        for(int i = 0; i < 5; i++) {
+        for (int i = 0; i < 5; i++) {
             temp[i][0][0] = 0.0f;
             temp[i][0][1] = 0.0f;
             temp[i][0][2] = 1.0f;
@@ -58,7 +57,7 @@ public class BlockPlacedItems extends Block {
         temp[2][2][3] = 0.75f;
 
         // 3 and 4 items
-        for (int i = 3; i <=4; i++) {
+        for (int i = 3; i <= 4; i++) {
             // top-left
             temp[i][1][0] = 0.0f;
             temp[i][1][1] = 0.0f;
@@ -107,7 +106,7 @@ public class BlockPlacedItems extends Block {
 
     @Override
     public AxisAlignedBB getSelectedBoundingBoxFromPool(World world, int x, int y, int z) {
-        if(collisionBB != null) {
+        if (collisionBB != null) {
             return collisionBB;
         }
         return super.getSelectedBoundingBoxFromPool(world, x, y, z);
@@ -122,6 +121,7 @@ public class BlockPlacedItems extends Block {
     public void breakBlock(World world, int x, int y, int z, Block block, int meta) {
         TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(x, y, z);
         if (tile != null) {
+            // Traverse in reverse because tile updates the inventory between each call
             for (int slot = 0; slot < tile.getSizeInventory(); slot++) {
                 ItemStack stack = tile.getStackInSlot(slot);
                 // TODO: Update item nulls
@@ -147,7 +147,7 @@ public class BlockPlacedItems extends Block {
         MovingObjectPosition[] mops = new MovingObjectPosition[num];
 
 
-        for(int i = 0; i < num; i++) {
+        for (int i = 0; i < num; i++) {
             collisionIndex = i;
             mops[i] = super.collisionRayTrace(world, x, y, z, from, to);
         }
@@ -156,11 +156,11 @@ public class BlockPlacedItems extends Block {
         int nearestMopIndex = -1;
         double minDistSq = Double.POSITIVE_INFINITY;
 
-        for(int i = 0; i < num; i++) {
+        for (int i = 0; i < num; i++) {
             MovingObjectPosition mop = mops[i];
             if (mop == null) continue;
             double distSq = mop.hitVec.squareDistanceTo(from);
-            if(distSq < minDistSq) {
+            if (distSq < minDistSq) {
                 minDistSq = distSq;
                 nearestMopIndex = i;
             }
@@ -169,7 +169,7 @@ public class BlockPlacedItems extends Block {
         if (nearestMopIndex >= 0) {
             collisionIndex = nearestMopIndex;
             this.setBlockBoundsBasedOnState(world, x, y, z);
-            collisionBB = AxisAlignedBB.getBoundingBox((double)x + this.minX, (double)y + this.minY, (double)z + this.minZ, (double)x + this.maxX, (double)y + this.maxY, (double)z + this.maxZ);
+            collisionBB = AxisAlignedBB.getBoundingBox((double) x + this.minX, (double) y + this.minY, (double) z + this.minZ, (double) x + this.maxX, (double) y + this.maxY, (double) z + this.maxZ);
         } else {
             collisionBB = null;
         }
@@ -202,20 +202,18 @@ public class BlockPlacedItems extends Block {
             TilePlacedItems tile = (TilePlacedItems) iba.getTileEntity(x, y, z);
 
             ItemStack[] contents = tile.getContentsDisplay();
+            boolean[] contentsIsBlock = tile.getContentsIsBlock();
             int num = contents.length;
 
-            if(num > 0) {
+            if (num > 0) {
                 minX = COLLISION_XZ[num][collisionIndex][0];
                 minZ = COLLISION_XZ[num][collisionIndex][1];
                 maxX = COLLISION_XZ[num][collisionIndex][2];
                 maxZ = COLLISION_XZ[num][collisionIndex][3];
                 if (collisionIndex > 0) {
-                    minY = HEIGHT_PLATE;
-                    // TODO: Better Item Block Check?
-                    //  Somehow make use of clientside isGoingToRenderAsBlock on the server side?
-                    //  Possibly send in the place item packet?
-                    // TODO: Single item edge case
-                    maxY = contents[collisionIndex - 1].getItem() instanceof ItemBlock ? HEIGHT_BLOCK : HEIGHT_ITEM;
+                    minY = 0.0f;
+                    // TODO: Single item edge case (big item)
+                    maxY = contentsIsBlock[collisionIndex - 1] ? HEIGHT_BLOCK : HEIGHT_ITEM;
                 }
             }
         }

@@ -2,7 +2,6 @@ package com.breakinblocks.plonk.common.item;
 
 import com.breakinblocks.plonk.common.registry.RegistryBlocks;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
-import com.breakinblocks.plonk.common.util.ItemUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
@@ -10,9 +9,27 @@ import net.minecraft.util.Facing;
 import net.minecraft.world.World;
 
 public class ItemBlockPlacedItems extends ItemBlock {
-
     public ItemBlockPlacedItems() {
         super(RegistryBlocks.placed_items);
+    }
+
+    /**
+     * Try to insert held item into the tile
+     *
+     * @param stack  ItemBlockPlacedItems reference stack, which should contain IsBlock information
+     * @param tile   TilePlacedItems to insert into
+     * @param player That is currently holding the item to be inserted
+     */
+    protected boolean tryInsertStack(ItemStack stack, TilePlacedItems tile, EntityPlayer player) {
+        ItemStack heldItem = player.getHeldItem();
+        boolean isBlock = stack.getTagCompound().getBoolean(TilePlacedItems.TAG_IS_BLOCK);
+        ItemStack remainder = tile.insertStack(heldItem, isBlock);
+        // If inserted some items then return true after updating the held item
+        if (remainder != heldItem) {
+            player.inventory.setInventorySlotContents(player.inventory.currentItem, remainder);
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -21,25 +38,21 @@ public class ItemBlockPlacedItems extends ItemBlock {
         //TODO: Update null stacks
         if (heldItem == null || heldItem.stackSize <= 0) return false;
 
-        ItemStack remainder = heldItem;
+        TilePlacedItems tile = null;
         if (world.getBlock(x, y, z) == RegistryBlocks.placed_items) {
-            TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(x, y, z);
-            remainder = ItemUtils.insertStack(tile, remainder);
+            tile = (TilePlacedItems) world.getTileEntity(x, y, z);
         } else {
             int x2 = x + Facing.offsetsXForSide[side];
             int y2 = y + Facing.offsetsYForSide[side];
             int z2 = z + Facing.offsetsZForSide[side];
-            // TODO: Remove duplicated code?
             if (world.getBlock(x2, y2, z2) == RegistryBlocks.placed_items) {
-                TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(x2, y2, z2);
-                remainder = ItemUtils.insertStack(tile, remainder);
+                tile = (TilePlacedItems) world.getTileEntity(x2, y2, z2);
             }
         }
 
-        // If inserted some items then return, else pass
-        if (remainder != heldItem) {
-            player.inventory.setInventorySlotContents(player.inventory.currentItem, remainder);
-            return true;
+        if (tile != null) {
+            // TODO: Remove duplicated code
+            return tryInsertStack(stack, tile, player);
         }
 
         // Upon failing to insert anything into existing placed items, try place a new block instead
@@ -55,12 +68,7 @@ public class ItemBlockPlacedItems extends ItemBlock {
 
         TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(x, y, z);
 
-        // Freshly placed
-        ItemStack remainder = ItemUtils.insertStack(tile, heldItem);
-        if (remainder != heldItem) {
-            player.inventory.setInventorySlotContents(player.inventory.currentItem, remainder);
-        }
-
-        return true;
+        // Insert into freshly placed tile
+        return tryInsertStack(stack, tile, player);
     }
 }

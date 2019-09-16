@@ -1,5 +1,6 @@
 package com.breakinblocks.plonk.common.tile;
 
+import com.breakinblocks.plonk.common.util.ItemUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
@@ -12,8 +13,14 @@ import net.minecraft.tileentity.TileEntity;
 
 public class TilePlacedItems extends TileEntity implements ISidedInventory {
 
+    public static final String TAG_ITEMS = "Items";
+    public static final String TAG_SLOT = "Slot";
+    public static final String TAG_IS_BLOCK = "IsBlock";
+
     private ItemStack[] contents = new ItemStack[this.getSizeInventory()];
+    private boolean[] contentsIsBlock = new boolean[this.getSizeInventory()];
     private ItemStack[] contentsDisplay = new ItemStack[0];
+    private boolean needsCleaning = false;
 
     public TilePlacedItems() {
     }
@@ -40,20 +47,24 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
         ItemStack[] displayedStacks = new ItemStack[count];
         System.arraycopy(contents, 0, displayedStacks, 0, count);
         contentsDisplay = displayedStacks;
+        needsCleaning = false;
     }
 
     @Override
     public void readFromNBT(NBTTagCompound tag) {
         super.readFromNBT(tag);
-        NBTTagList tagItems = tag.getTagList("Items", 10);
+        NBTTagList tagItems = tag.getTagList(TAG_ITEMS, 10);
         this.contents = new ItemStack[this.getSizeInventory()];
+        this.contentsIsBlock = new boolean[this.getSizeInventory()];
 
         for (int i = 0; i < tagItems.tagCount(); i++) {
             NBTTagCompound tagItem = tagItems.getCompoundTagAt(i);
-            int slot = tagItem.getByte("Slot") & 255;
+            int slot = tagItem.getByte(TAG_SLOT) & 255;
+            boolean isBlock = tagItem.getBoolean(TAG_IS_BLOCK);
 
             if (slot >= 0 && slot < this.contents.length) {
                 this.contents[slot] = ItemStack.loadItemStackFromNBT(tagItem);
+                this.contentsIsBlock[slot] = isBlock;
             }
         }
         clean();
@@ -67,18 +78,27 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
         for (int slot = 0; slot < this.contents.length; slot++) {
             if (this.contents[slot] != null) {
                 NBTTagCompound tagItem = new NBTTagCompound();
-                tagItem.setByte("Slot", (byte) slot);
+                tagItem.setByte(TAG_SLOT, (byte) slot);
+                tagItem.setBoolean(TAG_IS_BLOCK, this.contentsIsBlock[slot]);
                 this.contents[slot].writeToNBT(tagItem);
                 tagItems.appendTag(tagItem);
             }
         }
 
-        tag.setTag("Items", tagItems);
+        tag.setTag(TAG_ITEMS, tagItems);
+    }
+
+    @Override
+    public void updateEntity() {
+        super.updateEntity();
+        if(needsCleaning) {
+            clean();
+        }
     }
 
     @Override
     public void markDirty() {
-        clean();
+        needsCleaning = true;
         super.markDirty();
     }
 
@@ -195,5 +215,26 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
 
     public ItemStack[] getContentsDisplay() {
         return contentsDisplay;
+    }
+
+    public boolean[] getContentsIsBlock() {
+        return contentsIsBlock;
+    }
+
+    /**
+     * Attempt to insert the given stack, also recording the isBlock status if needed
+     *
+     * @param stack   to be inserted
+     * @param isBlock if the stack to be inserted should be treated as a block for display
+     * @return the remaining items if successful, or the original stack if not
+     */
+    public ItemStack insertStack(ItemStack stack, boolean isBlock) {
+        ItemUtils.InsertStackResult result = ItemUtils.insertStackAdv(this, stack);
+        if (result.remainder != stack) {
+            for (int slot : result.slots) {
+                contentsIsBlock[slot] = isBlock;
+            }
+        }
+        return result.remainder;
     }
 }

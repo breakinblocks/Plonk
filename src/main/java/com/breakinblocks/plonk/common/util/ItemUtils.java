@@ -7,6 +7,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 public class ItemUtils {
@@ -69,10 +70,39 @@ public class ItemUtils {
      * @return Remaining items if partially inserted, null if fully inserted, original stack if no insertion.
      */
     public static ItemStack insertStack(IInventory inv, ItemStack stack) {
+        return insertStackAdv(inv, stack).remainder;
+    }
+
+    public static class InsertStackResult {
+        /**
+         * Remaining items if partially inserted, null if fully inserted, original stack if no insertion.
+         */
+        public final ItemStack remainder;
+        /**
+         * Slots in the target inventory that had items inserted into them
+         */
+        public final int[] slots;
+
+        public InsertStackResult(ItemStack remainder, int[] slots) {
+            this.remainder = remainder;
+            this.slots = slots;
+        }
+    }
+
+    /**
+     * Attempts to insert stack into inventory, returning information object about what happened.
+     *
+     * @param inv   Inventory to insert into
+     * @param stack Stack to insert
+     * @return
+     */
+    public static InsertStackResult insertStackAdv(IInventory inv, ItemStack stack) {
         //TODO: Update null stacks
         if (stack == null) return null;
         int stackSizeLimit = Math.min(stack.getMaxStackSize(), inv.getInventoryStackLimit());
         int size = inv.getSizeInventory();
+
+        ArrayList<Integer> slots = new ArrayList<>();
 
         for (int slot = 0; slot < size; slot++) {
             ItemStack current = inv.getStackInSlot(slot);
@@ -86,14 +116,23 @@ public class ItemUtils {
 
                 current.stackSize = Math.min(total, stackSizeLimit);
                 inv.setInventorySlotContents(slot, current);
+                slots.add(slot);
 
                 int remaining = total - current.stackSize;
-                if (remaining <= 0) return null;
+                if (remaining <= 0) {
+                    // TODO: Update null stack
+                    stack = null;
+                    break;
+                }
 
                 stack = stack.copy();
                 stack.stackSize = remaining;
             }
         }
-        return stack;
+        int[] slotsArray = new int[slots.size()];
+        for (int i = 0; i < slots.size(); i++) {
+            slotsArray[i] = slots.get(i);
+        }
+        return new InsertStackResult(stack, slotsArray);
     }
 }
