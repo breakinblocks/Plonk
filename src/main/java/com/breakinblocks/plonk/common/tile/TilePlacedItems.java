@@ -91,7 +91,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
     @Override
     public void updateEntity() {
         super.updateEntity();
-        if(needsCleaning) {
+        if (needsCleaning) {
             clean();
         }
     }

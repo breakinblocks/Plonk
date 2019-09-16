@@ -233,56 +233,55 @@ public class BlockPlacedItems extends Block {
                 break;
             case 1: // UP
                 this.setBlockBounds(
-                        minX,
+                        1.0f - maxX,
                         1.0f - maxY,
-                        1.0f - maxZ,
-                        maxX,
+                        minZ,
+                        1.0f - minX,
                         1.0f - minY,
-                        1.0f - minZ
+                        maxZ
                 );
                 break;
             case 2: // NORTH
                 this.setBlockBounds(
                         minX,
-                        minZ,
+                        1.0f - maxZ,
                         minY,
                         maxX,
-                        maxZ,
+                        1.0f - minZ,
                         maxY
                 );
                 break;
             case 3: // SOUTH
                 this.setBlockBounds(
                         1.0f - maxX,
-                        minZ,
+                        1.0f - maxZ,
                         1.0f - maxY,
                         1.0f - minX,
-                        maxZ,
+                        1.0f - minZ,
                         1.0f - minY
                 );
                 break;
             case 4: // WEST
                 this.setBlockBounds(
                         minY,
-                        minZ,
-                        minX,
+                        1.0f - maxZ,
+                        1.0f - maxX,
                         maxY,
-                        maxZ,
-                        maxX
+                        1.0f - minZ,
+                        1.0f - minX
                 );
                 break;
             case 5: // EAST
                 this.setBlockBounds(
                         1.0f - maxY,
-                        minZ,
-                        1.0f - maxX,
+                        1.0f - maxZ,
+                        minX,
                         1.0f - minY,
-                        maxZ,
-                        1.0f - minX
+                        1.0f - minZ,
+                        maxX
                 );
                 break;
         }
-
     }
 
     @Override
