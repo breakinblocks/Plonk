@@ -20,15 +20,17 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
     private ItemStack[] contents = new ItemStack[this.getSizeInventory()];
     private boolean[] contentsIsBlock = new boolean[this.getSizeInventory()];
     private ItemStack[] contentsDisplay = new ItemStack[0];
-    private boolean needsCleaning = false;
+    private boolean needsCleaning = true;
 
     public TilePlacedItems() {
     }
 
     /**
      * Clean the tile by compacting it and such, also updates contentsDisplay
+     *
+     * @return number of displayed stacks
      */
-    private void clean() {
+    private int clean() {
         int count = 0;
         for (int i = contents.length - 1; i >= 0; i--) {
             // TODO: Update null check
@@ -36,6 +38,8 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
             // Move stack towards start if has room
             if (i > 0 && contents[i - 1] == null) {
                 contents[i - 1] = contents[i];
+                // Also update the hitbox
+                contentsIsBlock[i - 1] = contentsIsBlock[i];
                 // TODO: Update null stack
                 contents[i] = null;
             }
@@ -48,6 +52,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
         System.arraycopy(contents, 0, displayedStacks, 0, count);
         contentsDisplay = displayedStacks;
         needsCleaning = false;
+        return count;
     }
 
     @Override
@@ -67,7 +72,6 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
                 this.contentsIsBlock[slot] = isBlock;
             }
         }
-        clean();
     }
 
     @Override
@@ -92,7 +96,16 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
     public void updateEntity() {
         super.updateEntity();
         if (needsCleaning) {
-            clean();
+            if (clean() <= 0) {
+                this.worldObj.setBlockToAir(this.xCoord, this.yCoord, this.zCoord);
+            } else {
+                int meta = this.getBlockMetadata();
+                if (meta > 5) {
+                    meta = 0;
+                }
+                this.worldObj.setBlockMetadataWithNotify(this.xCoord, this.yCoord, this.zCoord, meta, 2);
+                this.worldObj.markBlockForUpdate(this.xCoord, this.yCoord, this.zCoord);
+            }
         }
     }
 
@@ -112,6 +125,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
     @Override
     public void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity pkt) {
         this.readFromNBT(pkt.func_148857_g());
+        needsCleaning = true;
     }
 
     @Override

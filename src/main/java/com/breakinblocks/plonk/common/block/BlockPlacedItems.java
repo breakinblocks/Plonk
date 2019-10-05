@@ -2,10 +2,13 @@ package com.breakinblocks.plonk.common.block;
 
 import com.breakinblocks.plonk.common.registry.RegistryMaterials;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
+import com.breakinblocks.plonk.common.util.EntityUtils;
 import com.breakinblocks.plonk.common.util.ItemUtils;
 import net.minecraft.block.Block;
+import net.minecraft.client.multiplayer.PlayerControllerMP;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
@@ -21,7 +24,7 @@ import java.util.Random;
 public class BlockPlacedItems extends Block {
 
     private static final float HEIGHT_PLATE = 1.0f / 32f;
-    private static final float HEIGHT_ITEM = 1.0f / 16f;
+    private static final float HEIGHT_ITEM = 1.0f / 16f * 1.5f;
     private static final float HEIGHT_BLOCK = 1.0f / 2f;
 
     // [number of items 0 to 4][collision index][minX, minZ, maxX, maxZ]
@@ -34,8 +37,14 @@ public class BlockPlacedItems extends Block {
         for (int i = 0; i < 5; i++) {
             temp[i][0][0] = 0.0f;
             temp[i][0][1] = 0.0f;
-            temp[i][0][2] = 1.0f;
-            temp[i][0][3] = 1.0f;
+            // Don't collide with base plate if there are items inside the block
+            if (i > 0) {
+                temp[i][0][2] = 0.0f;
+                temp[i][0][3] = 0.0f;
+            } else {
+                temp[i][0][2] = 1.0f;
+                temp[i][0][3] = 1.0f;
+            }
         }
 
         // 1 item
@@ -123,7 +132,6 @@ public class BlockPlacedItems extends Block {
     public void breakBlock(World world, int x, int y, int z, Block block, int meta) {
         TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(x, y, z);
         if (tile != null) {
-            // Traverse in reverse because tile updates the inventory between each call
             for (int slot = 0; slot < tile.getSizeInventory(); slot++) {
                 ItemStack stack = tile.getStackInSlot(slot);
                 // TODO: Update item nulls
@@ -169,7 +177,7 @@ public class BlockPlacedItems extends Block {
         }
 
         if (nearestMopIndex >= 0) {
-            collisionLastIndex = nearestMopIndex;
+            collisionIndex = collisionLastIndex = nearestMopIndex;
             this.setBlockBoundsBasedOnState(world, x, y, z);
             collisionLastBB = AxisAlignedBB.getBoundingBox((double) x + this.minX, (double) y + this.minY, (double) z + this.minZ, (double) x + this.maxX, (double) y + this.maxY, (double) z + this.maxZ);
         } else {
@@ -180,6 +188,47 @@ public class BlockPlacedItems extends Block {
         collisionIndex = 0;
         collisionChk = false;
         return nearestMopIndex < 0 ? null : mops[nearestMopIndex];
+    }
+
+    /**
+     * This is called server side so needs to be ray-traced again
+     *
+     * @see EntityLivingBase#rayTrace(double, float)
+     * @see PlayerControllerMP#getBlockReachDistance()
+     */
+    @Override
+    public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int meta, float hitX, float hitY, float hitZ) {
+        if (world.isRemote) return true;
+        // Should be EntityPlayerMP at this point
+        EntityPlayerMP playerMP = (EntityPlayerMP) player;
+
+        double reachDistance = playerMP.theItemInWorldManager.getBlockReachDistance();
+        float renderPartialTicks = 0.0f;
+
+        // Might have issues if player is moving fast or turning their vision fast
+        //  since client-side uses interpolated ray traces
+        //Vec3 from = player.getPosition(renderPartialTicks);
+        Vec3 from = EntityUtils.getEyePosition(player, renderPartialTicks);
+        Vec3 look = player.getLook(renderPartialTicks);
+        //Vec3 to = Vec3.createVectorHelper(x + hitX, y + hitY, z + hitZ);
+        Vec3 to = from.addVector(look.xCoord * reachDistance, look.yCoord * reachDistance, look.zCoord * reachDistance);
+
+        if (world.func_147447_a(from, to, false, false, true) != null) {
+            if (this.collisionLastIndex > 0) {
+                TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(x, y, z);
+                if (tile != null) {
+                    int slot = this.collisionLastIndex - 1;
+                    ItemStack stack = tile.getStackInSlot(slot);
+                    // TODO: Update item nulls
+                    if (stack != null) {
+                        ItemUtils.dropItemWithinBlock(world, x, y, z, stack);
+                        tile.setInventorySlotContents(slot, null);
+                    }
+                }
+            }
+            return true;
+        }
+        return super.onBlockActivated(world, x, y, z, player, meta, hitX, hitY, hitZ);
     }
 
     @Override
@@ -215,8 +264,13 @@ public class BlockPlacedItems extends Block {
                 maxZ = COLLISION_XZ[num][collisionIndex][3];
                 if (collisionIndex > 0) {
                     minY = 0.0f;
+                    boolean isBlock = contentsIsBlock[collisionIndex - 1];
                     // TODO: Single item edge case (big item)
-                    maxY = contentsIsBlock[collisionIndex - 1] ? HEIGHT_BLOCK : HEIGHT_ITEM;
+                    if (!isBlock && num == 1) {
+                        minX = minZ = 0.0f;
+                        maxX = maxZ = 1.0f;
+                    }
+                    maxY = isBlock ? HEIGHT_BLOCK : HEIGHT_ITEM;
                 }
             }
         }

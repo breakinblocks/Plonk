@@ -19,6 +19,7 @@ public class ItemBlockPlacedItems extends ItemBlock {
      * @param stack  ItemBlockPlacedItems reference stack, which should contain IsBlock information
      * @param tile   TilePlacedItems to insert into
      * @param player That is currently holding the item to be inserted
+     * @return true if stack was at least partially successfully inserted
      */
     protected boolean tryInsertStack(ItemStack stack, TilePlacedItems tile, EntityPlayer player) {
         ItemStack heldItem = player.getHeldItem();
@@ -51,7 +52,6 @@ public class ItemBlockPlacedItems extends ItemBlock {
         }
 
         if (tile != null) {
-            // TODO: Remove duplicated code
             return tryInsertStack(stack, tile, player);
         }
 
