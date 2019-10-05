@@ -51,8 +51,9 @@ public class ItemBlockPlacedItems extends ItemBlock {
             }
         }
 
-        if (tile != null) {
-            return tryInsertStack(stack, tile, player);
+        if(tile != null && tryInsertStack(stack, tile, player)) {
+            world.playSoundEffect(tile.xCoord + 0.5, tile.yCoord + 0.5, tile.zCoord + 0.5, this.field_150939_a.stepSound.func_150496_b(), (this.field_150939_a.stepSound.getVolume() + 1.0F) / 2.0F, this.field_150939_a.stepSound.getPitch() * 0.8F);
+            return true;
         }
 
         // Upon failing to insert anything into existing placed items, try place a new block instead
@@ -69,6 +70,11 @@ public class ItemBlockPlacedItems extends ItemBlock {
         TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(x, y, z);
 
         // Insert into freshly placed tile
-        return tryInsertStack(stack, tile, player);
+        if(tryInsertStack(stack, tile, player)) {
+            world.playSoundEffect((float)tile.xCoord + 0.5F, (float)tile.yCoord + 0.5F, (float)tile.zCoord + 0.5F, this.field_150939_a.stepSound.func_150496_b(), (this.field_150939_a.stepSound.getVolume() + 1.0F) / 2.0F, this.field_150939_a.stepSound.getPitch() * 0.8F);
+            return true;
+        }
+
+        return false;
     }
 }
