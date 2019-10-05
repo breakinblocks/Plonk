@@ -223,6 +223,7 @@ public class BlockPlacedItems extends Block {
                     if (stack != null) {
                         ItemUtils.dropItemWithinBlock(world, x, y, z, stack);
                         tile.setInventorySlotContents(slot, null);
+                        tile.clean();
                     }
                 }
             }

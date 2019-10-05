@@ -25,6 +25,7 @@ public class ItemBlockPlacedItems extends ItemBlock {
         ItemStack heldItem = player.getHeldItem();
         boolean isBlock = stack.getTagCompound().getBoolean(TilePlacedItems.TAG_IS_BLOCK);
         ItemStack remainder = tile.insertStack(heldItem, isBlock);
+        tile.clean();
         // If inserted some items then return true after updating the held item
         if (remainder != heldItem) {
             player.inventory.setInventorySlotContents(player.inventory.currentItem, remainder);
@@ -51,7 +52,7 @@ public class ItemBlockPlacedItems extends ItemBlock {
             }
         }
 
-        if(tile != null && tryInsertStack(stack, tile, player)) {
+        if (tile != null && tryInsertStack(stack, tile, player)) {
             world.playSoundEffect(tile.xCoord + 0.5, tile.yCoord + 0.5, tile.zCoord + 0.5, this.field_150939_a.stepSound.func_150496_b(), (this.field_150939_a.stepSound.getVolume() + 1.0F) / 2.0F, this.field_150939_a.stepSound.getPitch() * 0.8F);
             return true;
         }
@@ -70,8 +71,8 @@ public class ItemBlockPlacedItems extends ItemBlock {
         TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(x, y, z);
 
         // Insert into freshly placed tile
-        if(tryInsertStack(stack, tile, player)) {
-            world.playSoundEffect((float)tile.xCoord + 0.5F, (float)tile.yCoord + 0.5F, (float)tile.zCoord + 0.5F, this.field_150939_a.stepSound.func_150496_b(), (this.field_150939_a.stepSound.getVolume() + 1.0F) / 2.0F, this.field_150939_a.stepSound.getPitch() * 0.8F);
+        if (tryInsertStack(stack, tile, player)) {
+            world.playSoundEffect((float) tile.xCoord + 0.5F, (float) tile.yCoord + 0.5F, (float) tile.zCoord + 0.5F, this.field_150939_a.stepSound.func_150496_b(), (this.field_150939_a.stepSound.getVolume() + 1.0F) / 2.0F, this.field_150939_a.stepSound.getPitch() * 0.8F);
             return true;
         }
 
