@@ -25,6 +25,7 @@ public class ItemBlockPlacedItems extends ItemBlock {
         ItemStack heldItem = player.getHeldItem();
         boolean isBlock = stack.getTagCompound().getBoolean(TilePlacedItems.TAG_IS_BLOCK);
         ItemStack remainder = tile.insertStack(heldItem, isBlock);
+        tile.markDirty();
         tile.clean();
         // If inserted some items then return true after updating the held item
         if (remainder != heldItem) {

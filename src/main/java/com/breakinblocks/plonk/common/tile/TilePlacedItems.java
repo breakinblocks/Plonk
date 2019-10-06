@@ -22,19 +22,40 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
     private ItemStack[] contents = new ItemStack[this.getSizeInventory()];
     private boolean[] contentsIsBlock = new boolean[this.getSizeInventory()];
     private ItemStack[] contentsDisplay = new ItemStack[0];
-    private boolean firstClean = true;
-    private boolean needsCleaning = true;
+    boolean needsCleaning = true;
 
     public TilePlacedItems() {
     }
 
     /**
      * Clean the tile by compacting it and such, also updates contentsDisplay
+     * Does not mark dirty itself
      *
-     * @return number of displayed stacks
+     * @return true if there was a change
      */
-    public void clean() {
-        boolean changed = false;
+    public boolean clean() {
+        // Check if needs changes
+        int first_empty = -1;
+        int last_not_empty = -1;
+        for (int i = 0; i < contents.length; i++) {
+            if (contents[i] == null) {
+                if (first_empty == -1) {
+                    first_empty = i;
+                }
+            } else {
+                last_not_empty = i;
+            }
+        }
+
+        if (first_empty == -1) return false;
+        if (last_not_empty == -1) {
+            this.worldObj.setBlockToAir(this.xCoord, this.yCoord, this.zCoord);
+            return true;
+        }
+        if (first_empty > last_not_empty) return false;
+
+        boolean changed = true;
+
         for (int i = 0; i < contents.length - 1; i++) {
             if (contents[i] == null) {
                 // If the slot is empty, try move any non-empty stacks in front of it to the slot
@@ -52,21 +73,12 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
             }
         }
 
-        if (firstClean || changed) {
-            firstClean = false;
-            int count = updateContentsDisplay();
-            if (count == 0) {
-                this.worldObj.setBlockToAir(this.xCoord, this.yCoord, this.zCoord);
-            } else {
-                this.worldObj.setBlockMetadataWithNotify(this.xCoord, this.yCoord, this.zCoord, this.getBlockMetadata(), 2);
-                this.worldObj.markAndNotifyBlock(this.xCoord, this.yCoord, this.zCoord, this.worldObj.getChunkFromBlockCoords(this.xCoord, this.zCoord), this.getBlockType(), this.getBlockType(), 2);
-                this.worldObj.markBlockForUpdate(this.xCoord, this.yCoord, this.zCoord);
-            }
-
-            markDirty();
+        int count = updateContentsDisplay();
+        if (count == 0) {
+            this.worldObj.setBlockToAir(this.xCoord, this.yCoord, this.zCoord);
         }
 
-        needsCleaning = false;
+        return true;
     }
 
     private int updateContentsDisplay() {
@@ -74,7 +86,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
         for (int i = 0; i < contents.length; i++) {
             // TODO: Update null check
             if (contents[i] != null) {
-                count++;
+                count = i + 1;
             }
         }
         contentsDisplay = Arrays.copyOf(contents, count);
@@ -98,6 +110,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
                 this.contentsIsBlock[slot] = isBlock;
             }
         }
+        updateContentsDisplay();
     }
 
     @Override
@@ -122,8 +135,20 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
     public void updateEntity() {
         if (worldObj.isRemote) return;
         if (needsCleaning) {
-            clean();
+            if (clean()) {
+                this.markDirty();
+            }
+            needsCleaning = false;
         }
+    }
+
+    @Override
+    public void markDirty() {
+        // TODO: Find out what is required.. LOL
+        this.worldObj.setBlockMetadataWithNotify(this.xCoord, this.yCoord, this.zCoord, this.getBlockMetadata(), 2);
+        this.worldObj.markAndNotifyBlock(this.xCoord, this.yCoord, this.zCoord, this.worldObj.getChunkFromBlockCoords(this.xCoord, this.zCoord), this.getBlockType(), this.getBlockType(), 2);
+        this.worldObj.markBlockForUpdate(this.xCoord, this.yCoord, this.zCoord);
+        super.markDirty();
     }
 
     @Override
@@ -136,7 +161,6 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
     @Override
     public void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity pkt) {
         this.readFromNBT(pkt.func_148857_g());
-        updateContentsDisplay();
     }
 
     @Override
@@ -166,9 +190,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
             }
 
             needsCleaning = true;
-            this.worldObj.markBlockForUpdate(this.xCoord, this.yCoord, this.zCoord);
-            this.worldObj.markAndNotifyBlock(this.xCoord, this.yCoord, this.zCoord, this.worldObj.getChunkFromBlockCoords(this.xCoord, this.zCoord), this.getBlockType(), this.getBlockType(), 2);
-            this.markDirty();
+
             return extractedStack;
         }
         return null;
@@ -190,11 +212,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
             }
             contents[slot] = stack;
         }
-
         needsCleaning = true;
-        this.worldObj.markBlockForUpdate(this.xCoord, this.yCoord, this.zCoord);
-        this.worldObj.markAndNotifyBlock(this.xCoord, this.yCoord, this.zCoord, this.worldObj.getChunkFromBlockCoords(this.xCoord, this.zCoord), this.getBlockType(), this.getBlockType(), 2);
-        this.markDirty();
     }
 
     @Override
