@@ -37,6 +37,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
         // Check if needs changes
         int first_empty = -1;
         int last_not_empty = -1;
+        int count = 0;
         for (int i = 0; i < contents.length; i++) {
             if (contents[i] == null) {
                 if (first_empty == -1) {
@@ -44,18 +45,38 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
                 }
             } else {
                 last_not_empty = i;
+                count++;
             }
         }
 
-        if (first_empty == -1) return false;
+        // If empty tile
         if (last_not_empty == -1) {
             this.worldObj.setBlockToAir(this.xCoord, this.yCoord, this.zCoord);
             return true;
         }
-        if (first_empty > last_not_empty) return false;
 
-        boolean changed = true;
+        // If the contents to display are up to date
+        if (contentsDisplay.length == count) {
+            // If there is no empty space
+            if (first_empty == -1) return false;
+            // If there is empty space only in front of a non-empty space then nothing can be moved
+            if (first_empty > last_not_empty) return false;
+        }
 
+        updateContents();
+
+        updateContentsDisplay();
+
+        return true;
+    }
+
+    /**
+     * Shift empty spaces to the end
+     *
+     * @return true if anything was shifted
+     */
+    private boolean updateContents() {
+        boolean changed = false;
         for (int i = 0; i < contents.length - 1; i++) {
             if (contents[i] == null) {
                 // If the slot is empty, try move any non-empty stacks in front of it to the slot
@@ -72,15 +93,13 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
                 }
             }
         }
-
-        int count = updateContentsDisplay();
-        if (count == 0) {
-            this.worldObj.setBlockToAir(this.xCoord, this.yCoord, this.zCoord);
-        }
-
-        return true;
+        return changed;
     }
 
+    /**
+     * Update the array used for display and rendering
+     * @return size of the array
+     */
     private int updateContentsDisplay() {
         int count = 0;
         for (int i = 0; i < contents.length; i++) {
@@ -145,8 +164,8 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
     @Override
     public void markDirty() {
         // TODO: Find out what is required.. LOL
-        this.worldObj.setBlockMetadataWithNotify(this.xCoord, this.yCoord, this.zCoord, this.getBlockMetadata(), 2);
-        this.worldObj.markAndNotifyBlock(this.xCoord, this.yCoord, this.zCoord, this.worldObj.getChunkFromBlockCoords(this.xCoord, this.zCoord), this.getBlockType(), this.getBlockType(), 2);
+        //this.worldObj.setBlockMetadataWithNotify(this.xCoord, this.yCoord, this.zCoord, this.getBlockMetadata(), 2);
+        //this.worldObj.markAndNotifyBlock(this.xCoord, this.yCoord, this.zCoord, this.worldObj.getChunkFromBlockCoords(this.xCoord, this.zCoord), this.getBlockType(), this.getBlockType(), 2);
         this.worldObj.markBlockForUpdate(this.xCoord, this.yCoord, this.zCoord);
         super.markDirty();
     }

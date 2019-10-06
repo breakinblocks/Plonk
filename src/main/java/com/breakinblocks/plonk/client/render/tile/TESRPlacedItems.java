@@ -15,6 +15,7 @@ import net.minecraftforge.client.IItemRenderer;
 import net.minecraftforge.client.MinecraftForgeClient;
 import org.lwjgl.opengl.GL11;
 
+import static com.breakinblocks.plonk.common.block.BlockPlacedItems.BLOCK_PADDING_PERCENTAGE;
 import static net.minecraftforge.client.IItemRenderer.ItemRenderType.ENTITY;
 import static net.minecraftforge.client.IItemRenderer.ItemRendererHelper.BLOCK_3D;
 
@@ -113,7 +114,7 @@ public class TESRPlacedItems extends TileEntitySpecialRenderer {
      * @param world         Client world
      * @param stack         ItemStack to render
      * @param halfSize      If items should be rendered at half size (blocks are always rendered half size)
-     * @param renderInFrame If should set RenderItem.renderInFrame
+     * @param renderInFrame If should set RenderItem.renderInFrame and do transformations relative to it
      */
     public void renderStack(World world, ItemStack stack, float partialTicks, boolean halfSize, boolean renderInFrame) {
         if (stack != null) {
@@ -126,6 +127,9 @@ public class TESRPlacedItems extends TileEntitySpecialRenderer {
 
             if (halfSize || isRenderBlock) {
                 GL11.glScaled(0.5, 0.5, 0.5);
+                if (isRenderBlock) {
+                    GL11.glScaled(1.0 - 2 * BLOCK_PADDING_PERCENTAGE, 1.0 - 2 * BLOCK_PADDING_PERCENTAGE, 1.0 - 2 * BLOCK_PADDING_PERCENTAGE);
+                }
             }
 
             if (isRenderBlock) {

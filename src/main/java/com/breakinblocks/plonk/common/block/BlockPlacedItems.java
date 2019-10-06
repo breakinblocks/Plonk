@@ -23,9 +23,11 @@ import java.util.Random;
 
 public class BlockPlacedItems extends Block {
 
-    private static final float HEIGHT_PLATE = 1.0f / 32f;
-    private static final float HEIGHT_ITEM = 1.0f / 16f * 1.5f;
-    private static final float HEIGHT_BLOCK = 1.0f / 2f;
+    public static final float HEIGHT_PLATE = 1.0f / 32f;
+    public static final float HEIGHT_ITEM = 1.0f / 16f * 1.5f;
+    public static final float HEIGHT_BLOCK = 1.0f / 2f;
+    public static final float BLOCK_PADDING_PERCENTAGE = 0.0f; // 0.125f for a one pixel padding
+    public static final float BLOCK_PADDING_AMOUNT = HEIGHT_BLOCK * BLOCK_PADDING_PERCENTAGE;
 
     // [number of items 0 to 4][collision index][minX, minZ, maxX, maxZ]
     private static final float[][][] COLLISION_XZ;
@@ -156,7 +158,6 @@ public class BlockPlacedItems extends Block {
         int num = ((TilePlacedItems) world.getTileEntity(x, y, z)).getContentsDisplay().length + 1;
         MovingObjectPosition[] mops = new MovingObjectPosition[num];
 
-
         for (int i = 0; i < num; i++) {
             collisionIndex = i;
             mops[i] = super.collisionRayTrace(world, x, y, z, from, to);
@@ -221,7 +222,8 @@ public class BlockPlacedItems extends Block {
                     ItemStack stack = tile.getStackInSlot(slot);
                     // TODO: Update item nulls
                     if (stack != null) {
-                        ItemUtils.dropItemWithinBlock(world, x, y, z, stack);
+                        //ItemUtils.dropItemWithinBlock(world, x, y, z, stack);
+                        ItemUtils.dropItemOnEntity(player, stack);
                         tile.setInventorySlotContents(slot, null);
                         tile.markDirty();
                         tile.clean();
@@ -272,11 +274,20 @@ public class BlockPlacedItems extends Block {
                         minX = minZ = 0.0f;
                         maxX = maxZ = 1.0f;
                     }
-                    maxY = isBlock ? HEIGHT_BLOCK : HEIGHT_ITEM;
+
+                    if (isBlock) {
+                        maxY = HEIGHT_BLOCK - 2f * BLOCK_PADDING_AMOUNT;
+                        // Padding sides of block
+                        minX += BLOCK_PADDING_AMOUNT;
+                        minZ += BLOCK_PADDING_AMOUNT;
+                        maxX -= BLOCK_PADDING_AMOUNT;
+                        maxZ -= BLOCK_PADDING_AMOUNT;
+                    } else {
+                        maxY = HEIGHT_ITEM;
+                    }
                 }
             }
         }
-
 
         // Rotate to match side
         switch (meta) {

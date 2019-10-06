@@ -1,6 +1,7 @@
 package com.breakinblocks.plonk.common.util;
 
 import net.minecraft.block.BlockChest;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
@@ -42,6 +43,30 @@ public class ItemUtils {
             entityItem.getEntityItem().setTagCompound((NBTTagCompound) stack.getTagCompound().copy());
         }
         world.spawnEntityInWorld(entityItem);
+        return entityItem;
+    }
+
+    /**
+     * Drop item on an entity
+     *
+     * @param entity Target entity
+     * @param stack  Stack to drop
+     * @return Resulting item entity if it was spawned
+     */
+    public static EntityItem dropItemOnEntity(EntityLivingBase entity, ItemStack stack) {
+        // TODO: Update item nulls
+        if (stack == null || stack.stackSize <= 0) return null;
+        double x = entity.posX;
+        double y = entity.posY;
+        double z = entity.posZ;
+        EntityItem entityItem = new EntityItem(entity.worldObj, x, y, z, stack.copy());
+
+        if (stack.hasTagCompound()) {
+            entityItem.getEntityItem().setTagCompound((NBTTagCompound) stack.getTagCompound().copy());
+        }
+
+        entity.worldObj.spawnEntityInWorld(entityItem);
+
         return entityItem;
     }
 
