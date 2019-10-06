@@ -9,7 +9,7 @@
   "updateUrl": "",
   "authorList": ["BlueAgent"],
   "credits": "Mojang for Minecraft. Forge for the modding framework. Draconic Evolution for the idea.",
-  "logoFile": "",
+  "logoFile": "assets/plonk/logo.png",
   "screenshots": [],
   "dependencies": []
 }
