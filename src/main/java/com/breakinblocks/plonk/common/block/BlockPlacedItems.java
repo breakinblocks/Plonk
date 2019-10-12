@@ -4,6 +4,7 @@ import com.breakinblocks.plonk.common.registry.RegistryMaterials;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
 import com.breakinblocks.plonk.common.util.EntityUtils;
 import com.breakinblocks.plonk.common.util.ItemUtils;
+import com.breakinblocks.plonk.common.util.bound.Box;
 import net.minecraft.block.Block;
 import net.minecraft.client.multiplayer.PlayerControllerMP;
 import net.minecraft.entity.EntityLivingBase;
@@ -289,69 +290,30 @@ public class BlockPlacedItems extends Block {
             }
         }
 
+        Box box = new Box(minX, minY, minZ, maxX, maxY, maxZ);
+
         // Rotate to match side
         switch (meta) {
             case 0: // DOWN
-                this.setBlockBounds(
-                        minX,
-                        minY,
-                        minZ,
-                        maxX,
-                        maxY,
-                        maxZ
-                );
                 break;
             case 1: // UP
-                this.setBlockBounds(
-                        1.0f - maxX,
-                        1.0f - maxY,
-                        minZ,
-                        1.0f - minX,
-                        1.0f - minY,
-                        maxZ
-                );
+                box = box.rotateX180().rotateY180();
                 break;
             case 2: // NORTH
-                this.setBlockBounds(
-                        minX,
-                        1.0f - maxZ,
-                        minY,
-                        maxX,
-                        1.0f - minZ,
-                        maxY
-                );
+                box = box.rotateX90();
                 break;
             case 3: // SOUTH
-                this.setBlockBounds(
-                        1.0f - maxX,
-                        1.0f - maxZ,
-                        1.0f - maxY,
-                        1.0f - minX,
-                        1.0f - minZ,
-                        1.0f - minY
-                );
+                box = box.rotateX90().rotateY180();
                 break;
             case 4: // WEST
-                this.setBlockBounds(
-                        minY,
-                        1.0f - maxZ,
-                        1.0f - maxX,
-                        maxY,
-                        1.0f - minZ,
-                        1.0f - minX
-                );
+                box = box.rotateX90().rotateY90();
                 break;
             case 5: // EAST
-                this.setBlockBounds(
-                        1.0f - maxY,
-                        1.0f - maxZ,
-                        minX,
-                        1.0f - minY,
-                        1.0f - minZ,
-                        maxX
-                );
+                box = box.rotateX90().rotateY270();
                 break;
         }
+
+        box.setBlockBounds(this);
     }
 
     @Override
