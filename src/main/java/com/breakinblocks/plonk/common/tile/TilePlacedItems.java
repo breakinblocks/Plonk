@@ -157,7 +157,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
     }
 
     private void updateContentsBoxes(int count) {
-        BoxCollection.Builder builder = new BoxCollection.Builder(true, true);
+        BoxCollection.Builder builder = new BoxCollection.Builder(false, true);
 
         switch (count) {
             case 1:
@@ -253,9 +253,6 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
 
     @Override
     public void markDirty() {
-        // TODO: Find out what is required.. LOL
-        //this.worldObj.setBlockMetadataWithNotify(this.xCoord, this.yCoord, this.zCoord, this.getBlockMetadata(), 2);
-        //this.worldObj.markAndNotifyBlock(this.xCoord, this.yCoord, this.zCoord, this.worldObj.getChunkFromBlockCoords(this.xCoord, this.zCoord), this.getBlockType(), this.getBlockType(), 2);
         this.worldObj.markBlockForUpdate(this.xCoord, this.yCoord, this.zCoord);
         super.markDirty();
     }

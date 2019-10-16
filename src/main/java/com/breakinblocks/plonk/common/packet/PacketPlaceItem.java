@@ -66,9 +66,6 @@ public class PacketPlaceItem extends PacketBase<PacketPlaceItem> {
         World world = player.getEntityWorld();
         ItemStack toPlace = new ItemStack(RegistryItems.placed_items, 1);
         toPlace.setTagInfo(TilePlacedItems.TAG_IS_BLOCK, new NBTTagInt(isBlock ? 1 : 0));
-        if (!toPlace.tryPlaceItemIntoWorld(player, world, x, y, z, side, hitX, hitY, hitZ)) {
-            // TODO: Find out if this is the proper way to do this...
-            //ctx.getServerHandler().netManager.scheduleOutboundPacket(new S23PacketBlockChange(x, y, z, world));
-        }
+        toPlace.tryPlaceItemIntoWorld(player, world, x, y, z, side, hitX, hitY, hitZ);
     }
 }

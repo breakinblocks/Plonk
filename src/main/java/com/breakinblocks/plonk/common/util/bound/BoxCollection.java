@@ -19,8 +19,8 @@ public class BoxCollection {
     private final ArrayList<Entry> collisionBoxes;
     private final ArrayList<Entry> selectionBoxes;
     private final Box renderBox;
-    public Entry collisionLastEntry = null;
-    public AxisAlignedBB collisionLastAABB = null;
+    public Entry selectionLastEntry = null;
+    public AxisAlignedBB selectionLastAABB = null;
     private Entry boundsEntry = null;
 
     private BoxCollection(ArrayList<Entry> boxes) {
@@ -70,8 +70,7 @@ public class BoxCollection {
      * Return the last non-colliding + colliding bounding box
      */
     public AxisAlignedBB getSelectedBoundingBoxFromPool() {
-        // TODO: Implement separate selection bounding box
-        return collisionLastAABB;
+        return selectionLastAABB;
     }
 
     public MovingObjectPosition collisionRayTrace(Block block, ICollisionRayTrace collisionRayTrace, World world, int x, int y, int z, Vec3 from, Vec3 to) {
@@ -99,11 +98,11 @@ public class BoxCollection {
         }
 
         if (nearestMopIndex >= 0) {
-            collisionLastEntry = boxes.get(nearestMopIndex);
-            collisionLastAABB = collisionLastEntry.box.toAABB().getOffsetBoundingBox(x, y, z);
+            selectionLastEntry = boxes.get(nearestMopIndex);
+            selectionLastAABB = selectionLastEntry.box.toAABB().getOffsetBoundingBox(x, y, z);
         } else {
-            collisionLastEntry = null;
-            collisionLastAABB = null;
+            selectionLastEntry = null;
+            selectionLastAABB = null;
         }
         return nearestMopIndex < 0 ? null : mops[nearestMopIndex];
     }
