@@ -27,9 +27,10 @@ public class ItemBlockPlacedItems extends ItemBlock {
         ItemStack remainder = tile.insertStack(heldItem, isBlock);
         tile.markDirty();
         tile.clean();
-        // If inserted some items then return true after updating the held item
         if (remainder != heldItem) {
-            player.inventory.setInventorySlotContents(player.inventory.currentItem, remainder);
+            if (!player.worldObj.isRemote) {
+                player.inventory.setInventorySlotContents(player.inventory.currentItem, remainder);
+            }
             return true;
         }
         return false;

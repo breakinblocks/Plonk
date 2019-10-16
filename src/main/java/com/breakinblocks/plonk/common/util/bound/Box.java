@@ -8,6 +8,8 @@ import net.minecraft.util.AxisAlignedBB;
  */
 public class Box {
 
+    public static final Box BLOCK_BOX = new Box(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
+
     public final double minX;
     public final double minY;
     public final double minZ;
@@ -234,6 +236,42 @@ public class Box {
                 this.maxY,
                 1.0 - this.minX,
                 this.maxZ
+        );
+    }
+
+    /**
+     * Translates the whole bounding box by the given coordinates
+     *
+     * @param dx change in x
+     * @param dy change in y
+     * @param dz change in z
+     * @return translated box
+     */
+    public Box translate(double dx, double dy, double dz) {
+        return new Box(
+                this.minX + dx,
+                this.minY + dy,
+                this.minZ + dz,
+                this.maxX + dx,
+                this.maxY + dy,
+                this.maxZ + dz
+        );
+    }
+
+    /**
+     * Gets the box that encloses both the boxes
+     *
+     * @param o other box
+     * @return enclosing box
+     */
+    public Box enclosing(Box o) {
+        return new Box(
+                Math.min(this.minX, o.minX),
+                Math.min(this.minY, o.minY),
+                Math.min(this.minZ, o.minZ),
+                Math.max(this.maxX, o.maxX),
+                Math.max(this.maxY, o.maxY),
+                Math.max(this.maxZ, o.maxZ)
         );
     }
 }

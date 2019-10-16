@@ -1,6 +1,10 @@
 package com.breakinblocks.plonk.common.tile;
 
 import com.breakinblocks.plonk.common.util.ItemUtils;
+import com.breakinblocks.plonk.common.util.bound.Box;
+import com.breakinblocks.plonk.common.util.bound.BoxCollection;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
@@ -10,10 +14,44 @@ import net.minecraft.network.NetworkManager;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.AxisAlignedBB;
 
 import java.util.Arrays;
 
 public class TilePlacedItems extends TileEntity implements ISidedInventory {
+
+    public static final float HEIGHT_PLATE = 1.0f / 32f;
+    public static final float HEIGHT_ITEM = 1.0f / 16f * 1.5f;
+    public static final float HEIGHT_BLOCK = 1.0f / 2f;
+    public static final float BLOCK_PADDING_PERCENTAGE = 0.0f; // 0.125f for a one pixel padding
+    public static final float BLOCK_PADDING_AMOUNT = HEIGHT_BLOCK * BLOCK_PADDING_PERCENTAGE;
+    // Box placed in the centre
+    public static final Box BOX_BLOCK = new Box(
+            0.5 - HEIGHT_BLOCK / 2 + BLOCK_PADDING_AMOUNT,
+            0.0,
+            0.5 - HEIGHT_BLOCK / 2 + BLOCK_PADDING_AMOUNT,
+            0.5 + HEIGHT_BLOCK / 2 - BLOCK_PADDING_AMOUNT,
+            HEIGHT_BLOCK - BLOCK_PADDING_AMOUNT * 2,
+            0.5 + HEIGHT_BLOCK / 2 - BLOCK_PADDING_AMOUNT
+    );
+
+    public static final Box BOX_ITEM_ONE = new Box(
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            HEIGHT_ITEM,
+            1.0
+    );
+
+    public static final Box BOX_ITEM_MANY = new Box(
+            0.25,
+            0.0,
+            0.25,
+            0.75,
+            HEIGHT_ITEM,
+            0.75
+    );
 
     public static final String TAG_ITEMS = "Items";
     public static final String TAG_SLOT = "Slot";
@@ -22,6 +60,9 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
     private ItemStack[] contents = new ItemStack[this.getSizeInventory()];
     private boolean[] contentsIsBlock = new boolean[this.getSizeInventory()];
     private ItemStack[] contentsDisplay = new ItemStack[0];
+    private BoxCollection contentsBoxes = new BoxCollection.Builder()
+            .addBox(0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0)
+            .build();
     boolean needsCleaning = true;
 
     public TilePlacedItems() {
@@ -97,7 +138,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
     }
 
     /**
-     * Update the array used for display and rendering
+     * Update the array used for display and rendering and the hit boxes
      * @return size of the array
      */
     private int updateContentsDisplay() {
@@ -109,7 +150,57 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
             }
         }
         contentsDisplay = Arrays.copyOf(contents, count);
+
+        updateContentsBoxes(count);
+
         return count;
+    }
+
+    private void updateContentsBoxes(int count) {
+        BoxCollection.Builder builder = new BoxCollection.Builder(true, true);
+
+        switch (count) {
+            case 1:
+                builder.addBox(1, contentsIsBlock[0] ? BOX_BLOCK : BOX_ITEM_ONE);
+                break;
+            case 2:
+                builder.addBox(1, (contentsIsBlock[0] ? BOX_BLOCK : BOX_ITEM_MANY).translate(-0.25, 0, 0));
+                builder.addBox(2, (contentsIsBlock[1] ? BOX_BLOCK : BOX_ITEM_MANY).translate(0.25, 0, 0));
+                break;
+            case 4:
+                builder.addBox(4, (contentsIsBlock[3] ? BOX_BLOCK : BOX_ITEM_MANY).translate(0.25, 0, 0.25));
+            case 3:
+                builder.addBox(1, (contentsIsBlock[0] ? BOX_BLOCK : BOX_ITEM_MANY).translate(-0.25, 0, -0.25));
+                builder.addBox(2, (contentsIsBlock[1] ? BOX_BLOCK : BOX_ITEM_MANY).translate(0.25, 0, -0.25));
+                builder.addBox(3, (contentsIsBlock[2] ? BOX_BLOCK : BOX_ITEM_MANY).translate(-0.25, 0, 0.25));
+                break;
+            default:
+                builder.addBox(0, 0.0, 0.0, 0.0, 1.0, HEIGHT_PLATE, 1.0);
+        }
+
+        int meta = this.hasWorldObj() ? this.getBlockMetadata() : 0;
+
+        switch (meta) {
+            case 0: // DOWN
+                break;
+            case 1: // UP
+                builder.apply(box -> box.rotateZ180());
+                break;
+            case 2: // NORTH
+                builder.apply(box -> box.rotateX90());
+                break;
+            case 3: // SOUTH
+                builder.apply(box -> box.rotateX90().rotateY180());
+                break;
+            case 4: // WEST
+                builder.apply(box -> box.rotateX90().rotateY90());
+                break;
+            case 5: // EAST
+                builder.apply(box -> box.rotateX90().rotateY270());
+                break;
+        }
+
+        contentsBoxes = builder.build();
     }
 
     @Override
@@ -129,7 +220,6 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
                 this.contentsIsBlock[slot] = isBlock;
             }
         }
-        updateContentsDisplay();
     }
 
     @Override
@@ -180,6 +270,16 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
     @Override
     public void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity pkt) {
         this.readFromNBT(pkt.func_148857_g());
+        updateContentsDisplay();
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public AxisAlignedBB getRenderBoundingBox() {
+        // TODO: This doesn't work properly for custom item renders... since they can go outside the normal bounds
+        // TODO: Maybe find out a way to get the render bounding boxes for each of the items??? Bit worse fps for now...
+        //return this.contentsBoxes.getRenderBoundingBox(this);
+        return TileEntity.INFINITE_EXTENT_AABB;
     }
 
     @Override
@@ -288,6 +388,10 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
 
     public boolean[] getContentsIsBlock() {
         return contentsIsBlock;
+    }
+
+    public BoxCollection getContentsBoxes() {
+        return contentsBoxes;
     }
 
     /**

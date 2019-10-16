@@ -15,12 +15,15 @@ import net.minecraftforge.client.IItemRenderer;
 import net.minecraftforge.client.MinecraftForgeClient;
 import org.lwjgl.opengl.GL11;
 
-import static com.breakinblocks.plonk.common.block.BlockPlacedItems.BLOCK_PADDING_PERCENTAGE;
+import static com.breakinblocks.plonk.common.tile.TilePlacedItems.BLOCK_PADDING_PERCENTAGE;
 import static net.minecraftforge.client.IItemRenderer.ItemRenderType.ENTITY;
 import static net.minecraftforge.client.IItemRenderer.ItemRendererHelper.BLOCK_3D;
 
 public class TESRPlacedItems extends TileEntitySpecialRenderer {
     private final RenderBlocks renderBlocks = new RenderBlocks();
+
+    public TESRPlacedItems() {
+    }
 
     public static boolean isGoingToRenderAsBlock(ItemStack itemstack) {
         IItemRenderer customRenderer = MinecraftForgeClient.getItemRenderer(itemstack, ENTITY);
