@@ -1,4 +1,4 @@
-## [NEXT] - YYYY-MM-DD
+## [0.0.3] - 2019-12-07
 - Modularized bounding boxes (should have no visible change)
 - Made item insertion and inventory updating server-side only
 
