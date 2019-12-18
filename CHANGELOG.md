@@ -1,3 +1,7 @@
+## [NEXT] - YYYY-MM-DD
+- Updated to 1.12.2
+- Known Bug: No sounds when placing stuff
+
 ## [0.0.3] - 2019-12-07
 - Modularized bounding boxes (should have no visible change)
 - Made item insertion and inventory updating server-side only

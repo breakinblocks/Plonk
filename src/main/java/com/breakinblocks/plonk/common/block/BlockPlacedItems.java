@@ -5,6 +5,7 @@ import com.breakinblocks.plonk.common.tile.TilePlacedItems;
 import com.breakinblocks.plonk.common.util.EntityUtils;
 import com.breakinblocks.plonk.common.util.ItemUtils;
 import net.minecraft.block.Block;
+import net.minecraft.block.properties.PropertyDirection;
 import net.minecraft.client.multiplayer.PlayerControllerMP;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -15,8 +16,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.Facing;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
@@ -24,6 +25,8 @@ import java.util.List;
 import java.util.Random;
 
 public class BlockPlacedItems extends Block {
+
+    public static final PropertyDirection FACING;
 
     public BlockPlacedItems() {
         super(RegistryMaterials.placed_items);
@@ -74,7 +77,7 @@ public class BlockPlacedItems extends Block {
     }
 
     @Override
-    public MovingObjectPosition collisionRayTrace(World world, int x, int y, int z, Vec3 from, Vec3 to) {
+    public RayTraceResult collisionRayTrace(World world, int x, int y, int z, Vec3 from, Vec3 to) {
         TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(x, y, z);
         return tile.getContentsBoxes().collisionRayTrace(this, super::collisionRayTrace, world, x, y, z, from, to);
     }
@@ -97,7 +100,7 @@ public class BlockPlacedItems extends Block {
         // Might have issues if player is moving fast or turning their vision fast
         //  since client-side uses interpolated ray traces
         //Vec3 from = player.getPosition(renderPartialTicks);
-        Vec3 from = EntityUtils.getEyePosition(player, renderPartialTicks);
+        Vec3 from = player.getPositionEyes(renderPartialTicks);
         Vec3 look = player.getLook(renderPartialTicks);
         //Vec3 to = Vec3.createVectorHelper(x + hitX, y + hitY, z + hitZ);
         Vec3 to = from.addVector(look.xCoord * reachDistance, look.yCoord * reachDistance, look.zCoord * reachDistance);
@@ -150,7 +153,7 @@ public class BlockPlacedItems extends Block {
     }
 
     @Override
-    public ItemStack getPickBlock(MovingObjectPosition target, World world, int x, int y, int z, EntityPlayer player) {
+    public ItemStack getPickBlock(RayTraceResult target, World world, int x, int y, int z, EntityPlayer player) {
         TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(x, y, z);
         int index = tile.getContentsBoxes().selectionLastEntry.id;
         int slot = index <= 0 ? 0 : index - 1;

@@ -1,7 +1,7 @@
 package com.breakinblocks.plonk.common.util.bound;
 
 import net.minecraft.block.Block;
-import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.math.AxisAlignedBB;
 
 /**
  * Class for manipulating a box within the bounds of a block
@@ -51,7 +51,7 @@ public class Box {
      * @return Minecraft AABB
      */
     public AxisAlignedBB toAABB() {
-        return AxisAlignedBB.getBoundingBox(
+        return new AxisAlignedBB(
                 this.minX,
                 this.minY,
                 this.minZ,

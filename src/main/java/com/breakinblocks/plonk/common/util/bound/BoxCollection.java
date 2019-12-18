@@ -3,9 +3,8 @@ package com.breakinblocks.plonk.common.util.bound;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
@@ -73,9 +72,9 @@ public class BoxCollection {
         return selectionLastAABB;
     }
 
-    public MovingObjectPosition collisionRayTrace(Block block, ICollisionRayTrace collisionRayTrace, World world, int x, int y, int z, Vec3 from, Vec3 to) {
+    public RayTraceResult collisionRayTrace(Block block, ICollisionRayTrace collisionRayTrace, World world, int x, int y, int z, Vec3 from, Vec3 to) {
         int num = this.boxes.size();
-        MovingObjectPosition[] mops = new MovingObjectPosition[num];
+        RayTraceResult[] mops = new RayTraceResult[num];
 
         for (int i = 0; i < num; i++) {
             boundsEntry = boxes.get(i);
@@ -88,7 +87,7 @@ public class BoxCollection {
         double minDistSq = Double.POSITIVE_INFINITY;
 
         for (int i = 0; i < num; i++) {
-            MovingObjectPosition mop = mops[i];
+            RayTraceResult mop = mops[i];
             if (mop == null) continue;
             double distSq = mop.hitVec.squareDistanceTo(from);
             if (distSq < minDistSq) {
@@ -117,7 +116,7 @@ public class BoxCollection {
 
     @FunctionalInterface
     public interface ICollisionRayTrace {
-        MovingObjectPosition apply(World world, int x, int y, int z, Vec3 from, Vec3 to);
+        RayTraceResult apply(World world, int x, int y, int z, Vec3 from, Vec3 to);
     }
 
     @FunctionalInterface

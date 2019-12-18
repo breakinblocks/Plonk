@@ -2,8 +2,9 @@ package com.breakinblocks.plonk.common.registry;
 
 import com.breakinblocks.plonk.Plonk;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
-import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.fml.common.registry.GameRegistry;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -19,9 +20,9 @@ public class RegistryTileEntities {
                         Class<?> clazz = (Class<?>) f.get(null);
                         if (TileEntity.class.isAssignableFrom(clazz)) {
                             Class<TileEntity> tileClass = (Class<TileEntity>) clazz;
-                            String name = f.getName();
-                            Plonk.LOG.info("Registering TileEntity: " + name);
-                            GameRegistry.registerTileEntity(tileClass, name);
+                            ResourceLocation r = new ResourceLocation(Plonk.MOD_ID, f.getName());
+                            Plonk.LOG.info("Registering TileEntity: " + r);
+                            GameRegistry.registerTileEntity(tileClass, r);
                         }
                     }
                 }

@@ -2,7 +2,7 @@ package com.breakinblocks.plonk.client;
 
 import com.breakinblocks.plonk.client.registry.RegistryTESRs;
 import com.breakinblocks.plonk.common.CommonProxy;
-import cpw.mods.fml.common.event.FMLInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 
 public class ClientProxy extends CommonProxy {
 
