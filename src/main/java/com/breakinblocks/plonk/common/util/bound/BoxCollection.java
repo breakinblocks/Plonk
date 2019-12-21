@@ -1,10 +1,13 @@
 package com.breakinblocks.plonk.common.util.bound;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
@@ -62,7 +65,7 @@ public class BoxCollection {
     }
 
     public AxisAlignedBB getRenderBoundingBox(TileEntity tile) {
-        return renderBox.toAABB().offset(tile.xCoord, tile.yCoord, tile.zCoord);
+        return renderBox.toAABB().offset(tile.getPos());
     }
 
     /**
@@ -72,13 +75,13 @@ public class BoxCollection {
         return selectionLastAABB;
     }
 
-    public RayTraceResult collisionRayTrace(Block block, ICollisionRayTrace collisionRayTrace, World world, int x, int y, int z, Vec3 from, Vec3 to) {
+    public RayTraceResult collisionRayTrace(Block block, ICollisionRayTrace collisionRayTrace, IBlockState blockState, World worldIn, BlockPos pos, Vec3d start, Vec3d end) {
         int num = this.boxes.size();
         RayTraceResult[] mops = new RayTraceResult[num];
 
         for (int i = 0; i < num; i++) {
             boundsEntry = boxes.get(i);
-            mops[i] = collisionRayTrace.apply(world, x, y, z, from, to);
+            mops[i] = collisionRayTrace.apply(blockState, worldIn, pos, start, end);
         }
         boundsEntry = null;
 
@@ -89,7 +92,7 @@ public class BoxCollection {
         for (int i = 0; i < num; i++) {
             RayTraceResult mop = mops[i];
             if (mop == null) continue;
-            double distSq = mop.hitVec.squareDistanceTo(from);
+            double distSq = mop.hitVec.squareDistanceTo(start);
             if (distSq < minDistSq) {
                 minDistSq = distSq;
                 nearestMopIndex = i;
@@ -98,7 +101,7 @@ public class BoxCollection {
 
         if (nearestMopIndex >= 0) {
             selectionLastEntry = boxes.get(nearestMopIndex);
-            selectionLastAABB = selectionLastEntry.box.toAABB().getOffsetBoundingBox(x, y, z);
+            selectionLastAABB = selectionLastEntry.box.toAABB().offset(pos);
         } else {
             selectionLastEntry = null;
             selectionLastAABB = null;
@@ -116,7 +119,7 @@ public class BoxCollection {
 
     @FunctionalInterface
     public interface ICollisionRayTrace {
-        RayTraceResult apply(World world, int x, int y, int z, Vec3 from, Vec3 to);
+        RayTraceResult apply(IBlockState blockState, World worldIn, BlockPos pos, net.minecraft.util.math.Vec3d start, Vec3d end);
     }
 
     @FunctionalInterface

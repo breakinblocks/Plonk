@@ -5,26 +5,40 @@ import com.breakinblocks.plonk.common.tile.TilePlacedItems;
 import com.breakinblocks.plonk.common.util.EntityUtils;
 import com.breakinblocks.plonk.common.util.ItemUtils;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockChest;
+import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.properties.PropertyDirection;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.multiplayer.PlayerControllerMP;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.init.Items;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.Facing;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Random;
 
-public class BlockPlacedItems extends Block {
+public class BlockPlacedItems extends Block implements ITileEntityProvider {
 
     public static final PropertyDirection FACING;
 
@@ -43,43 +57,50 @@ public class BlockPlacedItems extends Block {
         TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(x, y, z);
         tile.getContentsBoxes().addCollisionBoxesToList(this, super::addCollisionBoxesToList, world, x, y, z, collider, collisions, entity);
     }
-
     @Override
-    public AxisAlignedBB getSelectedBoundingBoxFromPool(World world, int x, int y, int z) {
-        TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(x, y, z);
-        return tile == null ? null : tile.getContentsBoxes().getSelectedBoundingBoxFromPool();
+    protected void addCollisionBoxToList(BlockPos pos, AxisAlignedBB entityBox, List<AxisAlignedBB> collidingBoxes, @Nullable AxisAlignedBB blockBox) {
+        // TODO: Implement
     }
 
     @Override
-    public boolean isOpaqueCube() {
+    @SideOnly(Side.CLIENT)
+    @SuppressWarnings("deprecation")
+    public AxisAlignedBB getSelectedBoundingBox(IBlockState state, World worldIn, BlockPos pos) {
+        TilePlacedItems tile = (TilePlacedItems) worldIn.getTileEntity(pos);
+        return tile.getContentsBoxes().getSelectedBoundingBoxFromPool();
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public boolean isOpaqueCube(IBlockState state) {
         return false;
     }
 
+    /**
+     * @see BlockChest#breakBlock(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.block.state.IBlockState)
+     */
     @Override
-    public void breakBlock(World world, int x, int y, int z, Block block, int meta) {
-        TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(x, y, z);
-        if (tile != null) {
-            for (int slot = 0; slot < tile.getSizeInventory(); slot++) {
-                ItemStack stack = tile.getStackInSlot(slot);
-                // TODO: Update item nulls
-                if (stack != null) {
-                    ItemUtils.dropItemWithinBlock(world, x, y, z, stack);
-                    tile.setInventorySlotContents(slot, null);
-                }
-            }
+    public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
+        TileEntity tileentity = worldIn.getTileEntity(pos);
+
+        if (tileentity instanceof IInventory) {
+            InventoryHelper.dropInventoryItems(worldIn, pos, (IInventory)tileentity);
+            worldIn.updateComparatorOutputLevel(pos, this);
         }
-        super.breakBlock(world, x, y, z, block, meta);
+
+        super.breakBlock(worldIn, pos, state);
     }
 
     @Override
-    public Item getItemDropped(int meta, Random rand, int fortune) {
-        return null;
+    public Item getItemDropped(IBlockState state, Random rand, int fortune) {
+        return Items.AIR;
     }
 
     @Override
-    public RayTraceResult collisionRayTrace(World world, int x, int y, int z, Vec3 from, Vec3 to) {
-        TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(x, y, z);
-        return tile.getContentsBoxes().collisionRayTrace(this, super::collisionRayTrace, world, x, y, z, from, to);
+    @SuppressWarnings("deprecation")
+    public RayTraceResult collisionRayTrace(IBlockState blockState, World worldIn, BlockPos pos, Vec3d start, Vec3d end) {
+        TilePlacedItems tile = (TilePlacedItems) worldIn.getTileEntity(pos);
+        return tile.getContentsBoxes().collisionRayTrace(this, super::collisionRayTrace, blockState, worldIn, pos, start, end);
     }
 
     /**
@@ -89,30 +110,29 @@ public class BlockPlacedItems extends Block {
      * @see PlayerControllerMP#getBlockReachDistance()
      */
     @Override
-    public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int meta, float hitX, float hitY, float hitZ) {
-        if (world.isRemote) return true;
+    public boolean onBlockActivated(World worldId, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+        if (worldId.isRemote) return true;
         // Should be EntityPlayerMP at this point
-        EntityPlayerMP playerMP = (EntityPlayerMP) player;
+        EntityPlayerMP player = (EntityPlayerMP) playerIn;
 
-        double reachDistance = playerMP.theItemInWorldManager.getBlockReachDistance();
-        float renderPartialTicks = 0.0f;
+        double blockReachDistance = player.getEntityAttribute(EntityPlayer.REACH_DISTANCE).getAttributeValue();
+        float partialTicks = 0.0f;
 
         // Might have issues if player is moving fast or turning their vision fast
         //  since client-side uses interpolated ray traces
-        //Vec3 from = player.getPosition(renderPartialTicks);
-        Vec3 from = player.getPositionEyes(renderPartialTicks);
-        Vec3 look = player.getLook(renderPartialTicks);
-        //Vec3 to = Vec3.createVectorHelper(x + hitX, y + hitY, z + hitZ);
-        Vec3 to = from.addVector(look.xCoord * reachDistance, look.yCoord * reachDistance, look.zCoord * reachDistance);
+        Vec3d from = player.getPositionEyes(partialTicks);
+        Vec3d look = player.getLook(partialTicks);
+        Vec3d to = from.add(look.x * blockReachDistance, look.y * blockReachDistance, look.z * blockReachDistance);
+        //return this.world.rayTraceBlocks(vec3d, vec3d2, false, false, true);
 
-        if (world.func_147447_a(from, to, false, false, true) != null) {
-            TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(x, y, z);
+        if (worldId.rayTraceBlocks(from, to, false, false, true) != null) {
+            TilePlacedItems tile = (TilePlacedItems) worldId.getTileEntity(pos);
             int index = tile.getContentsBoxes().selectionLastEntry.id;
             int slot = index <= 0 ? 0 : index - 1;
             ItemStack stack = tile.getStackInSlot(slot);
             // TODO: Update item nulls
-            if (stack != null) {
-                //ItemUtils.dropItemWithinBlock(world, x, y, z, stack);
+            if (!stack.isEmpty()) {
+                //ItemUtils.dropItemWithinBlock(worldId, x, y, z, stack);
                 ItemUtils.dropItemOnEntity(player, stack);
                 tile.setInventorySlotContents(slot, null);
                 tile.markDirty();
@@ -120,41 +140,17 @@ public class BlockPlacedItems extends Block {
             }
             return true;
         }
-        return super.onBlockActivated(world, x, y, z, player, meta, hitX, hitY, hitZ);
+        return super.onBlockActivated(worldId, pos, state, player, hand, facing, hitX, hitY, hitZ);
     }
 
     @Override
-    public int onBlockPlaced(World world, int x, int y, int z, int side, float hitX, float hitY, float hitZ, int itemMeta) {
-        if (side >= 0 && side < 6) {
-            return Facing.oppositeSide[side];
-        }
-        return super.onBlockPlaced(world, x, y, z, side, hitX, hitY, hitZ, itemMeta);
-    }
-
-    @Override
-    public void setBlockBoundsBasedOnState(IBlockAccess iba, int x, int y, int z) {
-        TilePlacedItems tile = (TilePlacedItems) iba.getTileEntity(x, y, z);
-        tile.getContentsBoxes().setBlockBoundsBasedOnState(this, iba, x, y, z);
-    }
-
-    @Override
-    public void onBlockPlacedBy(World world, int x, int y, int z, EntityLivingBase entity, ItemStack stack) {
-        super.onBlockPlacedBy(world, x, y, z, entity, stack);
-    }
-
-    @Override
-    public boolean hasTileEntity(int metadata) {
-        return true;
-    }
-
-    @Override
-    public TileEntity createTileEntity(World world, int metadata) {
+    public TileEntity createNewTileEntity(World worldIn, int meta) {
         return new TilePlacedItems();
     }
 
     @Override
-    public ItemStack getPickBlock(RayTraceResult target, World world, int x, int y, int z, EntityPlayer player) {
-        TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(x, y, z);
+    public ItemStack getPickBlock(IBlockState state, RayTraceResult target, World world, BlockPos pos, EntityPlayer player) {
+        TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(pos);
         int index = tile.getContentsBoxes().selectionLastEntry.id;
         int slot = index <= 0 ? 0 : index - 1;
         return tile.getStackInSlot(slot);
