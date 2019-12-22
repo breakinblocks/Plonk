@@ -2,10 +2,10 @@ package com.breakinblocks.plonk.common.block;
 
 import com.breakinblocks.plonk.common.registry.RegistryMaterials;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
-import com.breakinblocks.plonk.common.util.EntityUtils;
 import com.breakinblocks.plonk.common.util.ItemUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockChest;
+import net.minecraft.block.BlockDirectional;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.properties.PropertyDirection;
 import net.minecraft.block.state.IBlockState;
@@ -20,27 +20,23 @@ import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
-import net.minecraft.util.Facing;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Random;
 
 public class BlockPlacedItems extends Block implements ITileEntityProvider {
 
-    public static final PropertyDirection FACING;
+    public static final PropertyDirection FACING = BlockDirectional.FACING;
 
     public BlockPlacedItems() {
         super(RegistryMaterials.placed_items);
@@ -48,18 +44,11 @@ public class BlockPlacedItems extends Block implements ITileEntityProvider {
     }
 
     @Override
-    public boolean renderAsNormalBlock() {
-        return false;
-    }
-
-    @Override
-    public void addCollisionBoxesToList(World world, int x, int y, int z, AxisAlignedBB collider, List collisions, Entity entity) {
-        TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(x, y, z);
-        tile.getContentsBoxes().addCollisionBoxesToList(this, super::addCollisionBoxesToList, world, x, y, z, collider, collisions, entity);
-    }
-    @Override
-    protected void addCollisionBoxToList(BlockPos pos, AxisAlignedBB entityBox, List<AxisAlignedBB> collidingBoxes, @Nullable AxisAlignedBB blockBox) {
+    @SuppressWarnings("deprecation")
+    public void addCollisionBoxToList(IBlockState state, World worldIn, BlockPos pos, AxisAlignedBB entityBox, List<AxisAlignedBB> collidingBoxes, @Nullable Entity entityIn, boolean isActualState) {
         // TODO: Implement
+        TilePlacedItems tile = (TilePlacedItems) worldIn.getTileEntity(pos);
+        tile.getContentsBoxes().addCollidingBoxes(pos, entityBox, collidingBoxes);
     }
 
     @Override
@@ -134,7 +123,7 @@ public class BlockPlacedItems extends Block implements ITileEntityProvider {
             if (!stack.isEmpty()) {
                 //ItemUtils.dropItemWithinBlock(worldId, x, y, z, stack);
                 ItemUtils.dropItemOnEntity(player, stack);
-                tile.setInventorySlotContents(slot, null);
+                tile.setInventorySlotContents(slot, ItemStack.EMPTY);
                 tile.markDirty();
                 tile.clean();
             }

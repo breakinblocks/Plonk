@@ -9,11 +9,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.GuiIngame;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagInt;
 import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.World;
@@ -49,6 +47,7 @@ public class ClientEvents {
                         boolean isBlock = TESRPlacedItems.isGoingToRenderAsBlock(held);
                         ItemStack toPlace = new ItemStack(RegistryItems.placed_items, 1);
                         toPlace.setTagInfo(TilePlacedItems.TAG_IS_BLOCK, new NBTTagInt(isBlock ? 1 : 0));
+                        RegistryItems.placed_items.setHeldStack(toPlace, held);
                         if (toPlace.onItemUse(player, world, hit.getBlockPos(), EnumHand.MAIN_HAND, hit.sideHit, hitX, hitY, hitZ) == EnumActionResult.SUCCESS) {
                             Plonk.CHANNEL.sendToServer(new PacketPlaceItem(hit.getBlockPos(), hit.sideHit, hitX, hitY, hitZ, isBlock));
                         }

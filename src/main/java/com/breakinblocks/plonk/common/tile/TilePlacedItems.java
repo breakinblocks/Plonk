@@ -5,21 +5,19 @@ import com.breakinblocks.plonk.common.util.bound.Box;
 import com.breakinblocks.plonk.common.util.bound.BoxCollection;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ISidedInventory;
+import net.minecraft.inventory.ItemStackHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.network.NetworkManager;
-import net.minecraft.network.Packet;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-
-import java.util.Arrays;
-import java.util.stream.Stream;
 
 public class TilePlacedItems extends TileEntity implements ISidedInventory, ITickable {
 
@@ -59,8 +57,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
     public static final String TAG_ITEMS = "Items";
     public static final String TAG_SLOT = "Slot";
     public static final String TAG_IS_BLOCK = "IsBlock";
-
-    private ItemStack[] contents;
+    private NonNullList<ItemStack> contents = NonNullList.withSize(this.getSizeInventory(), ItemStack.EMPTY);
     private boolean[] contentsIsBlock = new boolean[this.getSizeInventory()];
     private ItemStack[] contentsDisplay = new ItemStack[0];
     private BoxCollection contentsBoxes = new BoxCollection.Builder()
@@ -69,8 +66,6 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
     boolean needsCleaning = true;
 
     public TilePlacedItems() {
-        contents = new ItemStack[this.getSizeInventory()];
-        Arrays.fill(contents, ItemStack.EMPTY);
     }
 
     /**
@@ -84,8 +79,8 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
         int first_empty = -1;
         int last_not_empty = -1;
         int count = 0;
-        for (int i = 0; i < contents.length; i++) {
-            if (contents[i] == null) {
+        for (int i = 0; i < contents.size(); i++) {
+            if (contents.get(i).isEmpty()) {
                 if (first_empty == -1) {
                     first_empty = i;
                 }
@@ -123,15 +118,15 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
      */
     private boolean updateContents() {
         boolean changed = false;
-        for (int i = 0; i < contents.length - 1; i++) {
-            if (contents[i].isEmpty()) {
+        for (int i = 0; i < contents.size() - 1; i++) {
+            if (contents.get(i).isEmpty()) {
                 // If the slot is empty, try move any non-empty stacks in front of it to the slot
-                for (int j = i + 1; j < contents.length; j++) {
-                    if (!contents[j].isEmpty()) {
-                        contents[i] = contents[j];
+                for (int j = i + 1; j < contents.size(); j++) {
+                    if (!contents.get(j).isEmpty()) {
+                        contents.set(i, contents.get(j));
                         // Also update the hitbox
                         contentsIsBlock[i] = contentsIsBlock[j];
-                        contents[j] = ItemStack.EMPTY;
+                        contents.set(j, ItemStack.EMPTY);
                         changed = true;
                         break;
                     }
@@ -147,12 +142,12 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
      */
     private int updateContentsDisplay() {
         int count = 0;
-        for (int i = 0; i < contents.length; i++) {
-            if (!contents[i].isEmpty()) {
+        for (int i = 0; i < contents.size(); i++) {
+            if (!contents.get(i).isEmpty()) {
                 count = i + 1;
             }
         }
-        contentsDisplay = Arrays.copyOf(contents, count);
+        contentsDisplay = contents.stream().limit(count).toArray(ItemStack[]::new);
 
         updateContentsBoxes(count);
 
@@ -210,7 +205,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
     public void readFromNBT(NBTTagCompound tag) {
         super.readFromNBT(tag);
         NBTTagList tagItems = tag.getTagList(TAG_ITEMS, 10);
-        this.contents = new ItemStack[this.getSizeInventory()];
+        this.contents = NonNullList.withSize(this.getSizeInventory(), ItemStack.EMPTY);
         this.contentsIsBlock = new boolean[this.getSizeInventory()];
 
         for (int i = 0; i < tagItems.tagCount(); i++) {
@@ -218,8 +213,8 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
             int slot = tagItem.getByte(TAG_SLOT) & 255;
             boolean isBlock = tagItem.getBoolean(TAG_IS_BLOCK);
 
-            if (slot >= 0 && slot < this.contents.length) {
-                this.contents[slot] = new ItemStack(tagItem);
+            if (slot >= 0 && slot < this.contents.size()) {
+                this.contents.set(slot, new ItemStack(tagItem));
                 this.contentsIsBlock[slot] = isBlock;
             }
         }
@@ -230,12 +225,12 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
         super.writeToNBT(tag);
         NBTTagList tagItems = new NBTTagList();
 
-        for (int slot = 0; slot < this.contents.length; slot++) {
-            if (this.contents[slot] != null) {
+        for (int slot = 0; slot < this.contents.size(); slot++) {
+            if (!this.contents.get(slot).isEmpty()) {
                 NBTTagCompound tagItem = new NBTTagCompound();
                 tagItem.setByte(TAG_SLOT, (byte) slot);
                 tagItem.setBoolean(TAG_IS_BLOCK, this.contentsIsBlock[slot]);
-                this.contents[slot].writeToNBT(tagItem);
+                this.contents.get(slot).writeToNBT(tagItem);
                 tagItems.appendTag(tagItem);
             }
         }
@@ -291,44 +286,45 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
     }
 
     @Override
+    public boolean isEmpty() {
+        for (ItemStack stack : this.contents)
+            if (!stack.isEmpty())
+                return false;
+        return true;
+    }
+
+    @Override
     public ItemStack getStackInSlot(int slot) {
-        return contents[slot];
+        return contents.get(slot);
     }
 
     @Override
-    public ItemStack decrStackSize(int slot, int maxAmount) {
-        //TODO: Update null items
-        ItemStack current = contents[slot];
-        if (maxAmount > 0 && current != null && current.getCount() > 0) {
-            int amount = Math.min(current.getCount(), maxAmount);
+    public ItemStack decrStackSize(int index, int count) {
+        ItemStack itemstack = ItemStackHelper.getAndSplit(this.contents, index, count);
 
-            ItemStack extractedStack = current.copy();
-            extractedStack.setCount(amount);
-
-            current.setCount(current.getCount() - amount);
-
-            if (current.getCount() <= 0) {
-                contents[slot] = ItemStack.EMPTY;
-            }
-
+        if (!itemstack.isEmpty()) {
             needsCleaning = true;
-
-            return extractedStack;
+            this.markDirty();
         }
-        return null;
+
+        return itemstack;
     }
 
     @Override
-    public void setInventorySlotContents(int slot, ItemStack stack) {
-        if (stack.isEmpty()) {
-            contents[slot] = ItemStack.EMPTY;
-        } else {
-            if (stack.getCount() > this.getInventoryStackLimit()) {
-                stack.setCount(this.getInventoryStackLimit());
-            }
-            contents[slot] = stack;
+    public ItemStack removeStackFromSlot(int index) {
+        return ItemStackHelper.getAndRemove(this.contents, index);
+    }
+
+    @Override
+    public void setInventorySlotContents(int index, ItemStack stack) {
+        this.contents.set(index, stack);
+
+        if (stack.getCount() > this.getInventoryStackLimit()) {
+            stack.setCount(this.getInventoryStackLimit());
         }
+
         needsCleaning = true;
+        this.markDirty();
     }
 
     @Override

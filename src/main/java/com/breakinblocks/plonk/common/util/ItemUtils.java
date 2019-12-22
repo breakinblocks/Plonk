@@ -1,16 +1,11 @@
 package com.breakinblocks.plonk.common.util;
 
-import net.minecraft.block.BlockChest;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 
 import java.util.ArrayList;
-import java.util.Random;
 
 public class ItemUtils {
     /**
@@ -21,18 +16,13 @@ public class ItemUtils {
      * @return Resulting item entity if it was spawned
      */
     public static EntityItem dropItemOnEntity(EntityLivingBase entity, ItemStack stack) {
-        // TODO: Update item nulls
-        if (stack == null || stack.stackSize <= 0) return null;
+        if (stack.isEmpty()) return null;
         double x = entity.posX;
         double y = entity.posY;
         double z = entity.posZ;
-        EntityItem entityItem = new EntityItem(entity.worldObj, x, y, z, stack.copy());
+        EntityItem entityItem = new EntityItem(entity.world, x, y, z, stack.copy());
 
-        if (stack.hasTagCompound()) {
-            entityItem.getEntityItem().setTagCompound((NBTTagCompound) stack.getTagCompound().copy());
-        }
-
-        entity.worldObj.spawnEntityInWorld(entityItem);
+        entity.world.spawnEntity(entityItem);
 
         return entityItem;
     }
@@ -90,7 +80,7 @@ public class ItemUtils {
      */
     public static InsertStackResult insertStackAdv(IInventory inv, ItemStack stack) {
         //TODO: Update null stacks
-        if (stack == null) return null;
+        if (stack.isEmpty()) return null;
         int stackSizeLimit = Math.min(stack.getMaxStackSize(), inv.getInventoryStackLimit());
         int size = inv.getSizeInventory();
 
@@ -98,27 +88,26 @@ public class ItemUtils {
 
         for (int slot = 0; slot < size; slot++) {
             ItemStack current = inv.getStackInSlot(slot);
-            if (current == null) {
+            if (current.isEmpty()) {
                 current = stack.copy();
-                current.stackSize = 0;
+                current.setCount(0);
             }
 
-            if (current.stackSize < stackSizeLimit && areStacksEqualIgnoringSize(current, stack)) {
-                int total = current.stackSize + stack.stackSize;
+            if (current.getCount() < stackSizeLimit && areStacksEqualIgnoringSize(current, stack)) {
+                int total = current.getCount() + stack.getCount();
 
-                current.stackSize = Math.min(total, stackSizeLimit);
+                current.setCount(Math.min(total, stackSizeLimit));
                 inv.setInventorySlotContents(slot, current);
                 slots.add(slot);
 
-                int remaining = total - current.stackSize;
+                int remaining = total - current.getCount();
                 if (remaining <= 0) {
-                    // TODO: Update null stack
-                    stack = null;
+                    stack = ItemStack.EMPTY;
                     break;
                 }
 
                 stack = stack.copy();
-                stack.stackSize = remaining;
+                stack.setCount(remaining);
             }
         }
         int[] slotsArray = new int[slots.size()];

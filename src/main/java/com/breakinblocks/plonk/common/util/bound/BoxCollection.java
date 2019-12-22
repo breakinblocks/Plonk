@@ -3,12 +3,10 @@ package com.breakinblocks.plonk.common.util.bound;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
 import java.util.ArrayList;
@@ -53,19 +51,19 @@ public class BoxCollection {
 
     // BLOCK METHODS
 
-    public void addCollisionBoxesToList(Block block, IAddCollisionBoxesToList addCollisionBoxesToList, World world, int x, int y, int z, AxisAlignedBB collider, List collisions, Entity entity) {
+    public void addCollidingBoxes(BlockPos pos, AxisAlignedBB entityBox, List<AxisAlignedBB> collidingBoxes) {
         for (Entry entry : collisionBoxes) {
             if (entry.collision) {
-                boundsEntry = entry;
-                block.setBlockBoundsBasedOnState(world, x, y, z);
-                addCollisionBoxesToList.apply(world, x, y, z, collider, collisions, entity);
+                AxisAlignedBB blockBox = entry.box.toAABB().offset(pos);
+                if (blockBox.intersects(entityBox)) {
+                    collidingBoxes.add(blockBox);
+                }
             }
         }
-        boundsEntry = null;
     }
 
-    public AxisAlignedBB getRenderBoundingBox(TileEntity tile) {
-        return renderBox.toAABB().offset(tile.getPos());
+    public AxisAlignedBB getRenderBoundingBox(BlockPos offset) {
+        return renderBox.toAABB().offset(offset);
     }
 
     /**
@@ -107,14 +105,6 @@ public class BoxCollection {
             selectionLastAABB = null;
         }
         return nearestMopIndex < 0 ? null : mops[nearestMopIndex];
-    }
-
-    public void setBlockBoundsBasedOnState(Block block, IBlockAccess iba, int x, int y, int z) {
-        if (boundsEntry != null) {
-            boundsEntry.box.setBlockBounds(block);
-        } else {
-            block.setBlockBounds(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-        }
     }
 
     @FunctionalInterface

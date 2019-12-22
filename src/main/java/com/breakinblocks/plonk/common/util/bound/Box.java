@@ -1,6 +1,5 @@
 package com.breakinblocks.plonk.common.util.bound;
 
-import net.minecraft.block.Block;
 import net.minecraft.util.math.AxisAlignedBB;
 
 /**
@@ -58,22 +57,6 @@ public class Box {
                 this.maxX,
                 this.maxY,
                 this.maxZ
-        );
-    }
-
-    /**
-     * Set block bounds to match this
-     *
-     * @param block to update
-     */
-    public void setBlockBounds(Block block) {
-        block.setBlockBounds(
-                (float) this.minX,
-                (float) this.minY,
-                (float) this.minZ,
-                (float) this.maxX,
-                (float) this.maxY,
-                (float) this.maxZ
         );
     }
 
