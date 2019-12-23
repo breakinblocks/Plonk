@@ -11,8 +11,8 @@ public class EntityUtils {
      * @param entity             target
      * @param renderPartialTicks fractional tick
      * @return position of eye
-     * @deprecated
      * @see Entity#getPositionEyes(float)
+     * @deprecated
      */
     public static Vec3d getEyePosition(EntityLivingBase entity, float renderPartialTicks) {
         return entity.getPositionEyes(renderPartialTicks);

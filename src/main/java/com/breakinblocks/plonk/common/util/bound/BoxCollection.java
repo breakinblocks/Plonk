@@ -107,9 +107,15 @@ public class BoxCollection {
         return nearestMopIndex < 0 ? null : mops[nearestMopIndex];
     }
 
+    public AxisAlignedBB getBoundingBox(BlockPos pos) {
+        if (boundsEntry != null)
+            return boundsEntry.box.toAABB();
+        return renderBox.toAABB();
+    }
+
     @FunctionalInterface
     public interface ICollisionRayTrace {
-        RayTraceResult apply(IBlockState blockState, World worldIn, BlockPos pos, net.minecraft.util.math.Vec3d start, Vec3d end);
+        RayTraceResult apply(IBlockState blockState, World worldIn, BlockPos pos, Vec3d start, Vec3d end);
     }
 
     @FunctionalInterface

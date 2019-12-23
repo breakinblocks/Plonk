@@ -4,7 +4,6 @@ import com.breakinblocks.plonk.Plonk;
 import com.breakinblocks.plonk.common.item.ItemBlockPlacedItems;
 import net.minecraft.item.Item;
 import net.minecraftforge.event.RegistryEvent;
-import net.minecraftforge.fml.common.registry.GameRegistry;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;

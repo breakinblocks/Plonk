@@ -6,8 +6,8 @@ import com.breakinblocks.plonk.common.util.ItemUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockChest;
 import net.minecraft.block.BlockDirectional;
-import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.properties.PropertyDirection;
+import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.multiplayer.PlayerControllerMP;
 import net.minecraft.entity.Entity;
@@ -20,12 +20,14 @@ import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumBlockRenderType;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -34,19 +36,50 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Random;
 
-public class BlockPlacedItems extends Block implements ITileEntityProvider {
+public class BlockPlacedItems extends Block {
 
     public static final PropertyDirection FACING = BlockDirectional.FACING;
 
     public BlockPlacedItems() {
         super(RegistryMaterials.placed_items);
+        this.setDefaultState(this.blockState.getBaseState().withProperty(FACING, EnumFacing.UP));
         this.setHardness(0.5f);
     }
 
     @Override
     @SuppressWarnings("deprecation")
+    public IBlockState getStateFromMeta(int meta) {
+        return this.getDefaultState().withProperty(FACING, EnumFacing.byIndex(meta & 7));
+    }
+
+    @Override
+    public int getMetaFromState(IBlockState state) {
+        return state.getValue(FACING).getIndex();
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
+        // TODO: Maybe implement rotation?
+        return super.getActualState(state, worldIn, pos);
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public EnumBlockRenderType getRenderType(IBlockState state) {
+        return EnumBlockRenderType.ENTITYBLOCK_ANIMATED;
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
+        TilePlacedItems tile = (TilePlacedItems) source.getTileEntity(pos);
+        return tile != null ? tile.getContentsBoxes().getBoundingBox(pos) : FULL_BLOCK_AABB;
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
     public void addCollisionBoxToList(IBlockState state, World worldIn, BlockPos pos, AxisAlignedBB entityBox, List<AxisAlignedBB> collidingBoxes, @Nullable Entity entityIn, boolean isActualState) {
-        // TODO: Implement
         TilePlacedItems tile = (TilePlacedItems) worldIn.getTileEntity(pos);
         tile.getContentsBoxes().addCollidingBoxes(pos, entityBox, collidingBoxes);
     }
@@ -73,7 +106,7 @@ public class BlockPlacedItems extends Block implements ITileEntityProvider {
         TileEntity tileentity = worldIn.getTileEntity(pos);
 
         if (tileentity instanceof IInventory) {
-            InventoryHelper.dropInventoryItems(worldIn, pos, (IInventory)tileentity);
+            InventoryHelper.dropInventoryItems(worldIn, pos, (IInventory) tileentity);
             worldIn.updateComparatorOutputLevel(pos, this);
         }
 
@@ -133,7 +166,18 @@ public class BlockPlacedItems extends Block implements ITileEntityProvider {
     }
 
     @Override
-    public TileEntity createNewTileEntity(World worldIn, int meta) {
+    protected BlockStateContainer createBlockState() {
+        return new BlockStateContainer(this, FACING);
+    }
+
+    @Override
+    public boolean hasTileEntity(IBlockState state) {
+        return true;
+    }
+
+    @Nullable
+    @Override
+    public TileEntity createTileEntity(World world, IBlockState state) {
         return new TilePlacedItems();
     }
 
@@ -143,5 +187,11 @@ public class BlockPlacedItems extends Block implements ITileEntityProvider {
         int index = tile.getContentsBoxes().selectionLastEntry.id;
         int slot = index <= 0 ? 0 : index - 1;
         return tile.getStackInSlot(slot);
+    }
+
+    @Override
+    public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer, EnumHand hand) {
+        IBlockState state = super.getStateForPlacement(world, pos, facing, hitX, hitY, hitZ, meta, placer, hand);
+        return state.withProperty(FACING, facing);
     }
 }

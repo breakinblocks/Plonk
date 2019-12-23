@@ -35,10 +35,10 @@ public class ItemUtils {
      * @return True if the item, damage and nbt are the same
      */
     public static boolean areStacksEqualIgnoringSize(ItemStack a, ItemStack b) {
-        if (a == null) {
-            return b == null;
+        if (a.isEmpty()) {
+            return b.isEmpty();
         } else {
-            if (b == null) return false;
+            if (b.isEmpty()) return false;
             if (!a.isItemEqual(b)) return false; // checks item and damage but not nbt
             return ItemStack.areItemStackTagsEqual(a, b);
         }
@@ -55,6 +55,46 @@ public class ItemUtils {
         return insertStackAdv(inv, stack).remainder;
     }
 
+    /**
+     * Attempts to insert stack into inventory, returning information object about what happened.
+     *
+     * @param inv   Inventory to insert into
+     * @param stack Stack to insert
+     * @return
+     */
+    public static InsertStackResult insertStackAdv(IInventory inv, ItemStack stack) {
+        if (stack.isEmpty()) return new InsertStackResult(stack, new int[0]);
+        int stackSizeLimit = Math.min(stack.getMaxStackSize(), inv.getInventoryStackLimit());
+        int size = inv.getSizeInventory();
+
+        ArrayList<Integer> slots = new ArrayList<>();
+
+        ItemStack remainder = stack;
+
+        for (int slot = 0; slot < size && !remainder.isEmpty(); slot++) {
+            ItemStack current = inv.getStackInSlot(slot);
+            if (!current.isEmpty() && !areStacksEqualIgnoringSize(current, remainder)) continue;
+            int toTransfer = Math.min(current.getCount() + remainder.getCount(), stackSizeLimit) - current.getCount();
+            if (toTransfer <= 0) continue;
+            if (current.isEmpty()) {
+                current = remainder.copy();
+                current.setCount(toTransfer);
+            } else {
+                current.setCount(current.getCount() + toTransfer);
+            }
+            // Don't modify input stack
+            if (remainder == stack) remainder = stack.copy();
+            remainder.setCount(remainder.getCount() - toTransfer);
+            inv.setInventorySlotContents(slot, current);
+            slots.add(slot);
+        }
+        int[] slotsArray = new int[slots.size()];
+        for (int i = 0; i < slots.size(); i++) {
+            slotsArray[i] = slots.get(i);
+        }
+        return new InsertStackResult(remainder, slotsArray);
+    }
+
     public static class InsertStackResult {
         /**
          * Remaining items if partially inserted, null if fully inserted, original stack if no insertion.
@@ -69,51 +109,5 @@ public class ItemUtils {
             this.remainder = remainder;
             this.slots = slots;
         }
-    }
-
-    /**
-     * Attempts to insert stack into inventory, returning information object about what happened.
-     *
-     * @param inv   Inventory to insert into
-     * @param stack Stack to insert
-     * @return
-     */
-    public static InsertStackResult insertStackAdv(IInventory inv, ItemStack stack) {
-        //TODO: Update null stacks
-        if (stack.isEmpty()) return null;
-        int stackSizeLimit = Math.min(stack.getMaxStackSize(), inv.getInventoryStackLimit());
-        int size = inv.getSizeInventory();
-
-        ArrayList<Integer> slots = new ArrayList<>();
-
-        for (int slot = 0; slot < size; slot++) {
-            ItemStack current = inv.getStackInSlot(slot);
-            if (current.isEmpty()) {
-                current = stack.copy();
-                current.setCount(0);
-            }
-
-            if (current.getCount() < stackSizeLimit && areStacksEqualIgnoringSize(current, stack)) {
-                int total = current.getCount() + stack.getCount();
-
-                current.setCount(Math.min(total, stackSizeLimit));
-                inv.setInventorySlotContents(slot, current);
-                slots.add(slot);
-
-                int remaining = total - current.getCount();
-                if (remaining <= 0) {
-                    stack = ItemStack.EMPTY;
-                    break;
-                }
-
-                stack = stack.copy();
-                stack.setCount(remaining);
-            }
-        }
-        int[] slotsArray = new int[slots.size()];
-        for (int i = 0; i < slots.size(); i++) {
-            slotsArray[i] = slots.get(i);
-        }
-        return new InsertStackResult(stack, slotsArray);
     }
 }

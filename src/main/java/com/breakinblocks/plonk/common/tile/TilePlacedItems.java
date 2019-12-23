@@ -1,8 +1,10 @@
 package com.breakinblocks.plonk.common.tile;
 
+import com.breakinblocks.plonk.common.block.BlockPlacedItems;
 import com.breakinblocks.plonk.common.util.ItemUtils;
 import com.breakinblocks.plonk.common.util.bound.Box;
 import com.breakinblocks.plonk.common.util.bound.BoxCollection;
+import net.minecraft.block.properties.PropertyDirection;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.inventory.ItemStackHelper;
@@ -21,6 +23,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class TilePlacedItems extends TileEntity implements ISidedInventory, ITickable {
 
+    public static final PropertyDirection FACING = BlockPlacedItems.FACING;
     public static final float HEIGHT_PLATE = 1.0f / 32f;
     public static final float HEIGHT_ITEM = 1.0f / 16f * 1.5f;
     public static final float HEIGHT_BLOCK = 1.0f / 2f;
@@ -57,13 +60,13 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
     public static final String TAG_ITEMS = "Items";
     public static final String TAG_SLOT = "Slot";
     public static final String TAG_IS_BLOCK = "IsBlock";
+    boolean needsCleaning = true;
     private NonNullList<ItemStack> contents = NonNullList.withSize(this.getSizeInventory(), ItemStack.EMPTY);
     private boolean[] contentsIsBlock = new boolean[this.getSizeInventory()];
     private ItemStack[] contentsDisplay = new ItemStack[0];
     private BoxCollection contentsBoxes = new BoxCollection.Builder()
             .addBox(0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0)
             .build();
-    boolean needsCleaning = true;
 
     public TilePlacedItems() {
     }
@@ -138,6 +141,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
 
     /**
      * Update the array used for display and rendering and the hit boxes
+     *
      * @return size of the array
      */
     private int updateContentsDisplay() {
@@ -176,24 +180,24 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
                 builder.addBox(0, 0.0, 0.0, 0.0, 1.0, HEIGHT_PLATE, 1.0);
         }
 
-        int meta = this.hasWorld() ? this.getBlockMetadata() : 0;
+        EnumFacing facing = this.getWorld().getBlockState(this.getPos()).getValue(FACING);
 
-        switch (meta) {
-            case 0: // DOWN
+        switch (facing) {
+            case UP: // DOWN
                 break;
-            case 1: // UP
+            case DOWN: // UP
                 builder.apply(box -> box.rotateZ180());
                 break;
-            case 2: // NORTH
+            case SOUTH: // NORTH
                 builder.apply(box -> box.rotateX90());
                 break;
-            case 3: // SOUTH
+            case NORTH: // SOUTH
                 builder.apply(box -> box.rotateX90().rotateY180());
                 break;
-            case 4: // WEST
+            case EAST: // WEST
                 builder.apply(box -> box.rotateX90().rotateY90());
                 break;
-            case 5: // EAST
+            case WEST: // EAST
                 builder.apply(box -> box.rotateX90().rotateY270());
                 break;
         }
@@ -255,19 +259,31 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
     public void markDirty() {
         // TODO work out what this is in 1.12.2
         // this.world.markBlockForUpdate(this.xCoord, this.yCoord, this.zCoord);
+        world.markBlockRangeForRenderUpdate(pos, pos);
+        world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
+        world.scheduleBlockUpdate(pos, this.getBlockType(), 0, 0);
         super.markDirty();
     }
 
     @Override
     public SPacketUpdateTileEntity getUpdatePacket() {
-        NBTTagCompound tag = new NBTTagCompound();
-        this.writeToNBT(tag);
-        return new SPacketUpdateTileEntity(this.pos, 0, tag);
+        return new SPacketUpdateTileEntity(this.pos, 0, this.getUpdateTag());
+    }
+
+    @Override
+    public NBTTagCompound getUpdateTag() {
+        return this.writeToNBT(super.getUpdateTag());
     }
 
     @Override
     public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
-        this.readFromNBT(pkt.getNbtCompound());
+        this.handleUpdateTag(pkt.getNbtCompound());
+    }
+
+    @Override
+    public void handleUpdateTag(NBTTagCompound tag) {
+        super.handleUpdateTag(tag);
+        this.readFromNBT(tag);
         updateContentsDisplay();
     }
 

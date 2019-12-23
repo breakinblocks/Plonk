@@ -1,21 +1,16 @@
 package com.breakinblocks.plonk.common.packet;
 
 import com.breakinblocks.plonk.common.registry.RegistryItems;
-import com.breakinblocks.plonk.common.tile.TilePlacedItems;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagInt;
-import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import net.minecraftforge.fml.relauncher.Side;
-
-import java.io.IOException;
 
 public class PacketPlaceItem extends PacketBase<PacketPlaceItem> {
     private BlockPos pos;
@@ -63,15 +58,17 @@ public class PacketPlaceItem extends PacketBase<PacketPlaceItem> {
     protected void handle(MessageContext ctx) {
         if (ctx.side == Side.CLIENT) throw new RuntimeException("PacketPlaceItem should be server-bound only.");
         EntityPlayerMP player = ctx.getServerHandler().player;
-        World world = player.getEntityWorld();
-        ItemStack toPlace = new ItemStack(RegistryItems.placed_items, 1);
-        ItemStack held = player.getHeldItemMainhand();
-        RegistryItems.placed_items.setHeldStack(toPlace, held);
-        toPlace.setTagInfo(TilePlacedItems.TAG_IS_BLOCK, new NBTTagInt(isBlock ? 1 : 0));
-        player.setHeldItem(EnumHand.MAIN_HAND, toPlace);
-        if (toPlace.onItemUse(player, world, pos, EnumHand.MAIN_HAND, facing, hitX, hitY, hitZ) == EnumActionResult.SUCCESS) {
-
-        }
-        player.setHeldItem(EnumHand.MAIN_HAND, RegistryItems.placed_items.getHeldStack(toPlace));
+        WorldServer world = player.getServerWorld();
+        world.addScheduledTask(() -> {
+            ItemStack toPlace = new ItemStack(RegistryItems.placed_items, 1);
+            ItemStack held = player.getHeldItemMainhand();
+            RegistryItems.placed_items.setHeldStack(toPlace, held, isBlock);
+            player.setHeldItem(EnumHand.MAIN_HAND, toPlace);
+            if (toPlace.onItemUse(player, world, pos, EnumHand.MAIN_HAND, facing, hitX, hitY, hitZ) == EnumActionResult.SUCCESS) {
+                player.setHeldItem(EnumHand.MAIN_HAND, RegistryItems.placed_items.getHeldStack(toPlace));
+            } else {
+                player.setHeldItem(EnumHand.MAIN_HAND, held);
+            }
+        });
     }
 }

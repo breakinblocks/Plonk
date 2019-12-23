@@ -15,9 +15,9 @@ import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.World;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.FMLClientHandler;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
-import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 import org.lwjgl.input.Keyboard;
@@ -26,7 +26,7 @@ public class ClientEvents {
     public static final KeyBinding KEY_PLACE = new KeyBinding("key.plonk.place.desc", Keyboard.KEY_P, "key.plonk.category");
 
     public ClientEvents() {
-        FMLCommonHandler.instance().bus().register(this);
+        MinecraftForge.EVENT_BUS.register(this);
     }
 
     @SubscribeEvent(receiveCanceled = true)
@@ -47,9 +47,14 @@ public class ClientEvents {
                         boolean isBlock = TESRPlacedItems.isGoingToRenderAsBlock(held);
                         ItemStack toPlace = new ItemStack(RegistryItems.placed_items, 1);
                         toPlace.setTagInfo(TilePlacedItems.TAG_IS_BLOCK, new NBTTagInt(isBlock ? 1 : 0));
-                        RegistryItems.placed_items.setHeldStack(toPlace, held);
+                        RegistryItems.placed_items.setHeldStack(toPlace, held, isBlock);
+                        player.setHeldItem(EnumHand.MAIN_HAND, toPlace);
                         if (toPlace.onItemUse(player, world, hit.getBlockPos(), EnumHand.MAIN_HAND, hit.sideHit, hitX, hitY, hitZ) == EnumActionResult.SUCCESS) {
                             Plonk.CHANNEL.sendToServer(new PacketPlaceItem(hit.getBlockPos(), hit.sideHit, hitX, hitY, hitZ, isBlock));
+                            ItemStack newHeld = RegistryItems.placed_items.getHeldStack(toPlace);
+                            player.setHeldItem(EnumHand.MAIN_HAND, newHeld);
+                        } else {
+                            player.setHeldItem(EnumHand.MAIN_HAND, held);
                         }
                     }
                 }

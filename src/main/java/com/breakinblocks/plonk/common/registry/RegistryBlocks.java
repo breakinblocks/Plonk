@@ -2,9 +2,8 @@ package com.breakinblocks.plonk.common.registry;
 
 import com.breakinblocks.plonk.Plonk;
 import com.breakinblocks.plonk.common.block.BlockPlacedItems;
-import net.minecraftforge.event.RegistryEvent;
-import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraft.block.Block;
+import net.minecraftforge.event.RegistryEvent;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
