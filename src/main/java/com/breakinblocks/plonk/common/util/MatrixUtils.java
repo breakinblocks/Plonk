@@ -49,13 +49,38 @@ public class MatrixUtils {
                     mat.m20 / sx, mat.m21 / sy, mat.m22 / sz
             );
             // https://en.wikipedia.org/wiki/Rotation_formalisms_in_three_dimensions#Conversion_formulae_between_formalisms
-            pitch = Math.toDegrees(Math.atan2(rot.m20, rot.m21));
-            yaw = Math.toDegrees(Math.acos(rot.m22));
-            roll = Math.toDegrees(-Math.atan2(rot.m02, rot.m12));
+            //pitch = Math.toDegrees(Math.atan2(rot.m20, rot.m21));
+            //yaw = Math.toDegrees(Math.acos(rot.m22));
+            //roll = Math.toDegrees(-Math.atan2(rot.m02, rot.m12));
             // The above is actually not the pitch yaw and roll, it's rotation about z axis, then x axis, than z axis again (extrinsic rotation)
             // Suppose I gotta just do it myself lol
-            // Minecraft also uses y as the vertical axis instead of z to add to the confusion
-            // TODO: Work this out?
+            // Rotation follows the order
+            // Yaw (y axis rotation) -> Pitch (x axis rotation) -> Roll (z axis rotation)
+            // Ry = [cos(yaw)   0           sin(yaw)    ]
+            //      [0          1           0           ]
+            //      [-sin(yaw)  1           cos(yaw)    ]
+            //
+            // Rx = [1          0           0           ]
+            //      [0          cos(pitch)  -sin(pitch) ]
+            //      [0          sin(pitch)  cos(pitch)  ]
+            //
+            // Rz = [cos(roll)  -sin(roll)  0           ]
+            //      [sin(roll)  cos(roll)   0           ]
+            //      [0          0           1           ]
+            // R = Ry Rx Rz =
+            // [cos(roll) cos(yaw) + sin(pitch) sin(roll) sin(yaw)  , -cos(yaw) sin(roll) + cos(roll) sin(pitch) sin(yaw)  , cos(pitch) sin(yaw)]
+            // [cos(pitch) sin(roll)                                , cos(pitch) cos(roll)                                 , -sin(pitch)        ]
+            // [cos(yaw) sin(pitch) sin(roll) - cos(roll) sin(yaw)  , cos(roll) cos(yaw) sin(pitch) + sin(roll) sin(yaw)   , cos(pitch) cos(yaw)]
+            // m02/m22 = cos(pitch) sin(yaw) / (cos(pitch) cos(yaw)) = tan(yaw)
+            yaw = Math.toDegrees(Math.atan2(rot.m02, rot.m22));
+            // m12 = -sin(pitch)
+            // m10^2 + m11^2    = (cos(pitch) sin(roll))^2 + (cos(pitch) cos(roll))^2)
+            //                  = cos(pitch)^2 * (sin(roll)^2 + cos(roll)^2)
+            //                  = cos(pitch)^2
+            // m12 / sqrt(m10^2 + m11^2) = tan(pitch)
+            pitch = Math.toDegrees(Math.atan2(rot.m12, Math.sqrt(Math.pow(rot.m10, 2) + Math.pow(rot.m11, 2))));
+            // m10/m11 = cos(pitch) sin(roll) / (cos(pitch) cos(roll)) = tan(roll)
+            roll = Math.toDegrees(Math.atan2(rot.m10, rot.m11));
         }
 
         @Override

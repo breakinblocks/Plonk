@@ -37,27 +37,18 @@ public class TESRPlacedItems extends TileEntitySpecialRenderer<TilePlacedItems> 
             matrixFixed = new Matrix4f();
             matrixFixed.setIdentity();
         }
-        Matrix4f matrixGround = model.handlePerspective(ItemCameraTransforms.TransformType.GROUND).getRight();
-        if (matrixGround == null) {
-            matrixGround = new Matrix4f();
-            matrixGround.setIdentity();
+        Matrix4f matrixGui = model.handlePerspective(ItemCameraTransforms.TransformType.GUI).getRight();
+        if (matrixGui == null) {
+            matrixGui = new Matrix4f();
+            matrixGui.setIdentity();
         }
 
-        Matrix4d difference = MatrixUtils.difference(new Matrix4d(matrixGround), new Matrix4d(matrixFixed));
+        Matrix4d difference = MatrixUtils.difference(new Matrix4d(matrixFixed), new Matrix4d(matrixGui));
         MatrixUtils.TransformData transform = new MatrixUtils.TransformData(difference);
 
         // TODO: Maybe check difference between item frame vs how it's displayed in the inventory to see?
-        return Math.abs(transform.pitch) < 0.001;
-//        IItemRenderer customRenderer = MinecraftForgeClient.getItemRenderer(itemstack, ENTITY);
-//        if (customRenderer != null) {
-//            boolean is3D = customRenderer.shouldUseRenderHelper(ENTITY, itemstack, BLOCK_3D);
-//            Block block = itemstack.getItem() instanceof ItemBlock ? Block.getBlockFromItem(itemstack.getItem()) : null;
-//            return is3D || (block != null && RenderBlocks.renderItemIn3d(block.getRenderType()));
-//        } else if (itemstack.getItemSpriteNumber() == 0 && itemstack.getItem() instanceof ItemBlock && RenderBlocks.renderItemIn3d(Block.getBlockFromItem(itemstack.getItem()).getRenderType())) {
-//            return true;
-//        } else {
-//            return false;
-//        }
+        // If the scaling difference is not close to 1:1 then it's probably a block?
+        return Math.abs((transform.sx + transform.sy + transform.sz) / 3.0 - 1.0) > 0.0001;
     }
 
     @Override
