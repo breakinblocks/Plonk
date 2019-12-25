@@ -3,6 +3,7 @@ package com.breakinblocks.plonk.common.block;
 import com.breakinblocks.plonk.common.registry.RegistryMaterials;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
 import com.breakinblocks.plonk.common.util.ItemUtils;
+import com.breakinblocks.plonk.common.util.bound.BoxCollection;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockChest;
 import net.minecraft.block.BlockDirectional;
@@ -82,6 +83,13 @@ public class BlockPlacedItems extends Block {
     public void addCollisionBoxToList(IBlockState state, World worldIn, BlockPos pos, AxisAlignedBB entityBox, List<AxisAlignedBB> collidingBoxes, @Nullable Entity entityIn, boolean isActualState) {
         TilePlacedItems tile = (TilePlacedItems) worldIn.getTileEntity(pos);
         tile.getContentsBoxes().addCollidingBoxes(pos, entityBox, collidingBoxes);
+    }
+
+    @Nullable
+    @Override
+    @SuppressWarnings("deprecation")
+    public AxisAlignedBB getCollisionBoundingBox(IBlockState blockState, IBlockAccess worldIn, BlockPos pos) {
+        return NULL_AABB;
     }
 
     @Override
@@ -184,7 +192,10 @@ public class BlockPlacedItems extends Block {
     @Override
     public ItemStack getPickBlock(IBlockState state, RayTraceResult target, World world, BlockPos pos, EntityPlayer player) {
         TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(pos);
-        int index = tile.getContentsBoxes().selectionLastEntry.id;
+        if (tile == null) return ItemStack.EMPTY;
+        BoxCollection.Entry last = tile.getContentsBoxes().selectionLastEntry;
+        if (last == null) return ItemStack.EMPTY;
+        int index = last.id;
         int slot = index <= 0 ? 0 : index - 1;
         return tile.getStackInSlot(slot);
     }

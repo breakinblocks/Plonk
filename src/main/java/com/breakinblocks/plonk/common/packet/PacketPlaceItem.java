@@ -55,20 +55,22 @@ public class PacketPlaceItem extends PacketBase<PacketPlaceItem> {
     }
 
     @Override
+    public Side getSideBound() {
+        return Side.SERVER;
+    }
+
+    @Override
     protected void handle(MessageContext ctx) {
-        if (ctx.side == Side.CLIENT) throw new RuntimeException("PacketPlaceItem should be server-bound only.");
         EntityPlayerMP player = ctx.getServerHandler().player;
         WorldServer world = player.getServerWorld();
-        world.addScheduledTask(() -> {
-            ItemStack toPlace = new ItemStack(RegistryItems.placed_items, 1);
-            ItemStack held = player.getHeldItemMainhand();
-            RegistryItems.placed_items.setHeldStack(toPlace, held, isBlock);
-            player.setHeldItem(EnumHand.MAIN_HAND, toPlace);
-            if (toPlace.onItemUse(player, world, pos, EnumHand.MAIN_HAND, facing, hitX, hitY, hitZ) == EnumActionResult.SUCCESS) {
-                player.setHeldItem(EnumHand.MAIN_HAND, RegistryItems.placed_items.getHeldStack(toPlace));
-            } else {
-                player.setHeldItem(EnumHand.MAIN_HAND, held);
-            }
-        });
+        ItemStack toPlace = new ItemStack(RegistryItems.placed_items, 1);
+        ItemStack held = player.getHeldItemMainhand();
+        RegistryItems.placed_items.setHeldStack(toPlace, held, isBlock);
+        player.setHeldItem(EnumHand.MAIN_HAND, toPlace);
+        if (toPlace.onItemUse(player, world, pos, EnumHand.MAIN_HAND, facing, hitX, hitY, hitZ) == EnumActionResult.SUCCESS) {
+            player.setHeldItem(EnumHand.MAIN_HAND, RegistryItems.placed_items.getHeldStack(toPlace));
+        } else {
+            player.setHeldItem(EnumHand.MAIN_HAND, held);
+        }
     }
 }

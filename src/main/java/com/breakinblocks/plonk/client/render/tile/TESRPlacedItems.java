@@ -11,6 +11,8 @@ import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.text.ChatType;
+import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
 import org.lwjgl.opengl.GL11;
 
@@ -46,9 +48,22 @@ public class TESRPlacedItems extends TileEntitySpecialRenderer<TilePlacedItems> 
         Matrix4d difference = MatrixUtils.difference(new Matrix4d(matrixFixed), new Matrix4d(matrixGui));
         MatrixUtils.TransformData transform = new MatrixUtils.TransformData(difference);
 
-        // TODO: Maybe check difference between item frame vs how it's displayed in the inventory to see?
-        // If the scaling difference is not close to 1:1 then it's probably a block?
-        return Math.abs((transform.sx + transform.sy + transform.sz) / 3.0 - 1.0) > 0.0001;
+        // Check difference between item frame vs how it's displayed in the inventory to see?
+        // Scaling Factor
+        double hS = Math.abs((transform.sx + transform.sy + transform.sz) / 3.0);
+        // Rotation angles
+        double hRotP = (360 + transform.pitch) % 90;
+        hRotP = Math.min(Math.abs(hRotP), Math.abs(hRotP - 90));
+        double hRotY = (360 + transform.yaw) % 90;
+        hRotY = Math.min(Math.abs(hRotY), Math.abs(hRotY - 90));
+        double hRotR = (360 + transform.roll) % 90;
+        hRotR = Math.min(Math.abs(hRotR), Math.abs(hRotR - 90));
+        double hRot = hRotP + hRotY + hRotR;
+        //String message = String.format("hS=%.3f hRot=%.3f\n", hS, hRot) + transform.toString();
+        //for (String line : message.split("\r?\n"))
+        //    Minecraft.getMinecraft().ingameGUI.addChatMessage(ChatType.CHAT, new TextComponentString(line));
+        // Change in scaling is > 1 and change in rotation at non-right angles;
+        return hS > (1.0 - 0.001) && hRot > 0.001;
     }
 
     @Override

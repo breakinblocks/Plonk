@@ -77,8 +77,8 @@ public class MatrixUtils {
             // m10^2 + m11^2    = (cos(pitch) sin(roll))^2 + (cos(pitch) cos(roll))^2)
             //                  = cos(pitch)^2 * (sin(roll)^2 + cos(roll)^2)
             //                  = cos(pitch)^2
-            // m12 / sqrt(m10^2 + m11^2) = tan(pitch)
-            pitch = Math.toDegrees(Math.atan2(rot.m12, Math.sqrt(Math.pow(rot.m10, 2) + Math.pow(rot.m11, 2))));
+            // m12 / sqrt(m10^2 + m11^2) = -tan(pitch)
+            pitch = Math.toDegrees(-Math.atan2(rot.m12, Math.sqrt(Math.pow(rot.m10, 2) + Math.pow(rot.m11, 2))));
             // m10/m11 = cos(pitch) sin(roll) / (cos(pitch) cos(roll)) = tan(roll)
             roll = Math.toDegrees(Math.atan2(rot.m10, rot.m11));
         }
@@ -86,16 +86,16 @@ public class MatrixUtils {
         @Override
         public String toString() {
             return new StringBuilder()
-                    .append("tx=").append(tx)
-                    .append(",ty=").append(ty)
-                    .append(",tz=").append(tz)
-                    .append(",sx=").append(sx)
-                    .append(",sy=").append(sy)
-                    .append(",sz=").append(sz)
-                    .append(",pitch=").append(pitch)
-                    .append(",yaw=").append(yaw)
-                    .append(",roll=").append(roll)
-                    .append(",rotation=\n").append(rot)
+                    .append(String.format("tx=%.3f", tx))
+                    .append(String.format(" ty=%.3f", ty))
+                    .append(String.format(" tz=%.3f", tz))
+                    .append(String.format(" sx=%.3f", sx))
+                    .append(String.format(" sy=%.3f", sy))
+                    .append(String.format(" sz=%.3f", sz))
+                    .append(String.format(" pitch=%.3f", pitch))
+                    .append(String.format(" yaw=%.3f", yaw))
+                    .append(String.format(" roll=%.3f", roll))
+                    //.append(",rotation=\n").append(rot)
                     .toString();
         }
     }

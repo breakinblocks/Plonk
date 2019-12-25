@@ -62,10 +62,6 @@ public class BoxCollection {
         }
     }
 
-    public AxisAlignedBB getRenderBoundingBox(BlockPos offset) {
-        return renderBox.toAABB().offset(offset);
-    }
-
     /**
      * Return the last non-colliding + colliding bounding box
      */
