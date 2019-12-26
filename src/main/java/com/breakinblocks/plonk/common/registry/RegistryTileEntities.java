@@ -19,7 +19,7 @@ public class RegistryTileEntities {
                     if (f.getType() == Class.class) {
                         Class<?> clazz = (Class<?>) f.get(null);
                         if (TileEntity.class.isAssignableFrom(clazz)) {
-                            Class<TileEntity> tileClass = (Class<TileEntity>) clazz;
+                            Class<? extends TileEntity> tileClass = clazz.asSubclass(TileEntity.class);
                             ResourceLocation r = new ResourceLocation(Plonk.MOD_ID, f.getName());
                             Plonk.LOG.info("Registering TileEntity: " + r);
                             GameRegistry.registerTileEntity(tileClass, r);

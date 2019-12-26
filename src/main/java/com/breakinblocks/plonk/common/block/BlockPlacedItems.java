@@ -21,6 +21,7 @@ import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumBlockRenderType;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
@@ -68,6 +69,7 @@ public class BlockPlacedItems extends Block {
     @Override
     @SuppressWarnings("deprecation")
     public EnumBlockRenderType getRenderType(IBlockState state) {
+        //return EnumBlockRenderType.MODEL;
         return EnumBlockRenderType.ENTITYBLOCK_ANIMATED;
     }
 
@@ -131,6 +133,11 @@ public class BlockPlacedItems extends Block {
     public RayTraceResult collisionRayTrace(IBlockState blockState, World worldIn, BlockPos pos, Vec3d start, Vec3d end) {
         TilePlacedItems tile = (TilePlacedItems) worldIn.getTileEntity(pos);
         return tile.getContentsBoxes().collisionRayTrace(this, super::collisionRayTrace, blockState, worldIn, pos, start, end);
+    }
+
+    @Override
+    public BlockRenderLayer getRenderLayer() {
+        return BlockRenderLayer.CUTOUT;
     }
 
     /**

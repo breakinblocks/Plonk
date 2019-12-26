@@ -2,11 +2,30 @@
   "forge_marker": 1,
   "defaults": {
     "textures": {
-      "texture": "blocks/placed_items"
+      "all": "plonk:blocks/placed_items"
     },
-    "model": "plonk:blocks/placed_items",
-    "uvlock": true
+    "model": "plonk:placed_items",
+    "uvlock": false
   },
   "variants": {
+    "normal": [{}],
+    "facing": {
+      "up": {},
+      "down": {
+        "x": 180, "y": 180
+      },
+      "north": {
+        "x": 270, "y": 180
+      },
+      "south": {
+        "x": 270, "y": 0
+      },
+      "east": {
+        "x": 270, "y": 270
+      },
+      "west": {
+        "x": 270, "y": 90
+      }
+    }
   }
 }
