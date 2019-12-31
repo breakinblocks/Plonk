@@ -1,6 +1,7 @@
 package com.breakinblocks.plonk.common.packet;
 
 import com.breakinblocks.plonk.common.registry.RegistryItems;
+import com.breakinblocks.plonk.common.util.EntityUtils;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
@@ -66,11 +67,12 @@ public class PacketPlaceItem extends PacketBase<PacketPlaceItem> {
         ItemStack toPlace = new ItemStack(RegistryItems.placed_items, 1);
         ItemStack held = player.getHeldItemMainhand();
         RegistryItems.placed_items.setHeldStack(toPlace, held, isBlock);
-        player.setHeldItem(EnumHand.MAIN_HAND, toPlace);
+        EntityUtils.setHeldItemSilent(player, EnumHand.MAIN_HAND, toPlace);
         if (toPlace.onItemUse(player, world, pos, EnumHand.MAIN_HAND, facing, hitX, hitY, hitZ) == EnumActionResult.SUCCESS) {
-            player.setHeldItem(EnumHand.MAIN_HAND, RegistryItems.placed_items.getHeldStack(toPlace));
+            ItemStack newHeld = RegistryItems.placed_items.getHeldStack(toPlace);
+            EntityUtils.setHeldItemSilent(player, EnumHand.MAIN_HAND, newHeld);
         } else {
-            player.setHeldItem(EnumHand.MAIN_HAND, held);
+            EntityUtils.setHeldItemSilent(player, EnumHand.MAIN_HAND, held);
         }
     }
 }

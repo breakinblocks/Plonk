@@ -2,7 +2,6 @@ package com.breakinblocks.plonk.common.item;
 
 import com.breakinblocks.plonk.common.registry.RegistryBlocks;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
-import net.minecraft.block.SoundType;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemBlock;
@@ -11,7 +10,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
-import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
@@ -85,9 +83,9 @@ public class ItemBlockPlacedItems extends ItemBlock {
         }
 
         if (tile != null && tryInsertStack(placerStack, tile, player)) {
-            IBlockState state = world.getBlockState(tile.getPos());
-            SoundType soundtype = state.getBlock().getSoundType(state, world, tile.getPos(), player);
-            world.playSound(player, tile.getPos(), soundtype.getPlaceSound(), SoundCategory.BLOCKS, (soundtype.getVolume() + 1.0F) / 2.0F, soundtype.getPitch() * 0.8F);
+            //IBlockState state = world.getBlockState(tile.getPos());
+            //SoundType soundtype = state.getBlock().getSoundType(state, world, tile.getPos(), player);
+            //world.playSound(player, tile.getPos(), soundtype.getPlaceSound(), SoundCategory.BLOCKS, (soundtype.getVolume() + 1.0F) / 2.0F, soundtype.getPitch() * 0.8F);
             return EnumActionResult.SUCCESS;
         }
 

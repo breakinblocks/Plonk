@@ -7,6 +7,7 @@ import com.breakinblocks.plonk.common.util.bound.BoxCollection;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockChest;
 import net.minecraft.block.BlockDirectional;
+import net.minecraft.block.SoundType;
 import net.minecraft.block.properties.PropertyDirection;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
@@ -48,6 +49,7 @@ public class BlockPlacedItems extends Block {
         super(RegistryMaterials.placed_items);
         this.setDefaultState(this.blockState.getBaseState().withProperty(FACING, EnumFacing.UP));
         //this.setHardness(0.5f);
+        this.setSoundType(SoundType.STONE);
     }
 
     @Override
@@ -226,6 +228,11 @@ public class BlockPlacedItems extends Block {
     @Override
     public boolean addDestroyEffects(World world, BlockPos pos, ParticleManager manager) {
         return true;
+    }
+
+    @Override
+    public SoundType getSoundType(IBlockState state, World world, BlockPos pos, @Nullable Entity entity) {
+        return super.getSoundType(state, world, pos, entity);
     }
 
     @Override
