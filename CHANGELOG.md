@@ -1,5 +1,6 @@
 ## [NEXT] - YYYY-MM-DD
 - Updated to 1.12.2
+- Placed items 'block' can be instantly broken
 
 ## [0.0.3] - 2019-12-07
 - Modularized bounding boxes (should have no visible change)

@@ -257,7 +257,6 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
 
     @Override
     public void markDirty() {
-        // TODO work out what this is in 1.12.2
         // this.world.markBlockForUpdate(this.xCoord, this.yCoord, this.zCoord);
         world.markBlockRangeForRenderUpdate(pos, pos);
         world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
@@ -292,7 +291,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
     public AxisAlignedBB getRenderBoundingBox() {
         // TODO: This doesn't work properly for custom item renders... since they can go outside the normal bounds
         // TODO: Maybe find out a way to get the render bounding boxes for each of the items??? Bit worse fps for now...
-        //return this.contentsBoxes.getRenderBoundingBox(this);
+        // return this.contentsBoxes.getRenderBoundingBox(this);
         return TileEntity.INFINITE_EXTENT_AABB;
     }
 

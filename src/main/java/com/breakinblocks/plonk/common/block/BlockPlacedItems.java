@@ -11,6 +11,7 @@ import net.minecraft.block.properties.PropertyDirection;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.multiplayer.PlayerControllerMP;
+import net.minecraft.client.particle.ParticleManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -31,6 +32,7 @@ import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -45,7 +47,7 @@ public class BlockPlacedItems extends Block {
     public BlockPlacedItems() {
         super(RegistryMaterials.placed_items);
         this.setDefaultState(this.blockState.getBaseState().withProperty(FACING, EnumFacing.UP));
-        this.setHardness(0.5f);
+        //this.setHardness(0.5f);
     }
 
     @Override
@@ -167,7 +169,6 @@ public class BlockPlacedItems extends Block {
             int index = tile.getContentsBoxes().selectionLastEntry.id;
             int slot = index <= 0 ? 0 : index - 1;
             ItemStack stack = tile.getStackInSlot(slot);
-            // TODO: Update item nulls
             if (!stack.isEmpty()) {
                 //ItemUtils.dropItemWithinBlock(worldId, x, y, z, stack);
                 ItemUtils.dropItemOnEntity(player, stack);
@@ -205,6 +206,26 @@ public class BlockPlacedItems extends Block {
         int index = last.id;
         int slot = index <= 0 ? 0 : index - 1;
         return tile.getStackInSlot(slot);
+    }
+
+    @Override
+    public boolean addLandingEffects(IBlockState state, WorldServer worldObj, BlockPos blockPosition, IBlockState iblockstate, EntityLivingBase entity, int numberOfParticles) {
+        return true;
+    }
+
+    @Override
+    public boolean addRunningEffects(IBlockState state, World world, BlockPos pos, Entity entity) {
+        return true;
+    }
+
+    @Override
+    public boolean addHitEffects(IBlockState state, World worldObj, RayTraceResult target, ParticleManager manager) {
+        return true;
+    }
+
+    @Override
+    public boolean addDestroyEffects(World world, BlockPos pos, ParticleManager manager) {
+        return true;
     }
 
     @Override
