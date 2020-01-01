@@ -15,20 +15,20 @@ import net.minecraft.world.World;
 
 public class ItemBlockPlacedItems extends ItemBlock {
     private static final String TAG_HELD = "Held";
-    private static final String TAG_IS_BLOCK = TilePlacedItems.TAG_IS_BLOCK;
+    private static final String TAG_RENDER_TYPE = TilePlacedItems.TAG_RENDER_TYPE;
 
     public ItemBlockPlacedItems() {
         super(RegistryBlocks.placed_items);
     }
 
-    public void setHeldStack(ItemStack stack, ItemStack held, boolean isBlock) {
+    public void setHeldStack(ItemStack stack, ItemStack held, int renderType) {
         NBTTagCompound tagCompound = stack.getTagCompound();
         if (tagCompound == null)
             tagCompound = new NBTTagCompound();
         NBTTagCompound tagCompoundHeld = tagCompound.getCompoundTag(TAG_HELD);
         held.writeToNBT(tagCompoundHeld);
         tagCompound.setTag(TAG_HELD, tagCompoundHeld);
-        tagCompound.setBoolean(TAG_IS_BLOCK, isBlock);
+        tagCompound.setInteger(TAG_RENDER_TYPE, renderType);
         stack.setTagCompound(tagCompound);
     }
 
@@ -39,29 +39,29 @@ public class ItemBlockPlacedItems extends ItemBlock {
         return new ItemStack(tagCompound.getCompoundTag(TAG_HELD));
     }
 
-    public boolean getHeldIsBlock(ItemStack stack) {
+    public int getHeldRenderType(ItemStack stack) {
         NBTTagCompound tagCompound = stack.getTagCompound();
         if (tagCompound == null)
-            return false;
-        return stack.getTagCompound().getBoolean(TAG_IS_BLOCK);
+            return 0;
+        return stack.getTagCompound().getInteger(TAG_RENDER_TYPE);
     }
 
     /**
      * Try to insert held item into the tile
      *
-     * @param placerStack ItemBlockPlacedItems reference stack, which should contain IsBlock information
+     * @param placerStack ItemBlockPlacedItems reference stack, which should contain renderType information
      * @param tile        TilePlacedItems to insert into
      * @param player      That is currently holding the item to be inserted
      * @return true if stack was at least partially successfully inserted
      */
     protected boolean tryInsertStack(ItemStack placerStack, TilePlacedItems tile, EntityPlayer player) {
         ItemStack heldItem = getHeldStack(placerStack);
-        boolean isBlock = getHeldIsBlock(placerStack);
-        ItemStack remainder = tile.insertStack(heldItem, isBlock);
+        int renderType = getHeldRenderType(placerStack);
+        ItemStack remainder = tile.insertStack(heldItem, renderType);
         tile.markDirty();
         tile.clean();
         if (remainder != heldItem) {
-            setHeldStack(placerStack, remainder, isBlock);
+            setHeldStack(placerStack, remainder, renderType);
             return true;
         }
         return false;

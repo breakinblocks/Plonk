@@ -11,13 +11,14 @@ import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.text.ChatType;
-import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
 import org.lwjgl.opengl.GL11;
 
 import javax.vecmath.Matrix4d;
 import javax.vecmath.Matrix4f;
+
+import static com.breakinblocks.plonk.common.tile.TilePlacedItems.RENDER_TYPE_BLOCK;
+import static com.breakinblocks.plonk.common.tile.TilePlacedItems.RENDER_TYPE_ITEM;
 
 public class TESRPlacedItems extends TileEntitySpecialRenderer<TilePlacedItems> {
 
@@ -32,7 +33,7 @@ public class TESRPlacedItems extends TileEntitySpecialRenderer<TilePlacedItems> 
     public TESRPlacedItems() {
     }
 
-    public static boolean isGoingToRenderAsBlock(ItemStack itemstack) {
+    public static int getRenderTypeFromStack(ItemStack itemstack) {
         IBakedModel model = renderItem.getItemModelWithOverrides(itemstack, null, null);
         Matrix4f matrixFixed = model.handlePerspective(ItemCameraTransforms.TransformType.FIXED).getRight();
         if (matrixFixed == null) {
@@ -63,7 +64,7 @@ public class TESRPlacedItems extends TileEntitySpecialRenderer<TilePlacedItems> 
         //for (String line : message.split("\r?\n"))
         //    Minecraft.getMinecraft().ingameGUI.addChatMessage(ChatType.CHAT, new TextComponentString(line));
         // Change in scaling is > 1 and change in rotation at non-right angles;
-        return hS > (1.0 - 0.001) && hRot > 0.001;
+        return hS > (1.0 - 0.001) && hRot > 0.001 ? RENDER_TYPE_BLOCK : RENDER_TYPE_ITEM;
     }
 
     @Override
@@ -102,7 +103,7 @@ public class TESRPlacedItems extends TileEntitySpecialRenderer<TilePlacedItems> 
         GL11.glTranslated(0.0, -0.5, 0.0);
 
         ItemStack[] contents = te.getContentsDisplay();
-        boolean[] contentsIsBlock = te.getContentsIsBlock();
+        int[] contentsRenderType = te.getContentsRenderType();
         int num = contents.length;
 
         if (num > 0) {
@@ -129,7 +130,7 @@ public class TESRPlacedItems extends TileEntitySpecialRenderer<TilePlacedItems> 
                         break;
                 }
                 //renderStack(world, stack, partialTicks, halfSize, world.rand.nextBoolean());
-                renderStack(te.getWorld(), stack, contentsIsBlock[slot], partialTicks, halfSize);
+                renderStack(te.getWorld(), stack, contentsRenderType[slot], partialTicks, halfSize);
                 GL11.glPopMatrix();
             }
         }
@@ -145,7 +146,17 @@ public class TESRPlacedItems extends TileEntitySpecialRenderer<TilePlacedItems> 
      * @param stack    ItemStack to render
      * @param halfSize If items should be rendered at half size (blocks are always rendered half size)
      */
-    public void renderStack(World world, ItemStack stack, boolean isBlock, float partialTicks, boolean halfSize) {
+    /**
+     * Render item at location facing up
+     * Refer to ItemFrame rendering
+     *
+     * @param world        Client world
+     * @param stack        ItemStack to render
+     * @param renderType   renderType
+     * @param partialTicks fractional tick
+     * @param halfSize     If items should be rendered at half size (blocks are always rendered half size)
+     */
+    public void renderStack(World world, ItemStack stack, int renderType, float partialTicks, boolean halfSize) {
         // net.minecraft.client.renderer.entity.RenderItemFrame.renderItem
         if (stack.isEmpty()) return;
         GlStateManager.pushMatrix();
@@ -159,39 +170,21 @@ public class TESRPlacedItems extends TileEntitySpecialRenderer<TilePlacedItems> 
 
         // FIXED
         GlStateManager.rotate(180f, 0f, 1f, 0f);
-        if (isBlock) {
-            GlStateManager.translate(0f, 0.25f, 0f);
-            this.renderItem.renderItem(stack, ItemCameraTransforms.TransformType.FIXED);
-        } else {
-            GlStateManager.translate(0f, 2f / 48, 0f);
-            GlStateManager.rotate(90f, 1f, 0f, 0f);
-            if (halfSize)
-                GlStateManager.scale(0.5F, 0.5F, 0.5F);
-            this.renderItem.renderItem(stack, ItemCameraTransforms.TransformType.FIXED);
+        switch (renderType) {
+            case RENDER_TYPE_BLOCK: {
+                GlStateManager.translate(0f, 0.25f, 0f);
+                renderItem.renderItem(stack, ItemCameraTransforms.TransformType.FIXED);
+            }
+            break;
+            case RENDER_TYPE_ITEM:
+            default:
+                GlStateManager.translate(0f, 2f / 48, 0f);
+                GlStateManager.rotate(90f, 1f, 0f, 0f);
+                if (halfSize)
+                    GlStateManager.scale(0.5F, 0.5F, 0.5F);
+                renderItem.renderItem(stack, ItemCameraTransforms.TransformType.FIXED);
         }
-//        if (stack.getItem() instanceof ItemBlock) {
-//            GlStateManager.translate(0f, 0.25f, 0f);
-//            this.renderItem.renderItem(stack, ItemCameraTransforms.TransformType.FIXED);
-//            ItemBlock itemBlock = (ItemBlock) stack.getItem();
-//            IBlockState state = itemBlock.getBlock().getDefaultState();
-//            GlStateManager.scale(0.5F, 0.5F, 0.5F);
-//            GlStateManager.translate(-0.5f-blockPos.getX(), -blockPos.getY(), -0.5f-blockPos.getZ());
-//            bufferbuilder.begin(7, DefaultVertexFormats.BLOCK);
-//            blockRendererDispatcher.getBlockModelRenderer().renderModel(
-//                    world, blockRendererDispatcher.getModelForState(state), state,
-//                    blockPos, bufferbuilder, false, MathHelper.getPositionRandom(blockPos)
-//            );
-//            tessellator.draw();
-//        } else {
-//            GlStateManager.translate(0f, 2f/48, 0f);
-//            GlStateManager.rotate(90f, 1f, 0f, 0f);
-//            if (halfSize)
-//                GlStateManager.scale(0.5F, 0.5F, 0.5F);
-//            this.renderItem.renderItem(stack, ItemCameraTransforms.TransformType.FIXED);
-//
-//        }
-        //this.renderItem.renderItem(stack, ItemCameraTransforms.TransformType.FIXED);
-        //this.renderItem.renderItem(stack, ItemCameraTransforms.TransformType.GROUND);
+
         RenderHelper.disableStandardItemLighting();
         GlStateManager.popAttrib();
         GlStateManager.enableLighting();

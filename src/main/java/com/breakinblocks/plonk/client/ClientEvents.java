@@ -4,14 +4,12 @@ import com.breakinblocks.plonk.Plonk;
 import com.breakinblocks.plonk.client.render.tile.TESRPlacedItems;
 import com.breakinblocks.plonk.common.packet.PacketPlaceItem;
 import com.breakinblocks.plonk.common.registry.RegistryItems;
-import com.breakinblocks.plonk.common.tile.TilePlacedItems;
 import com.breakinblocks.plonk.common.util.EntityUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.GuiIngame;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagInt;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.RayTraceResult;
@@ -45,13 +43,12 @@ public class ClientEvents {
                         float hitX = (float) hit.hitVec.x;
                         float hitY = (float) hit.hitVec.y;
                         float hitZ = (float) hit.hitVec.z;
-                        boolean isBlock = TESRPlacedItems.isGoingToRenderAsBlock(held);
+                        int renderType = TESRPlacedItems.getRenderTypeFromStack(held);
                         ItemStack toPlace = new ItemStack(RegistryItems.placed_items, 1);
-                        toPlace.setTagInfo(TilePlacedItems.TAG_IS_BLOCK, new NBTTagInt(isBlock ? 1 : 0));
-                        RegistryItems.placed_items.setHeldStack(toPlace, held, isBlock);
+                        RegistryItems.placed_items.setHeldStack(toPlace, held, renderType);
                         EntityUtils.setHeldItemSilent(player, EnumHand.MAIN_HAND, toPlace);
                         if (toPlace.onItemUse(player, world, hit.getBlockPos(), EnumHand.MAIN_HAND, hit.sideHit, hitX, hitY, hitZ) == EnumActionResult.SUCCESS) {
-                            Plonk.CHANNEL.sendToServer(new PacketPlaceItem(hit.getBlockPos(), hit.sideHit, hitX, hitY, hitZ, isBlock));
+                            Plonk.CHANNEL.sendToServer(new PacketPlaceItem(hit.getBlockPos(), hit.sideHit, hitX, hitY, hitZ, renderType));
                             ItemStack newHeld = RegistryItems.placed_items.getHeldStack(toPlace);
                             EntityUtils.setHeldItemSilent(player, EnumHand.MAIN_HAND, newHeld);
                         } else {

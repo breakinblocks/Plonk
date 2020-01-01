@@ -19,18 +19,18 @@ public class PacketPlaceItem extends PacketBase<PacketPlaceItem> {
     private float hitX;
     private float hitY;
     private float hitZ;
-    private boolean isBlock;
+    private int renderType;
 
     public PacketPlaceItem() {
     }
 
-    public PacketPlaceItem(BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, boolean isBlock) {
+    public PacketPlaceItem(BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int renderType) {
         this.pos = pos;
         this.facing = facing;
         this.hitX = hitX;
         this.hitY = hitY;
         this.hitZ = hitZ;
-        this.isBlock = isBlock;
+        this.renderType = renderType;
     }
 
     @Override
@@ -40,7 +40,7 @@ public class PacketPlaceItem extends PacketBase<PacketPlaceItem> {
         hitX = buf.readFloat();
         hitY = buf.readFloat();
         hitZ = buf.readFloat();
-        isBlock = buf.readBoolean();
+        renderType = buf.readInt();
     }
 
     @Override
@@ -52,7 +52,7 @@ public class PacketPlaceItem extends PacketBase<PacketPlaceItem> {
         buf.writeFloat(hitX);
         buf.writeFloat(hitY);
         buf.writeFloat(hitZ);
-        buf.writeBoolean(isBlock);
+        buf.writeInt(renderType);
     }
 
     @Override
@@ -66,7 +66,7 @@ public class PacketPlaceItem extends PacketBase<PacketPlaceItem> {
         WorldServer world = player.getServerWorld();
         ItemStack toPlace = new ItemStack(RegistryItems.placed_items, 1);
         ItemStack held = player.getHeldItemMainhand();
-        RegistryItems.placed_items.setHeldStack(toPlace, held, isBlock);
+        RegistryItems.placed_items.setHeldStack(toPlace, held, renderType);
         EntityUtils.setHeldItemSilent(player, EnumHand.MAIN_HAND, toPlace);
         if (toPlace.onItemUse(player, world, pos, EnumHand.MAIN_HAND, facing, hitX, hitY, hitZ) == EnumActionResult.SUCCESS) {
             ItemStack newHeld = RegistryItems.placed_items.getHeldStack(toPlace);

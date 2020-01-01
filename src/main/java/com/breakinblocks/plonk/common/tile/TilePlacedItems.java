@@ -59,10 +59,12 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
 
     public static final String TAG_ITEMS = "Items";
     public static final String TAG_SLOT = "Slot";
-    public static final String TAG_IS_BLOCK = "IsBlock";
+    public static final String TAG_RENDER_TYPE = "RenderType";
+    public static final int RENDER_TYPE_BLOCK = 1;
+    public static final int RENDER_TYPE_ITEM = 0;
     boolean needsCleaning = true;
     private NonNullList<ItemStack> contents = NonNullList.withSize(this.getSizeInventory(), ItemStack.EMPTY);
-    private boolean[] contentsIsBlock = new boolean[this.getSizeInventory()];
+    private int[] contentsRenderType = new int[this.getSizeInventory()];
     private ItemStack[] contentsDisplay = new ItemStack[0];
     private BoxCollection contentsBoxes = new BoxCollection.Builder()
             .addBox(0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0)
@@ -128,7 +130,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
                     if (!contents.get(j).isEmpty()) {
                         contents.set(i, contents.get(j));
                         // Also update the hitbox
-                        contentsIsBlock[i] = contentsIsBlock[j];
+                        contentsRenderType[i] = contentsRenderType[j];
                         contents.set(j, ItemStack.EMPTY);
                         changed = true;
                         break;
@@ -158,23 +160,33 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
         return count;
     }
 
+    private Box getBox(int count, int renderType) {
+        switch (renderType) {
+            case RENDER_TYPE_BLOCK:
+                return BOX_BLOCK;
+            case RENDER_TYPE_ITEM:
+            default:
+                return count == 1 ? BOX_ITEM_ONE : BOX_ITEM_MANY;
+        }
+    }
+
     private void updateContentsBoxes(int count) {
         BoxCollection.Builder builder = new BoxCollection.Builder(false, true);
 
         switch (count) {
             case 1:
-                builder.addBox(1, contentsIsBlock[0] ? BOX_BLOCK : BOX_ITEM_ONE);
+                builder.addBox(1, getBox(count, contentsRenderType[0]));
                 break;
             case 2:
-                builder.addBox(1, (contentsIsBlock[0] ? BOX_BLOCK : BOX_ITEM_MANY).translate(-0.25, 0, 0));
-                builder.addBox(2, (contentsIsBlock[1] ? BOX_BLOCK : BOX_ITEM_MANY).translate(0.25, 0, 0));
+                builder.addBox(1, getBox(count, contentsRenderType[0]).translate(-0.25, 0, 0));
+                builder.addBox(2, getBox(count, contentsRenderType[1]).translate(0.25, 0, 0));
                 break;
             case 4:
-                builder.addBox(4, (contentsIsBlock[3] ? BOX_BLOCK : BOX_ITEM_MANY).translate(0.25, 0, 0.25));
+                builder.addBox(4, getBox(count, contentsRenderType[3]).translate(0.25, 0, 0.25));
             case 3:
-                builder.addBox(1, (contentsIsBlock[0] ? BOX_BLOCK : BOX_ITEM_MANY).translate(-0.25, 0, -0.25));
-                builder.addBox(2, (contentsIsBlock[1] ? BOX_BLOCK : BOX_ITEM_MANY).translate(0.25, 0, -0.25));
-                builder.addBox(3, (contentsIsBlock[2] ? BOX_BLOCK : BOX_ITEM_MANY).translate(-0.25, 0, 0.25));
+                builder.addBox(1, getBox(count, contentsRenderType[0]).translate(-0.25, 0, -0.25));
+                builder.addBox(2, getBox(count, contentsRenderType[1]).translate(0.25, 0, -0.25));
+                builder.addBox(3, getBox(count, contentsRenderType[2]).translate(-0.25, 0, 0.25));
                 break;
             default:
                 builder.addBox(0, 0.0, 0.0, 0.0, 1.0, HEIGHT_PLATE, 1.0);
@@ -210,16 +222,21 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
         super.readFromNBT(tag);
         NBTTagList tagItems = tag.getTagList(TAG_ITEMS, 10);
         this.contents = NonNullList.withSize(this.getSizeInventory(), ItemStack.EMPTY);
-        this.contentsIsBlock = new boolean[this.getSizeInventory()];
+        this.contentsRenderType = new int[this.getSizeInventory()];
 
         for (int i = 0; i < tagItems.tagCount(); i++) {
             NBTTagCompound tagItem = tagItems.getCompoundTagAt(i);
             int slot = tagItem.getByte(TAG_SLOT) & 255;
-            boolean isBlock = tagItem.getBoolean(TAG_IS_BLOCK);
+            int renderType = tagItem.getInteger(TAG_RENDER_TYPE);
+            // TODO: Remove Migration Code
+            if (tagItem.hasKey("IsBlock")) {
+                boolean isBlock = tagItem.getBoolean("IsBlock");
+                renderType = isBlock ? 1 : 0;
+            }
 
             if (slot >= 0 && slot < this.contents.size()) {
                 this.contents.set(slot, new ItemStack(tagItem));
-                this.contentsIsBlock[slot] = isBlock;
+                this.contentsRenderType[slot] = renderType;
             }
         }
     }
@@ -233,7 +250,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
             if (!this.contents.get(slot).isEmpty()) {
                 NBTTagCompound tagItem = new NBTTagCompound();
                 tagItem.setByte(TAG_SLOT, (byte) slot);
-                tagItem.setBoolean(TAG_IS_BLOCK, this.contentsIsBlock[slot]);
+                tagItem.setInteger(TAG_RENDER_TYPE, this.contentsRenderType[slot]);
                 this.contents.get(slot).writeToNBT(tagItem);
                 tagItems.appendTag(tagItem);
             }
@@ -414,8 +431,8 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
         return contentsDisplay;
     }
 
-    public boolean[] getContentsIsBlock() {
-        return contentsIsBlock;
+    public int[] getContentsRenderType() {
+        return contentsRenderType;
     }
 
     public BoxCollection getContentsBoxes() {
@@ -423,17 +440,17 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
     }
 
     /**
-     * Attempt to insert the given stack, also recording the isBlock status if needed
+     * Attempt to insert the given stack, also recording the renderType status if needed
      *
      * @param stack   to be inserted
-     * @param isBlock if the stack to be inserted should be treated as a block for display
+     * @param renderType if the stack to be inserted should be treated as a block for display
      * @return the remaining items if successful, or the original stack if not
      */
-    public ItemStack insertStack(ItemStack stack, boolean isBlock) {
+    public ItemStack insertStack(ItemStack stack, int renderType) {
         ItemUtils.InsertStackResult result = ItemUtils.insertStackAdv(this, stack);
         if (result.remainder != stack) {
             for (int slot : result.slots) {
-                contentsIsBlock[slot] = isBlock;
+                contentsRenderType[slot] = renderType;
             }
         }
         return result.remainder;
