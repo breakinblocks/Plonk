@@ -1,4 +1,4 @@
-## [NEXT] - YYYY-MM-DD
+## [1.0.0] - 2020-01-08
 - Updated to 1.12.2
 - Placed items 'block' can be instantly broken
 

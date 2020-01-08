@@ -228,9 +228,10 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
             NBTTagCompound tagItem = tagItems.getCompoundTagAt(i);
             int slot = tagItem.getByte(TAG_SLOT) & 255;
             int renderType = tagItem.getInteger(TAG_RENDER_TYPE);
-            // TODO: Remove Migration Code
-            if (tagItem.hasKey("IsBlock")) {
-                boolean isBlock = tagItem.getBoolean("IsBlock");
+            // TODO: Remove Migration Code at some point?
+            final String TAG_IS_BLOCK = "IsBlock";
+            if (tagItem.hasKey(TAG_IS_BLOCK)) {
+                boolean isBlock = tagItem.getBoolean(TAG_IS_BLOCK);
                 renderType = isBlock ? 1 : 0;
             }
 
