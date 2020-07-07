@@ -1,0 +1,12 @@
+modLoader="javafml"
+loaderVersion="[32,)"
+issueTrackerURL="https://github.com/breakinblocks/Plonk/issues"
+[[mods]]
+modId="plonk"
+version="${file.jarVersion}"
+displayName="Plonk"
+displayURL="https://github.com/breakinblocks/Plonk"
+logoFile="assets/plonk/logo.png"
+credits="Mojang for Minecraft. Forge for the modding framework. Draconic Evolution for the idea."
+authors="Plonk contributors"
+description="Place items in the world like item frames but on any surface"

@@ -2,28 +2,33 @@ package com.breakinblocks.plonk.common.registry;
 
 import com.breakinblocks.plonk.Plonk;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
-import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.common.registry.GameRegistry;
+import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.registries.IForgeRegistry;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
-public class RegistryTileEntities {
-    public static final Class<TilePlacedItems> placed_items = TilePlacedItems.class;
+import static net.minecraftforge.registries.ForgeRegistry.REGISTRIES;
 
-    public static void init() {
+public class RegistryTileEntities {
+    public static final TileEntityType<TilePlacedItems> placed_items = TileEntityType.Builder.create(TilePlacedItems::new, RegistryBlocks.placed_items).build(null);
+    private static final Logger LOG = LogManager.getLogger();
+
+    public static void init(RegistryEvent.Register<TileEntityType<?>> event) {
+        IForgeRegistry<TileEntityType<?>> registry = event.getRegistry();
         for (Field f : RegistryTileEntities.class.getDeclaredFields()) {
             try {
                 if (Modifier.isStatic(f.getModifiers())) {
-                    if (f.getType() == Class.class) {
-                        Class<?> clazz = (Class<?>) f.get(null);
-                        if (TileEntity.class.isAssignableFrom(clazz)) {
-                            Class<? extends TileEntity> tileClass = clazz.asSubclass(TileEntity.class);
-                            ResourceLocation r = new ResourceLocation(Plonk.MOD_ID, f.getName());
-                            Plonk.LOG.info("Registering TileEntity: " + r);
-                            GameRegistry.registerTileEntity(tileClass, r);
-                        }
+                    if (f.getType() == TileEntityType.class) {
+                        ResourceLocation rl = new ResourceLocation(Plonk.MODID, f.getName());
+                        LOG.info(REGISTRIES, "Registering TileEntity: " + rl);
+                        TileEntityType<?> type = (TileEntityType<?>) f.get(null);
+                        type.setRegistryName(rl);
+                        registry.register(type);
                     }
                 }
             } catch (IllegalAccessException e) {

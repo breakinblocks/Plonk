@@ -1,9 +1,0 @@
-# blocks
-tile.placed_items.name=Placed Items
-
-# containers
-container.placed_items=Placed Items
-
-# key bindings
-key.plonk.category=Plonk
-key.plonk.place.desc=Place Item

@@ -1,9 +1,7 @@
 package com.breakinblocks.plonk.common.util;
 
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Matrix4d;
-import javax.vecmath.Matrix4f;
-import javax.vecmath.Vector3d;
+import net.minecraft.util.math.vector.Matrix3f;
+import net.minecraft.util.math.vector.Matrix4f;
 
 public class MatrixUtils {
     /**
@@ -14,36 +12,32 @@ public class MatrixUtils {
      * @param b End transformation
      * @return transform that when applied to a results in b
      */
-    public static Matrix4d difference(Matrix4d a, Matrix4d b) {
+    public static Matrix4f difference(Matrix4f a, Matrix4f b) {
         // a * D = b
         // D = a^-1 * b
-        Matrix4d aInv = new Matrix4d();
-        aInv.invert(a);
-        Matrix4d D = new Matrix4d();
-        D.mul(aInv, b);
+        Matrix4f aInv = new Matrix4f(a);
+        aInv.invert();
+        Matrix4f D = new Matrix4f(aInv);
+        D.mul(b);
         return D;
     }
 
     public static class TransformData {
-        public final double tx, ty, tz;
-        public final double sx, sy, sz;
-        public final Matrix3d rot;
+        public final float tx, ty, tz;
+        public final float sx, sy, sz;
+        public final Matrix3f rot;
         public final double pitch, yaw, roll;
 
         public TransformData(Matrix4f mat) {
-            this(new Matrix4d(mat));
-        }
-
-        public TransformData(Matrix4d mat) {
             // https://math.stackexchange.com/a/1463487
-            mat = new Matrix4d(mat);
+            mat = new Matrix4f(mat);
             tx = mat.m30;
             ty = mat.m31;
             tz = mat.m32;
-            sx = new Vector3d(mat.m00, mat.m10, mat.m20).length();
-            sy = new Vector3d(mat.m01, mat.m11, mat.m21).length();
-            sz = new Vector3d(mat.m02, mat.m12, mat.m22).length();
-            rot = new Matrix3d(
+            sx = length3f(mat.m00, mat.m10, mat.m20);
+            sy = length3f(mat.m01, mat.m11, mat.m21);
+            sz = length3f(mat.m02, mat.m12, mat.m22);
+            rot = newMat3(
                     mat.m00 / sx, mat.m01 / sy, mat.m02 / sz,
                     mat.m10 / sx, mat.m11 / sy, mat.m12 / sz,
                     mat.m20 / sx, mat.m21 / sy, mat.m22 / sz
@@ -81,6 +75,24 @@ public class MatrixUtils {
             pitch = Math.toDegrees(-Math.atan2(rot.m12, Math.sqrt(Math.pow(rot.m10, 2) + Math.pow(rot.m11, 2))));
             // m10/m11 = cos(pitch) sin(roll) / (cos(pitch) cos(roll)) = tan(roll)
             roll = Math.toDegrees(Math.atan2(rot.m10, rot.m11));
+        }
+
+        private float length3f(float x, float y, float z) {
+            return (float) Math.sqrt(x * x + y * y + z * z);
+        }
+
+        private Matrix3f newMat3(float m00, float m01, float m02, float m10, float m11, float m12, float m20, float m21, float m22) {
+            Matrix3f m = new Matrix3f();
+            m.m00 = m00;
+            m.m01 = m01;
+            m.m02 = m02;
+            m.m10 = m10;
+            m.m11 = m11;
+            m.m12 = m12;
+            m.m20 = m20;
+            m.m21 = m21;
+            m.m22 = m22;
+            return m;
         }
 
         @Override

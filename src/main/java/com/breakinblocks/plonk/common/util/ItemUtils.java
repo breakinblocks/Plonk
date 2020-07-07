@@ -1,7 +1,7 @@
 package com.breakinblocks.plonk.common.util;
 
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 
@@ -15,14 +15,14 @@ public class ItemUtils {
      * @param stack  Stack to drop
      * @return Resulting item entity if it was spawned
      */
-    public static EntityItem dropItemOnEntity(EntityLivingBase entity, ItemStack stack) {
+    public static ItemEntity dropItemOnEntity(LivingEntity entity, ItemStack stack) {
         if (stack.isEmpty()) return null;
-        double x = entity.posX;
-        double y = entity.posY;
-        double z = entity.posZ;
-        EntityItem entityItem = new EntityItem(entity.world, x, y, z, stack.copy());
+        double x = entity.getPosX();
+        double y = entity.getPosY();
+        double z = entity.getPosZ();
+        ItemEntity entityItem = new ItemEntity(entity.world, x, y, z, stack.copy());
 
-        entity.world.spawnEntity(entityItem);
+        entity.world.addEntity(entityItem);
 
         return entityItem;
     }

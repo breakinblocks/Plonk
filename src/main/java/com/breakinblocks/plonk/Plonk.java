@@ -1,40 +1,64 @@
 package com.breakinblocks.plonk;
 
-import com.breakinblocks.plonk.common.CommonProxy;
+import com.breakinblocks.plonk.client.ClientEvents;
+import com.breakinblocks.plonk.client.registry.RegistryTESRs;
+import com.breakinblocks.plonk.common.registry.RegistryBlocks;
+import com.breakinblocks.plonk.common.registry.RegistryItems;
+import com.breakinblocks.plonk.common.registry.RegistryPackets;
+import com.breakinblocks.plonk.common.registry.RegistryTileEntities;
+import net.minecraft.block.Block;
+import net.minecraft.item.Item;
+import net.minecraft.tileentity.TileEntityType;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.RegistryEvent.Register;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.Mod.EventHandler;
-import net.minecraftforge.fml.common.SidedProxy;
-import net.minecraftforge.fml.common.event.FMLInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import net.minecraftforge.fml.common.network.NetworkRegistry;
-import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.network.NetworkRegistry;
+import net.minecraftforge.fml.network.simple.SimpleChannel;
 
-@Mod(modid = Plonk.MOD_ID, name = Plonk.NAME, version = Plonk.VERSION)
+@Mod(Plonk.MODID)
 public class Plonk {
-    public static final String MOD_ID = "plonk";
-    public static final String NAME = "Plonk";
-    public static final String VERSION = "@VERSION@";
+    public static final String MODID = "plonk";
+    private static final String PROTOCOL_VERSION = "1";
+    public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
+            new ResourceLocation(MODID, "main"),
+            () -> PROTOCOL_VERSION,
+            PROTOCOL_VERSION::equals,
+            PROTOCOL_VERSION::equals
+    );
 
-    public static final Logger LOG = LogManager.getLogger(MOD_ID);
-    public static final SimpleNetworkWrapper CHANNEL = NetworkRegistry.INSTANCE.newSimpleChannel(Plonk.MOD_ID);
-    @SidedProxy(clientSide = "com.breakinblocks.plonk.client.ClientProxy", serverSide = "com.breakinblocks.plonk.common.CommonProxy")
-    public static CommonProxy PROXY;
-
-    @EventHandler
-    public void preInit(FMLPreInitializationEvent event) {
-        PROXY.preInit(event);
+    public Plonk() {
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setupClient);
+        FMLJavaModLoadingContext.get().getModEventBus().register(this);
+        MinecraftForge.EVENT_BUS.register(this);
     }
 
-    @EventHandler
-    public void init(FMLInitializationEvent event) {
-        PROXY.init(event);
+    @SubscribeEvent
+    public void registerBlocks(Register<Block> event) {
+        RegistryBlocks.init(event);
     }
 
-    @EventHandler
-    public void postInit(FMLPostInitializationEvent event) {
-        PROXY.postInit(event);
+    @SubscribeEvent
+    public void registerItems(Register<Item> event) {
+        RegistryItems.init(event);
+    }
+
+    @SubscribeEvent
+    public void registerTileEntities(Register<TileEntityType<?>> event) {
+        RegistryTileEntities.init(event);
+    }
+
+    public void setup(FMLCommonSetupEvent event) {
+        RegistryPackets.init();
+    }
+
+    public void setupClient(FMLClientSetupEvent event) {
+        RegistryTESRs.init();
+        ClientEvents.registerKeyBindings();
     }
 }

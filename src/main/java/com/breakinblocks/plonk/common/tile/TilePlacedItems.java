@@ -1,29 +1,34 @@
 package com.breakinblocks.plonk.common.tile;
 
 import com.breakinblocks.plonk.common.block.BlockPlacedItems;
+import com.breakinblocks.plonk.common.registry.RegistryTileEntities;
 import com.breakinblocks.plonk.common.util.ItemUtils;
 import com.breakinblocks.plonk.common.util.bound.Box;
 import com.breakinblocks.plonk.common.util.bound.BoxCollection;
-import net.minecraft.block.properties.PropertyDirection;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.inventory.ItemStackHelper;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
 import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SPacketUpdateTileEntity;
+import net.minecraft.network.play.server.SUpdateTileEntityPacket;
+import net.minecraft.state.DirectionProperty;
+import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.ITickable;
+import net.minecraft.util.Direction;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
-public class TilePlacedItems extends TileEntity implements ISidedInventory, ITickable {
+import java.util.Objects;
 
-    public static final PropertyDirection FACING = BlockPlacedItems.FACING;
+public class TilePlacedItems extends TileEntity implements ISidedInventory, ITickableTileEntity {
+
+    public static final DirectionProperty FACING = BlockPlacedItems.FACING;
     public static final float HEIGHT_PLATE = 1.0f / 32f;
     public static final float HEIGHT_ITEM = 1.0f / 16f * 1.5f;
     public static final float HEIGHT_BLOCK = 1.0f / 2f;
@@ -71,6 +76,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
             .build();
 
     public TilePlacedItems() {
+        super(RegistryTileEntities.placed_items);
     }
 
     /**
@@ -97,7 +103,8 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
 
         // If empty tile
         if (last_not_empty == -1) {
-            this.world.setBlockToAir(this.pos);
+            Objects.requireNonNull(this.world);
+            this.world.setBlockState(this.pos, Blocks.AIR.getDefaultState());
             return true;
         }
 
@@ -171,6 +178,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
     }
 
     private void updateContentsBoxes(int count) {
+        Objects.requireNonNull(this.world);
         BoxCollection.Builder builder = new BoxCollection.Builder(false, true);
 
         switch (count) {
@@ -192,16 +200,16 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
                 builder.addBox(0, 0.0, 0.0, 0.0, 1.0, HEIGHT_PLATE, 1.0);
         }
 
-        EnumFacing facing = this.getWorld().getBlockState(this.getPos()).getValue(FACING);
+        Direction facing = this.world.getBlockState(this.getPos()).get(FACING);
 
         switch (facing) {
             case UP: // DOWN
                 break;
             case DOWN: // UP
-                builder.apply(box -> box.rotateZ180());
+                builder.apply(Box::rotateZ180);
                 break;
             case SOUTH: // NORTH
-                builder.apply(box -> box.rotateX90());
+                builder.apply(Box::rotateX90);
                 break;
             case NORTH: // SOUTH
                 builder.apply(box -> box.rotateX90().rotateY180());
@@ -218,52 +226,46 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
     }
 
     @Override
-    public void readFromNBT(NBTTagCompound tag) {
-        super.readFromNBT(tag);
-        NBTTagList tagItems = tag.getTagList(TAG_ITEMS, 10);
+    public void read(BlockState state, CompoundNBT tag) {
+        super.read(state, tag);
+        ListNBT tagItems = tag.getList(TAG_ITEMS, 10);
         this.contents = NonNullList.withSize(this.getSizeInventory(), ItemStack.EMPTY);
         this.contentsRenderType = new int[this.getSizeInventory()];
 
-        for (int i = 0; i < tagItems.tagCount(); i++) {
-            NBTTagCompound tagItem = tagItems.getCompoundTagAt(i);
+        for (int i = 0; i < tagItems.size(); i++) {
+            CompoundNBT tagItem = tagItems.getCompound(i);
             int slot = tagItem.getByte(TAG_SLOT) & 255;
-            int renderType = tagItem.getInteger(TAG_RENDER_TYPE);
-            // TODO: Remove Migration Code at some point?
-            final String TAG_IS_BLOCK = "IsBlock";
-            if (tagItem.hasKey(TAG_IS_BLOCK)) {
-                boolean isBlock = tagItem.getBoolean(TAG_IS_BLOCK);
-                renderType = isBlock ? 1 : 0;
-            }
+            int renderType = tagItem.getInt(TAG_RENDER_TYPE);
 
-            if (slot >= 0 && slot < this.contents.size()) {
-                this.contents.set(slot, new ItemStack(tagItem));
+            if (slot < this.contents.size()) {
+                this.contents.set(slot, ItemStack.read(tagItem));
                 this.contentsRenderType[slot] = renderType;
             }
         }
     }
 
     @Override
-    public NBTTagCompound writeToNBT(NBTTagCompound tag) {
-        super.writeToNBT(tag);
-        NBTTagList tagItems = new NBTTagList();
+    public CompoundNBT write(CompoundNBT tag) {
+        super.write(tag);
+        ListNBT tagItems = new ListNBT();
 
         for (int slot = 0; slot < this.contents.size(); slot++) {
             if (!this.contents.get(slot).isEmpty()) {
-                NBTTagCompound tagItem = new NBTTagCompound();
-                tagItem.setByte(TAG_SLOT, (byte) slot);
-                tagItem.setInteger(TAG_RENDER_TYPE, this.contentsRenderType[slot]);
-                this.contents.get(slot).writeToNBT(tagItem);
-                tagItems.appendTag(tagItem);
+                CompoundNBT tagItem = new CompoundNBT();
+                tagItem.putByte(TAG_SLOT, (byte) slot);
+                tagItem.putInt(TAG_RENDER_TYPE, this.contentsRenderType[slot]);
+                this.contents.get(slot).write(tagItem);
+                tagItems.add(tagItem);
             }
         }
 
-        tag.setTag(TAG_ITEMS, tagItems);
+        tag.put(TAG_ITEMS, tagItems);
 
         return tag;
     }
 
     @Override
-    public void update() {
+    public void tick() {
         if (world.isRemote) return;
         if (needsCleaning) {
             if (clean()) {
@@ -275,37 +277,38 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
 
     @Override
     public void markDirty() {
+        Objects.requireNonNull(world);
         // this.world.markBlockForUpdate(this.xCoord, this.yCoord, this.zCoord);
-        world.markBlockRangeForRenderUpdate(pos, pos);
+        //world.markBlockRangeForRenderUpdate(pos, pos);
         world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
-        world.scheduleBlockUpdate(pos, this.getBlockType(), 0, 0);
+        //world.scheduleBlockUpdate(pos, this.getBlockType(), 0, 0);
         super.markDirty();
     }
 
     @Override
-    public SPacketUpdateTileEntity getUpdatePacket() {
-        return new SPacketUpdateTileEntity(this.pos, 0, this.getUpdateTag());
+    public SUpdateTileEntityPacket getUpdatePacket() {
+        return new SUpdateTileEntityPacket(this.pos, 0, this.getUpdateTag());
     }
 
     @Override
-    public NBTTagCompound getUpdateTag() {
-        return this.writeToNBT(super.getUpdateTag());
+    public CompoundNBT getUpdateTag() {
+        return this.write(super.getUpdateTag());
     }
 
     @Override
-    public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
-        this.handleUpdateTag(pkt.getNbtCompound());
+    public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
+        Objects.requireNonNull(this.world);
+        this.handleUpdateTag(this.world.getBlockState(pkt.getPos()), pkt.getNbtCompound());
     }
 
     @Override
-    public void handleUpdateTag(NBTTagCompound tag) {
-        super.handleUpdateTag(tag);
-        this.readFromNBT(tag);
+    public void handleUpdateTag(BlockState state, CompoundNBT tag) {
+        super.handleUpdateTag(state, tag);
         updateContentsDisplay();
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     public AxisAlignedBB getRenderBoundingBox() {
         // TODO: This doesn't work properly for custom item renders... since they can go outside the normal bounds
         // TODO: Maybe find out a way to get the render bounding boxes for each of the items??? Bit worse fps for now...
@@ -361,31 +364,21 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
     }
 
     @Override
-    public String getName() {
-        return "container.placed_items";
-    }
-
-    @Override
-    public boolean hasCustomName() {
-        return false;
-    }
-
-    @Override
     public int getInventoryStackLimit() {
         return 64;
     }
 
     @Override
-    public boolean isUsableByPlayer(EntityPlayer player) {
+    public boolean isUsableByPlayer(PlayerEntity player) {
         return false;
     }
 
     @Override
-    public void openInventory(EntityPlayer player) {
+    public void openInventory(PlayerEntity player) {
     }
 
     @Override
-    public void closeInventory(EntityPlayer player) {
+    public void closeInventory(PlayerEntity player) {
     }
 
     @Override
@@ -394,37 +387,21 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
     }
 
     @Override
-    public int getField(int id) {
-        return 0;
-    }
-
-    @Override
-    public void setField(int id, int value) {
-
-    }
-
-    @Override
-    public int getFieldCount() {
-        return 0;
-    }
-
-    @Override
     public void clear() {
-
     }
 
     @Override
-    public int[] getSlotsForFace(EnumFacing side) {
+    public int[] getSlotsForFace(Direction side) {
         return new int[]{0, 1, 2, 3};
     }
 
     @Override
-    public boolean canInsertItem(int index, ItemStack itemStackIn, EnumFacing direction) {
+    public boolean canInsertItem(int index, ItemStack itemStackIn, Direction direction) {
         return false;
     }
 
     @Override
-    public boolean canExtractItem(int index, ItemStack stack, EnumFacing direction) {
+    public boolean canExtractItem(int index, ItemStack stack, Direction direction) {
         return true;
     }
 
@@ -443,7 +420,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
     /**
      * Attempt to insert the given stack, also recording the renderType status if needed
      *
-     * @param stack   to be inserted
+     * @param stack      to be inserted
      * @param renderType if the stack to be inserted should be treated as a block for display
      * @return the remaining items if successful, or the original stack if not
      */

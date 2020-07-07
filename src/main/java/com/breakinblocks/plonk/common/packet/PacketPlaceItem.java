@@ -2,77 +2,69 @@ package com.breakinblocks.plonk.common.packet;
 
 import com.breakinblocks.plonk.common.registry.RegistryItems;
 import com.breakinblocks.plonk.common.util.EntityUtils;
-import io.netty.buffer.ByteBuf;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.WorldServer;
-import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
-import net.minecraftforge.fml.relauncher.Side;
+import net.minecraft.item.ItemUseContext;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.network.play.ServerPlayNetHandler;
+import net.minecraft.network.play.client.CPlayerTryUseItemOnBlockPacket;
+import net.minecraft.util.Hand;
+import net.minecraft.util.math.BlockRayTraceResult;
+import net.minecraftforge.fml.network.NetworkDirection;
+import net.minecraftforge.fml.network.NetworkEvent;
 
-public class PacketPlaceItem extends PacketBase<PacketPlaceItem> {
-    private BlockPos pos;
-    private EnumFacing facing;
-    private float hitX;
-    private float hitY;
-    private float hitZ;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Supplier;
+
+/**
+ * @see CPlayerTryUseItemOnBlockPacket
+ */
+public class PacketPlaceItem extends PacketBase {
+    private BlockRayTraceResult hit;
     private int renderType;
 
     public PacketPlaceItem() {
     }
 
-    public PacketPlaceItem(BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int renderType) {
-        this.pos = pos;
-        this.facing = facing;
-        this.hitX = hitX;
-        this.hitY = hitY;
-        this.hitZ = hitZ;
+    public PacketPlaceItem(BlockRayTraceResult hit, int renderType) {
+        this.hit = hit;
         this.renderType = renderType;
     }
 
     @Override
-    public void fromBytes(ByteBuf buf) {
-        pos = new BlockPos(buf.readInt(), buf.readInt(), buf.readInt());
-        facing = EnumFacing.values()[buf.readInt()];
-        hitX = buf.readFloat();
-        hitY = buf.readFloat();
-        hitZ = buf.readFloat();
+    public PacketBase read(PacketBuffer buf) {
+        hit = buf.readBlockRay();
         renderType = buf.readInt();
+        return new PacketPlaceItem(hit, renderType);
     }
 
     @Override
-    public void toBytes(ByteBuf buf) {
-        buf.writeInt(pos.getX());
-        buf.writeInt(pos.getY());
-        buf.writeInt(pos.getZ());
-        buf.writeInt(facing.ordinal());
-        buf.writeFloat(hitX);
-        buf.writeFloat(hitY);
-        buf.writeFloat(hitZ);
+    public void write(PacketBuffer buf) {
+        buf.writeBlockRay(hit);
         buf.writeInt(renderType);
     }
 
     @Override
-    public Side getSideBound() {
-        return Side.SERVER;
+    public Optional<NetworkDirection> getNetworkDirection() {
+        return Optional.of(NetworkDirection.PLAY_TO_SERVER);
     }
 
+    /**
+     * @see ServerPlayNetHandler#processTryUseItemOnBlock(CPlayerTryUseItemOnBlockPacket)
+     */
     @Override
-    protected void handle(MessageContext ctx) {
-        EntityPlayerMP player = ctx.getServerHandler().player;
-        WorldServer world = player.getServerWorld();
+    protected void handle(Supplier<NetworkEvent.Context> ctx) {
+        ServerPlayerEntity player = Objects.requireNonNull(ctx.get().getSender());
         ItemStack toPlace = new ItemStack(RegistryItems.placed_items, 1);
         ItemStack held = player.getHeldItemMainhand();
         RegistryItems.placed_items.setHeldStack(toPlace, held, renderType);
-        EntityUtils.setHeldItemSilent(player, EnumHand.MAIN_HAND, toPlace);
-        if (toPlace.onItemUse(player, world, pos, EnumHand.MAIN_HAND, facing, hitX, hitY, hitZ) == EnumActionResult.SUCCESS) {
+        EntityUtils.setHeldItemSilent(player, Hand.MAIN_HAND, toPlace);
+        if (toPlace.onItemUse(new ItemUseContext(player, Hand.MAIN_HAND, hit)).isSuccessOrConsume()) {
             ItemStack newHeld = RegistryItems.placed_items.getHeldStack(toPlace);
-            EntityUtils.setHeldItemSilent(player, EnumHand.MAIN_HAND, newHeld);
+            EntityUtils.setHeldItemSilent(player, Hand.MAIN_HAND, newHeld);
         } else {
-            EntityUtils.setHeldItemSilent(player, EnumHand.MAIN_HAND, held);
+            EntityUtils.setHeldItemSilent(player, Hand.MAIN_HAND, held);
         }
     }
 }

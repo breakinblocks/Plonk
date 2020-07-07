@@ -1,6 +1,8 @@
 package com.breakinblocks.plonk.common.util.bound;
 
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.util.math.shapes.VoxelShapes;
 
 /**
  * Class for manipulating a box within the bounds of a block
@@ -60,6 +62,17 @@ public class Box {
         );
     }
 
+    public VoxelShape toShape() {
+        return VoxelShapes.create(
+                this.minX,
+                this.minY,
+                this.minZ,
+                this.maxX,
+                this.maxY,
+                this.maxZ
+        );
+    }
+
     /**
      * Makes a copy
      *
@@ -77,7 +90,7 @@ public class Box {
     }
 
     /**
-     * Rotate 90 degrees anti-clockwise about the positive X axis
+     * Rotate 90 degrees anti-clockwise about the positive X axis (from origin 0.5, 0.5, 0.5)
      *
      * @return rotated bounding box
      */
@@ -93,7 +106,7 @@ public class Box {
     }
 
     /**
-     * Rotate 180 degrees about the positive X axis
+     * Rotate 180 degrees about the positive X axis (from origin 0.5, 0.5, 0.5)
      *
      * @return rotated bounding box
      */
@@ -109,7 +122,7 @@ public class Box {
     }
 
     /**
-     * Rotate 270 degrees anti-clockwise about the positive X axis
+     * Rotate 270 degrees anti-clockwise about the positive X axis (from origin 0.5, 0.5, 0.5)
      *
      * @return rotated bounding box
      */
@@ -125,7 +138,7 @@ public class Box {
     }
 
     /**
-     * Rotate 90 degrees anti-clockwise about the positive Y axis
+     * Rotate 90 degrees anti-clockwise about the positive Y axis (from origin 0.5, 0.5, 0.5)
      *
      * @return rotated bounding box
      */
@@ -141,7 +154,7 @@ public class Box {
     }
 
     /**
-     * Rotate 180 degrees about the positive Y axis
+     * Rotate 180 degrees about the positive Y axis (from origin 0.5, 0.5, 0.5)
      *
      * @return rotated bounding box
      */
@@ -157,7 +170,7 @@ public class Box {
     }
 
     /**
-     * Rotate 270 degrees anti-clockwise about the positive Y axis
+     * Rotate 270 degrees anti-clockwise about the positive Y axis (from origin 0.5, 0.5, 0.5)
      *
      * @return rotated bounding box
      */
@@ -173,7 +186,7 @@ public class Box {
     }
 
     /**
-     * Rotate 90 degrees anti-clockwise about the positive Z axis
+     * Rotate 90 degrees anti-clockwise about the positive Z axis (from origin 0.5, 0.5, 0.5)
      *
      * @return rotated bounding box
      */
@@ -190,7 +203,7 @@ public class Box {
     }
 
     /**
-     * Rotate 180 degrees about the positive Z axis
+     * Rotate 180 degrees about the positive Z axis (from origin 0.5, 0.5, 0.5)
      *
      * @return rotated bounding box
      */
@@ -206,7 +219,7 @@ public class Box {
     }
 
     /**
-     * Rotate 270 degrees anti-clockwise about the positive X axis
+     * Rotate 270 degrees anti-clockwise about the positive X axis (from origin 0.5, 0.5, 0.5)
      *
      * @return rotated bounding box
      */

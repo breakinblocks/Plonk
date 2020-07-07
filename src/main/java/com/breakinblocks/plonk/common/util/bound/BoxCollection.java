@@ -1,12 +1,14 @@
 package com.breakinblocks.plonk.common.util.bound;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.util.math.shapes.VoxelShapes;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 
 import java.util.ArrayList;
@@ -19,6 +21,9 @@ public class BoxCollection {
     private final ArrayList<Entry> collisionBoxes;
     private final ArrayList<Entry> selectionBoxes;
     private final Box renderBox;
+    private final VoxelShape shape;
+    private final VoxelShape collisionShape;
+    private final VoxelShape selectionShape;
     public Entry selectionLastEntry = null;
     public AxisAlignedBB selectionLastAABB = null;
     private Entry boundsEntry = null;
@@ -27,7 +32,10 @@ public class BoxCollection {
         this.boxes = new ArrayList<>(boxes);
         this.collisionBoxes = this.boxes.stream().filter(entry -> entry.collision).collect(Collectors.toCollection(ArrayList::new));
         this.selectionBoxes = this.boxes.stream().filter(entry -> entry.selection).collect(Collectors.toCollection(ArrayList::new));
-        renderBox = this.boxes.stream().map(entry -> entry.box).reduce(Box::enclosing).orElse(Box.BLOCK_BOX);
+        this.renderBox = this.boxes.stream().map(entry -> entry.box).reduce(Box::enclosing).orElse(Box.BLOCK_BOX);
+        this.shape = this.boxes.stream().map(entry -> entry.box.toShape()).reduce(VoxelShapes::or).orElseGet(VoxelShapes::empty);
+        this.collisionShape = this.boxes.stream().filter(entry -> entry.collision).map(entry -> entry.box.toShape()).reduce(VoxelShapes::or).orElseGet(VoxelShapes::empty);
+        this.selectionShape = this.boxes.stream().filter(entry -> entry.selection).map(entry -> entry.box.toShape()).reduce(VoxelShapes::or).orElseGet(VoxelShapes::empty);
     }
 
     /**
@@ -69,7 +77,7 @@ public class BoxCollection {
         return selectionLastAABB;
     }
 
-    public RayTraceResult collisionRayTrace(Block block, ICollisionRayTrace collisionRayTrace, IBlockState blockState, World worldIn, BlockPos pos, Vec3d start, Vec3d end) {
+    public RayTraceResult collisionRayTrace(Block block, ICollisionRayTrace collisionRayTrace, BlockState blockState, World worldIn, BlockPos pos, Vector3d start, Vector3d end) {
         int num = this.boxes.size();
         RayTraceResult[] mops = new RayTraceResult[num];
 
@@ -86,7 +94,7 @@ public class BoxCollection {
         for (int i = 0; i < num; i++) {
             RayTraceResult mop = mops[i];
             if (mop == null) continue;
-            double distSq = mop.hitVec.squareDistanceTo(start);
+            double distSq = mop.getHitVec().squareDistanceTo(start);
             if (distSq < minDistSq) {
                 minDistSq = distSq;
                 nearestMopIndex = i;
@@ -111,7 +119,7 @@ public class BoxCollection {
 
     @FunctionalInterface
     public interface ICollisionRayTrace {
-        RayTraceResult apply(IBlockState blockState, World worldIn, BlockPos pos, Vec3d start, Vec3d end);
+        RayTraceResult apply(BlockState blockState, World worldIn, BlockPos pos, Vector3d start, Vector3d end);
     }
 
     @FunctionalInterface

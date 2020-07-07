@@ -1,40 +1,30 @@
 package com.breakinblocks.plonk.common.packet;
 
-import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
-import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
-import net.minecraftforge.fml.relauncher.Side;
+import net.minecraft.network.PacketBuffer;
+import net.minecraftforge.fml.network.NetworkDirection;
+import net.minecraftforge.fml.network.NetworkEvent.Context;
 
-public abstract class PacketBase<PKT extends PacketBase> implements IMessage, IMessageHandler<PKT, IMessage> {
+import java.util.Optional;
+import java.util.function.Supplier;
 
-    @Override
-    public abstract void fromBytes(ByteBuf buf);
+public abstract class PacketBase {
 
-    @Override
-    public abstract void toBytes(ByteBuf buf);
+    public abstract PacketBase read(PacketBuffer buf);
 
-    @Override
-    public IMessage onMessage(PKT message, MessageContext ctx) {
-        if (ctx.side != this.getSideBound())
-            throw new RuntimeException(this.getClass().getName() + " should only be received on side " + this.getSideBound().toString());
+    public abstract void write(PacketBuffer buf);
 
+    public void onMessage(Supplier<Context> ctx) {
         if (isAsync()) {
-            message.handle(ctx);
+            this.handle(ctx);
         } else {
-            if (ctx.side == Side.SERVER) {
-                ctx.getServerHandler().player.getServerWorld().addScheduledTask(() -> message.handle(ctx));
-            } else {
-                Minecraft.getMinecraft().addScheduledTask(() -> message.handle(ctx));
-            }
+            ctx.get().enqueueWork(() -> this.handle(ctx));
         }
-        return null;
     }
 
     /**
      * Check if the handler can be called asynchronously
      * Defaults to false
+     * For mixed async and synchronous: return true and use {@link Context#enqueueWork(Runnable)}
      *
      * @return true if the handler can be called asynchronously
      */
@@ -42,12 +32,7 @@ public abstract class PacketBase<PKT extends PacketBase> implements IMessage, IM
         return false;
     }
 
-    /**
-     * Side the packet should be received on.
-     *
-     * @return receiving side
-     */
-    public abstract Side getSideBound();
+    public abstract Optional<NetworkDirection> getNetworkDirection();
 
-    protected abstract void handle(MessageContext ctx);
+    protected abstract void handle(Supplier<Context> ctx);
 }

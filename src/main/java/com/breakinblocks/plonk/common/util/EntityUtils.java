@@ -1,60 +1,60 @@
 package com.breakinblocks.plonk.common.util;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.EntityEquipmentSlot;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.Hand;
+import net.minecraft.util.math.vector.Vector3d;
 
 public class EntityUtils {
     /**
      * Gets the position of the entity's eyes
      *
-     * @param entity             target
-     * @param renderPartialTicks fractional tick
+     * @param entity       target
+     * @param partialTicks fractional tick
      * @return position of eye
-     * @see Entity#getPositionEyes(float)
+     * @see Entity#getEyePosition(float)
      * @deprecated
      */
-    public static Vec3d getEyePosition(EntityLivingBase entity, float renderPartialTicks) {
-        return entity.getPositionEyes(renderPartialTicks);
+    public static Vector3d getEyePosition(Entity entity, float partialTicks) {
+        return entity.getEyePosition(partialTicks);
     }
 
     /**
-     * Silent version of EntityLivingBase#setHeldItem for players only
+     * Silent version of {@link LivingEntity#setHeldItem(Hand, ItemStack)} for players only
      *
      * @param player target
      * @param hand   hand to set
      * @param stack  stack to set
-     * @see EntityLivingBase#setHeldItem(net.minecraft.util.EnumHand, net.minecraft.item.ItemStack)
+     * @see LivingEntity#setHeldItem(Hand, ItemStack)
      */
-    public static void setHeldItemSilent(EntityPlayer player, EnumHand hand, ItemStack stack) {
-        if (hand == EnumHand.MAIN_HAND) {
-            setItemStackToSlotSilent(player, EntityEquipmentSlot.MAINHAND, stack);
+    public static void setHeldItemSilent(PlayerEntity player, Hand hand, ItemStack stack) {
+        if (hand == Hand.MAIN_HAND) {
+            setItemStackToSlotSilent(player, EquipmentSlotType.MAINHAND, stack);
         } else {
-            if (hand != EnumHand.OFF_HAND) {
+            if (hand != Hand.OFF_HAND) {
                 throw new IllegalArgumentException("Invalid hand " + hand);
             }
-            setItemStackToSlotSilent(player, EntityEquipmentSlot.OFFHAND, stack);
+            setItemStackToSlotSilent(player, EquipmentSlotType.OFFHAND, stack);
         }
     }
 
     /**
-     * Silent version of EntityPlayer#setItemStackToSlot
+     * Silent version of {@link PlayerEntity#setItemStackToSlot(EquipmentSlotType, ItemStack)}
      *
      * @param player target
      * @param slotIn equipment slot to set
      * @param stack  stack to set
-     * @see EntityPlayer#setItemStackToSlot(net.minecraft.inventory.EntityEquipmentSlot, net.minecraft.item.ItemStack)
+     * @see PlayerEntity#setItemStackToSlot(EquipmentSlotType, ItemStack)
      */
-    public static void setItemStackToSlotSilent(EntityPlayer player, EntityEquipmentSlot slotIn, ItemStack stack) {
-        if (slotIn == EntityEquipmentSlot.MAINHAND) {
+    public static void setItemStackToSlotSilent(PlayerEntity player, EquipmentSlotType slotIn, ItemStack stack) {
+        if (slotIn == EquipmentSlotType.MAINHAND) {
             player.inventory.mainInventory.set(player.inventory.currentItem, stack);
-        } else if (slotIn == EntityEquipmentSlot.OFFHAND) {
+        } else if (slotIn == EquipmentSlotType.OFFHAND) {
             player.inventory.offHandInventory.set(0, stack);
-        } else if (slotIn.getSlotType() == EntityEquipmentSlot.Type.ARMOR) {
+        } else if (slotIn.getSlotType() == EquipmentSlotType.Group.ARMOR) {
             player.inventory.armorInventory.set(slotIn.getIndex(), stack);
         }
     }
