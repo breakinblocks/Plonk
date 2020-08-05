@@ -27,6 +27,8 @@ import net.minecraft.world.LightType;
 import net.minecraft.world.World;
 import net.minecraftforge.common.model.TransformationHelper;
 
+import java.util.Objects;
+
 import static com.breakinblocks.plonk.common.tile.TilePlacedItems.RENDER_TYPE_BLOCK;
 import static com.breakinblocks.plonk.common.tile.TilePlacedItems.RENDER_TYPE_ITEM;
 
@@ -64,19 +66,20 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
         double hRot = hRotP + hRotY + hRotR;
         //String message = String.format("hS=%.3f hRot=%.3f\n", hS, hRot) + transform.toString();
         //for (String line : message.split("\r?\n"))
-        //    Minecraft.getMinecraft().ingameGUI.addChatMessage(ChatType.CHAT, new TextComponentString(line));
-        // Change in scaling is > 1 and change in rotation at non-right angles;
-        return hS > (1.0 - 0.001) && hRot > 0.001 ? RENDER_TYPE_BLOCK : RENDER_TYPE_ITEM;
+        //    Minecraft.getInstance().ingameGUI.getChatGUI().printChatMessage(new StringTextComponent(line));
+        // Change in scaling is < 1 and change in rotation at non-right angles;
+        return hS < (1.0 - 0.001) && hRot > 0.001 ? RENDER_TYPE_BLOCK : RENDER_TYPE_ITEM;
     }
 
     @Override
     public void render(TilePlacedItems tileEntityIn, float partialTicks, MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int combinedLightIn, int combinedOverlayIn) {
-        Direction facing = tileEntityIn.getWorld().getBlockState(tileEntityIn.getPos()).get(FACING);
+        Direction facing = Objects.requireNonNull(tileEntityIn.getWorld()).getBlockState(tileEntityIn.getPos()).get(FACING);
         World world = tileEntityIn.getWorld();
         BlockPos pos = tileEntityIn.getPos();
         matrixStackIn.push();
         // Centre of Block
-        matrixStackIn.translate(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
+        //matrixStackIn.translate(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
+        matrixStackIn.translate(0.5, 0.5, 0.5);
 
         //Rotate Facing
         switch (facing) {

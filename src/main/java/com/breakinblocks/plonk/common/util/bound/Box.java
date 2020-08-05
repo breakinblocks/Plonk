@@ -3,6 +3,7 @@ package com.breakinblocks.plonk.common.util.bound;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
+import net.minecraft.util.math.vector.Vector3d;
 
 /**
  * Class for manipulating a box within the bounds of a block
@@ -269,5 +270,41 @@ public class Box {
                 Math.max(this.maxY, o.maxY),
                 Math.max(this.maxZ, o.maxZ)
         );
+    }
+
+    /**
+     * @see Box#contains(double, double, double)
+     */
+    public boolean contains(Vector3d vec) {
+        return contains(vec.x, vec.y, vec.z);
+    }
+
+    /**
+     * Checks if the given vector is contained within the box
+     *
+     * @return if the given vector is contained
+     */
+    public boolean contains(double x, double y, double z) {
+        return this.minX <= x && x <= this.maxX && this.minY <= y && y <= this.maxY && this.minZ <= z && z <= this.minZ;
+    }
+
+    /**
+     * @see Box#distanceSq(double, double, double)
+     */
+    public double distanceSq(Vector3d vec) {
+        return distanceSq(vec.x, vec.y, vec.z);
+    }
+
+    /**
+     * Calculates the squared distance of the given vector to the box
+     *
+     * @return 0 if it is within the box, otherwise the distance to the box
+     */
+    public double distanceSq(double x, double y, double z) {
+        if (contains(x, y, z)) return 0.0;
+        double dx = Math.max(this.minX - x, x - this.maxX);
+        double dy = Math.max(this.minY - y, y - this.maxY);
+        double dz = Math.max(this.minZ - z, z - this.maxZ);
+        return dx * dx + dy * dy + dz * dz;
     }
 }

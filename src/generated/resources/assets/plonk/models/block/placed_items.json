@@ -1,0 +1,36 @@
+{
+  "parent": "block/block",
+  "textures": {
+    "all": "plonk:block/placed_items",
+    "particle": "#all"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        -0.01,
+        0
+      ],
+      "to": [
+        16,
+        0.01,
+        16
+      ],
+      "faces": {
+        "down": {
+          "texture": "#all",
+          "uv": [
+            0.0,
+            16.0,
+            16.0,
+            0.0
+          ],
+          "cullface": "down"
+        },
+        "up": {
+          "texture": "#all"
+        }
+      }
+    }
+  ]
+}

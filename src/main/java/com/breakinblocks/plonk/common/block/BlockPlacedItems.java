@@ -3,7 +3,6 @@ package com.breakinblocks.plonk.common.block;
 import com.breakinblocks.plonk.common.registry.RegistryTileEntities;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
 import com.breakinblocks.plonk.common.util.ItemUtils;
-import com.breakinblocks.plonk.common.util.bound.BoxCollection;
 import net.minecraft.block.*;
 import net.minecraft.client.multiplayer.PlayerController;
 import net.minecraft.client.particle.ParticleManager;
@@ -30,6 +29,7 @@ import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.IWorldReader;
@@ -53,9 +53,18 @@ public class BlockPlacedItems extends Block {
         this.setDefaultState(this.stateContainer.getBaseState().with(FACING, Direction.UP));
     }
 
+    /**
+     * @see AbstractGlassBlock#propagatesSkylightDown(BlockState, IBlockReader, BlockPos)
+     */
+    @Override
+    public boolean propagatesSkylightDown(BlockState state, IBlockReader reader, BlockPos pos) {
+        return getFluidState(state).isEmpty();
+    }
+
     @Override
     @SuppressWarnings("deprecation")
     public BlockRenderType getRenderType(BlockState state) {
+        //if (true) return BlockRenderType.MODEL;
         return BlockRenderType.ENTITYBLOCK_ANIMATED;
     }
 
@@ -75,10 +84,24 @@ public class BlockPlacedItems extends Block {
     @Override
     @SuppressWarnings("deprecation")
     public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
-        // TODO: Take a lookie at this please~
-        //TilePlacedItems tile = (TilePlacedItems) worldIn.getTileEntity(pos);
-        //return tile != null ? tile.getContentsBoxes().getBoundingBox(pos) : VoxelShapes.fullCube();
-        return VoxelShapes.fullCube();
+        // Used for selection rendering
+        TilePlacedItems tile = (TilePlacedItems) worldIn.getTileEntity(pos);
+        return tile != null ? tile.getContentsBoxes().getSelectionShape() : VoxelShapes.empty();
+    }
+
+    @Deprecated
+    @SuppressWarnings("deprecation")
+    public VoxelShape getCollisionShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
+        // Used for collision with entities
+        TilePlacedItems tile = (TilePlacedItems) worldIn.getTileEntity(pos);
+        return tile != null ? tile.getContentsBoxes().getCollisionShape() : VoxelShapes.empty();
+    }
+
+    @Deprecated
+    @SuppressWarnings("deprecation")
+    public VoxelShape func_230322_a_(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
+        // Used for colliding with the camera (third person)
+        return VoxelShapes.empty();
     }
 
     /**
@@ -101,6 +124,15 @@ public class BlockPlacedItems extends Block {
     }
 
     /**
+     * @see AbstractGlassBlock#getAmbientOcclusionLightValue(BlockState, IBlockReader, BlockPos)
+     */
+    @Override
+    @SuppressWarnings("deprecation")
+    public float getAmbientOcclusionLightValue(BlockState state, IBlockReader worldIn, BlockPos pos) {
+        return 1.0F;
+    }
+
+    /**
      * @see ChestBlock#onReplaced(BlockState, World, BlockPos, BlockState, boolean)
      */
     @Override
@@ -118,28 +150,38 @@ public class BlockPlacedItems extends Block {
     }
 
     /**
-     * This is called server side so needs to be ray-traced again
+     * This can be called server side so needs to be ray-traced again
      *
+     * @return -1 if no hit otherwise the closest slot
      * @see Entity#pick(double, float, boolean)
      * @see PlayerController#getBlockReachDistance()
      */
-    @Override
-    @SuppressWarnings("deprecation")
-    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
-        if (worldIn.isRemote) return ActionResultType.SUCCESS;
-
-        double blockReachDistance = player.getAttribute(ForgeMod.REACH_DISTANCE.get()).getValue();
+    protected int getPickedSlot(IBlockReader worldIn, BlockPos pos, PlayerEntity player) {
+        double blockReachDistance = Objects.requireNonNull(player.getAttribute(ForgeMod.REACH_DISTANCE.get())).getValue();
         float partialTicks = 0.0f;
 
         // Might have issues if player is moving fast or turning their vision fast
         //  since client-side uses interpolated ray traces
         RayTraceResult traceResult = player.pick(blockReachDistance, partialTicks, false);
         if (traceResult.getType() == RayTraceResult.Type.BLOCK) {
-            // TODO fix this lol
+            Vector3d hitVec = traceResult.getHitVec().subtract(pos.getX(), pos.getY(), pos.getZ());
             TilePlacedItems tile = (TilePlacedItems) worldIn.getTileEntity(pos);
             Objects.requireNonNull(tile);
-            int index = tile.getContentsBoxes().selectionLastEntry.id;
-            int slot = index <= 0 ? 0 : index - 1;
+            int index = tile.getContentsBoxes().getSelectionIndexFromHitVec(hitVec);
+            return index <= 0 ? 0 : index - 1;
+        }
+        return -1;
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
+        if (worldIn.isRemote) return ActionResultType.SUCCESS;
+
+        int slot = getPickedSlot(worldIn, pos, player);
+        if (slot >= 0) {
+            TilePlacedItems tile = (TilePlacedItems) worldIn.getTileEntity(pos);
+            Objects.requireNonNull(tile);
             ItemStack stack = tile.getStackInSlot(slot);
             if (!stack.isEmpty()) {
                 //ItemUtils.dropItemWithinBlock(worldId, x, y, z, stack);
@@ -172,14 +214,10 @@ public class BlockPlacedItems extends Block {
 
     @Override
     public ItemStack getPickBlock(BlockState state, RayTraceResult target, IBlockReader world, BlockPos pos, PlayerEntity player) {
-        // TODO: review
         TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(pos);
         if (tile == null) return ItemStack.EMPTY;
-        BoxCollection.Entry last = tile.getContentsBoxes().selectionLastEntry;
-        if (last == null) return ItemStack.EMPTY;
-        int index = last.id;
-        int slot = index <= 0 ? 0 : index - 1;
-        return tile.getStackInSlot(slot);
+        int slot = getPickedSlot(world, pos, player);
+        return slot >= 0 ? tile.getStackInSlot(slot) : ItemStack.EMPTY;
     }
 
     @Override

@@ -1,0 +1,14 @@
+package com.breakinblocks.plonk.data;
+
+import com.breakinblocks.plonk.Plonk;
+import net.minecraft.util.ResourceLocation;
+
+public class DataGenUtils {
+    public static ResourceLocation minecraft(String path) {
+        return new ResourceLocation("minecraft", path);
+    }
+
+    public static ResourceLocation plonk(String path) {
+        return new ResourceLocation(Plonk.MODID, path);
+    }
+}

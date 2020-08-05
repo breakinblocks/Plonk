@@ -69,7 +69,9 @@ minecraft {
             // Recommended logging level for the console
             property 'forge.logging.console.level', 'debug'
 
-            args '--mod', 'plonk', '--all', '--output', file('src/generated/resources/')
+            args '--mod', 'plonk', '--all',
+                    '--existing', '"' + file('src/main/resources/') + '"',
+                    '--output', '"' + file('src/generated/resources/') + '"'
 
             mods {
                 plonk {
@@ -78,6 +80,10 @@ minecraft {
             }
         }
     }
+}
+
+sourceSets.main.resources {
+    srcDir 'src/generated/resources'
 }
 
 dependencies {

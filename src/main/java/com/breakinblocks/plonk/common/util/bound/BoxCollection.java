@@ -34,8 +34,8 @@ public class BoxCollection {
         this.selectionBoxes = this.boxes.stream().filter(entry -> entry.selection).collect(Collectors.toCollection(ArrayList::new));
         this.renderBox = this.boxes.stream().map(entry -> entry.box).reduce(Box::enclosing).orElse(Box.BLOCK_BOX);
         this.shape = this.boxes.stream().map(entry -> entry.box.toShape()).reduce(VoxelShapes::or).orElseGet(VoxelShapes::empty);
-        this.collisionShape = this.boxes.stream().filter(entry -> entry.collision).map(entry -> entry.box.toShape()).reduce(VoxelShapes::or).orElseGet(VoxelShapes::empty);
-        this.selectionShape = this.boxes.stream().filter(entry -> entry.selection).map(entry -> entry.box.toShape()).reduce(VoxelShapes::or).orElseGet(VoxelShapes::empty);
+        this.collisionShape = this.collisionBoxes.stream().map(entry -> entry.box.toShape()).reduce(VoxelShapes::or).orElseGet(VoxelShapes::empty);
+        this.selectionShape = this.selectionBoxes.stream().map(entry -> entry.box.toShape()).reduce(VoxelShapes::or).orElseGet(VoxelShapes::empty);
     }
 
     /**
@@ -57,7 +57,18 @@ public class BoxCollection {
         return boxes.stream().filter((e) -> e.id == id).map(e -> e.box).collect(Collectors.toCollection(ArrayList::new));
     }
 
-    // BLOCK METHODS
+    /**
+     * Gets the selection id of the first box that contains the given hit vector otherwise -1
+     *
+     * @param hitVec position of the ray trace hit relative to the box collection origin
+     * @return selection id
+     */
+    public int getSelectionIndexFromHitVec(Vector3d hitVec) {
+        return selectionBoxes.stream()
+                .map((e) -> new SelectionEntry(e, e.box.distanceSq(hitVec)))
+                .reduce((a, b) -> b.distance < a.distance ? b : a)
+                .map((se) -> se.entry.id).orElse(-1);
+    }
 
     public void addCollidingBoxes(BlockPos pos, AxisAlignedBB entityBox, List<AxisAlignedBB> collidingBoxes) {
         for (Entry entry : collisionBoxes) {
@@ -69,6 +80,8 @@ public class BoxCollection {
             }
         }
     }
+
+    // BLOCK METHODS
 
     /**
      * Return the last non-colliding + colliding bounding box
@@ -117,6 +130,18 @@ public class BoxCollection {
         return renderBox.toAABB();
     }
 
+    public VoxelShape getShape() {
+        return shape;
+    }
+
+    public VoxelShape getCollisionShape() {
+        return collisionShape;
+    }
+
+    public VoxelShape getSelectionShape() {
+        return selectionShape;
+    }
+
     @FunctionalInterface
     public interface ICollisionRayTrace {
         RayTraceResult apply(BlockState blockState, World worldIn, BlockPos pos, Vector3d start, Vector3d end);
@@ -125,6 +150,16 @@ public class BoxCollection {
     @FunctionalInterface
     public interface IAddCollisionBoxesToList {
         void apply(World world, int x, int y, int z, AxisAlignedBB collider, List collisions, Entity entity);
+    }
+
+    private static class SelectionEntry {
+        public final Entry entry;
+        public final double distance;
+
+        public SelectionEntry(Entry entry, double distance) {
+            this.entry = entry;
+            this.distance = distance;
+        }
     }
 
     public static class Entry {

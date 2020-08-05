@@ -7,6 +7,8 @@ import com.breakinblocks.plonk.common.registry.RegistryItems;
 import com.breakinblocks.plonk.common.registry.RegistryPackets;
 import com.breakinblocks.plonk.common.registry.RegistryTileEntities;
 import net.minecraft.block.Block;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderTypeLookup;
 import net.minecraft.item.Item;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.ResourceLocation;
@@ -59,6 +61,7 @@ public class Plonk {
 
     public void setupClient(FMLClientSetupEvent event) {
         RegistryTESRs.init();
+        RenderTypeLookup.setRenderLayer(RegistryBlocks.placed_items, RenderType.getCutout());
         ClientEvents.registerKeyBindings();
     }
 }

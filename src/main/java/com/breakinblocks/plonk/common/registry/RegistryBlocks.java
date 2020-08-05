@@ -4,6 +4,7 @@ import com.breakinblocks.plonk.Plonk;
 import com.breakinblocks.plonk.common.block.BlockPlacedItems;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
 import net.minecraft.block.SoundType;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.event.RegistryEvent;
@@ -16,7 +17,20 @@ import java.lang.reflect.Modifier;
 import static net.minecraftforge.registries.ForgeRegistry.REGISTRIES;
 
 public class RegistryBlocks {
-    public static final BlockPlacedItems placed_items = new BlockPlacedItems(AbstractBlock.Properties.create(RegistryMaterials.placed_items).sound(SoundType.STONE));
+    /**
+     * @see Blocks#GLASS
+     */
+    public static final BlockPlacedItems placed_items = new BlockPlacedItems(AbstractBlock.Properties
+            .create(RegistryMaterials.placed_items)
+            .hardnessAndResistance(0.3F)
+            .sound(SoundType.STONE)
+            .notSolid()
+            // Don't think the following are needed but... eh
+            .setPropagatesDownwards((state, world, pos, type) -> false) // Actually for if the given entity can spawn on top of it
+            .setOpaque((state, world, pos) -> false)
+            .setSuffocates((state, world, pos) -> false)
+            .setBlocksVision((state, world, pos) -> false)
+    );
     private static final Logger LOG = LogManager.getLogger();
 
     public static void init(RegistryEvent.Register<Block> event) {
