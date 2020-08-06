@@ -35,6 +35,7 @@ import net.minecraft.world.IWorld;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
+import net.minecraftforge.client.event.DrawHighlightEvent;
 import net.minecraftforge.common.ForgeMod;
 
 import javax.annotation.Nullable;
@@ -43,10 +44,16 @@ import java.util.Objects;
 /**
  * @see ChestBlock
  */
-public class BlockPlacedItems extends Block {
+public class BlockPlacedItems extends Block implements IWaterLoggable {
 
     public static final DirectionProperty FACING = DirectionalBlock.FACING;
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
+    /**
+     * This is such a hack. Find a better way to do this eventually please???
+     * The issue with handling the {@link DrawHighlightEvent.HighlightBlock} event is that
+     * it would break with other mods that add a custom block highlight...
+     */
+    private final ThreadLocal<Boolean> picking = ThreadLocal.withInitial(() -> false);
 
     public BlockPlacedItems(AbstractBlock.Properties properties) {
         super(properties);
@@ -84,11 +91,21 @@ public class BlockPlacedItems extends Block {
     @Override
     @SuppressWarnings("deprecation")
     public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
-        // Used for selection rendering
+        // Used for block selection (and also rendering of the selection)
         TilePlacedItems tile = (TilePlacedItems) worldIn.getTileEntity(pos);
-        return tile != null ? tile.getContentsBoxes().getSelectionShape() : VoxelShapes.empty();
+        if (tile == null)
+            return VoxelShapes.empty();
+        if (picking.get())
+            return tile.getContentsBoxes().getSelectionShape();
+        int slot = -1;
+        Entity entity = context.getEntity();
+        if (entity instanceof LivingEntity) {
+            slot = getPickedSlot(worldIn, pos, (LivingEntity) entity);
+        }
+        return slot >= 0 ? tile.getContentsBoxes().getSelectionShapeById(slot + 1) : tile.getContentsBoxes().getSelectionShape();
     }
 
+    @Override
     @Deprecated
     @SuppressWarnings("deprecation")
     public VoxelShape getCollisionShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
@@ -97,9 +114,10 @@ public class BlockPlacedItems extends Block {
         return tile != null ? tile.getContentsBoxes().getCollisionShape() : VoxelShapes.empty();
     }
 
+    @Override
     @Deprecated
     @SuppressWarnings("deprecation")
-    public VoxelShape func_230322_a_(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
+    public VoxelShape getRayTraceShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
         // Used for colliding with the camera (third person)
         return VoxelShapes.empty();
     }
@@ -156,13 +174,20 @@ public class BlockPlacedItems extends Block {
      * @see Entity#pick(double, float, boolean)
      * @see PlayerController#getBlockReachDistance()
      */
-    protected int getPickedSlot(IBlockReader worldIn, BlockPos pos, PlayerEntity player) {
+    protected int getPickedSlot(IBlockReader worldIn, BlockPos pos, LivingEntity player) {
+        if (picking.get()) return -1;
         double blockReachDistance = Objects.requireNonNull(player.getAttribute(ForgeMod.REACH_DISTANCE.get())).getValue();
         float partialTicks = 0.0f;
 
         // Might have issues if player is moving fast or turning their vision fast
         //  since client-side uses interpolated ray traces
-        RayTraceResult traceResult = player.pick(blockReachDistance, partialTicks, false);
+        RayTraceResult traceResult;
+        try {
+            picking.set(true);
+            traceResult = player.pick(blockReachDistance, partialTicks, false);
+        } finally {
+            picking.set(false);
+        }
         if (traceResult.getType() == RayTraceResult.Type.BLOCK) {
             Vector3d hitVec = traceResult.getHitVec().subtract(pos.getX(), pos.getY(), pos.getZ());
             TilePlacedItems tile = (TilePlacedItems) worldIn.getTileEntity(pos);

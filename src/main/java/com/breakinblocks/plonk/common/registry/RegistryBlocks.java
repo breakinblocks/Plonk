@@ -26,7 +26,7 @@ public class RegistryBlocks {
             .sound(SoundType.STONE)
             .notSolid()
             // Don't think the following are needed but... eh
-            .setPropagatesDownwards((state, world, pos, type) -> false) // Actually for if the given entity can spawn on top of it
+            .setAllowsSpawn((state, world, pos, type) -> false)
             .setOpaque((state, world, pos) -> false)
             .setSuffocates((state, world, pos) -> false)
             .setBlocksVision((state, world, pos) -> false)

@@ -301,10 +301,9 @@ public class Box {
      * @return 0 if it is within the box, otherwise the distance to the box
      */
     public double distanceSq(double x, double y, double z) {
-        if (contains(x, y, z)) return 0.0;
-        double dx = Math.max(this.minX - x, x - this.maxX);
-        double dy = Math.max(this.minY - y, y - this.maxY);
-        double dz = Math.max(this.minZ - z, z - this.maxZ);
+        double dx = Math.max(0, Math.max(this.minX - x, x - this.maxX));
+        double dy = Math.max(0, Math.max(this.minY - y, y - this.maxY));
+        double dz = Math.max(0, Math.max(this.minZ - z, z - this.maxZ));
         return dx * dx + dy * dy + dz * dz;
     }
 }

@@ -1,50 +1,25 @@
 package com.breakinblocks.plonk.common.util.bound;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.Entity;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.World;
+import net.minecraftforge.common.util.Lazy;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class BoxCollection {
-    private final ArrayList<Entry> boxes;
-    private final ArrayList<Entry> collisionBoxes;
-    private final ArrayList<Entry> selectionBoxes;
-    private final Box renderBox;
-    private final VoxelShape shape;
-    private final VoxelShape collisionShape;
-    private final VoxelShape selectionShape;
-    public Entry selectionLastEntry = null;
-    public AxisAlignedBB selectionLastAABB = null;
-    private Entry boundsEntry = null;
+    private final Entries boxes;
+    private final Map<Integer, Entries> boxesById;
 
     private BoxCollection(ArrayList<Entry> boxes) {
-        this.boxes = new ArrayList<>(boxes);
-        this.collisionBoxes = this.boxes.stream().filter(entry -> entry.collision).collect(Collectors.toCollection(ArrayList::new));
-        this.selectionBoxes = this.boxes.stream().filter(entry -> entry.selection).collect(Collectors.toCollection(ArrayList::new));
-        this.renderBox = this.boxes.stream().map(entry -> entry.box).reduce(Box::enclosing).orElse(Box.BLOCK_BOX);
-        this.shape = this.boxes.stream().map(entry -> entry.box.toShape()).reduce(VoxelShapes::or).orElseGet(VoxelShapes::empty);
-        this.collisionShape = this.collisionBoxes.stream().map(entry -> entry.box.toShape()).reduce(VoxelShapes::or).orElseGet(VoxelShapes::empty);
-        this.selectionShape = this.selectionBoxes.stream().map(entry -> entry.box.toShape()).reduce(VoxelShapes::or).orElseGet(VoxelShapes::empty);
-    }
-
-    /**
-     * The number of boxes in the collection
-     *
-     * @return number of boxes
-     */
-    public int size() {
-        return boxes.size();
+        this.boxes = new Entries(boxes);
+        this.boxesById = this.boxes.source.get().stream().collect(Collectors.groupingBy(
+                e -> e.id,
+                Collectors.collectingAndThen(Collectors.toCollection(ArrayList::new), Entries::new))
+        );
     }
 
     /**
@@ -54,7 +29,7 @@ public class BoxCollection {
      * @return boxes that have the given index
      */
     public ArrayList<Box> get(int id) {
-        return boxes.stream().filter((e) -> e.id == id).map(e -> e.box).collect(Collectors.toCollection(ArrayList::new));
+        return this.boxesById.getOrDefault(id, Entries.EMPTY).all.get();
     }
 
     /**
@@ -64,92 +39,29 @@ public class BoxCollection {
      * @return selection id
      */
     public int getSelectionIndexFromHitVec(Vector3d hitVec) {
-        return selectionBoxes.stream()
-                .map((e) -> new SelectionEntry(e, e.box.distanceSq(hitVec)))
+        return boxes.source.get().stream()
+                .filter(e -> e.selection)
+                .map(e -> new SelectionEntry(e, e.box.distanceSq(hitVec)))
                 .reduce((a, b) -> b.distance < a.distance ? b : a)
-                .map((se) -> se.entry.id).orElse(-1);
-    }
-
-    public void addCollidingBoxes(BlockPos pos, AxisAlignedBB entityBox, List<AxisAlignedBB> collidingBoxes) {
-        for (Entry entry : collisionBoxes) {
-            if (entry.collision) {
-                AxisAlignedBB blockBox = entry.box.toAABB().offset(pos);
-                if (blockBox.intersects(entityBox)) {
-                    collidingBoxes.add(blockBox);
-                }
-            }
-        }
+                .map(se -> se.entry.id).orElse(-1);
     }
 
     // BLOCK METHODS
 
-    /**
-     * Return the last non-colliding + colliding bounding box
-     */
-    public AxisAlignedBB getSelectedBoundingBoxFromPool() {
-        return selectionLastAABB;
-    }
-
-    public RayTraceResult collisionRayTrace(Block block, ICollisionRayTrace collisionRayTrace, BlockState blockState, World worldIn, BlockPos pos, Vector3d start, Vector3d end) {
-        int num = this.boxes.size();
-        RayTraceResult[] mops = new RayTraceResult[num];
-
-        for (int i = 0; i < num; i++) {
-            boundsEntry = boxes.get(i);
-            mops[i] = collisionRayTrace.apply(blockState, worldIn, pos, start, end);
-        }
-        boundsEntry = null;
-
-        // Return closest
-        int nearestMopIndex = -1;
-        double minDistSq = Double.POSITIVE_INFINITY;
-
-        for (int i = 0; i < num; i++) {
-            RayTraceResult mop = mops[i];
-            if (mop == null) continue;
-            double distSq = mop.getHitVec().squareDistanceTo(start);
-            if (distSq < minDistSq) {
-                minDistSq = distSq;
-                nearestMopIndex = i;
-            }
-        }
-
-        if (nearestMopIndex >= 0) {
-            selectionLastEntry = boxes.get(nearestMopIndex);
-            selectionLastAABB = selectionLastEntry.box.toAABB().offset(pos);
-        } else {
-            selectionLastEntry = null;
-            selectionLastAABB = null;
-        }
-        return nearestMopIndex < 0 ? null : mops[nearestMopIndex];
-    }
-
-    public AxisAlignedBB getBoundingBox(BlockPos pos) {
-        if (boundsEntry != null)
-            return boundsEntry.box.toAABB();
-        return renderBox.toAABB();
-    }
-
     public VoxelShape getShape() {
-        return shape;
+        return this.boxes.shape.get();
     }
 
     public VoxelShape getCollisionShape() {
-        return collisionShape;
+        return this.boxes.collisionShape.get();
     }
 
     public VoxelShape getSelectionShape() {
-        return selectionShape;
+        return this.boxes.selectionShape.get();
     }
 
-    @FunctionalInterface
-    public interface ICollisionRayTrace {
-        RayTraceResult apply(BlockState blockState, World worldIn, BlockPos pos, Vector3d start, Vector3d end);
-    }
-
-    @FunctionalInterface
-    public interface IAddCollisionBoxesToList {
-        void apply(World world, int x, int y, int z, AxisAlignedBB collider, List collisions, Entity entity);
+    public VoxelShape getSelectionShapeById(int id) {
+        return this.boxesById.getOrDefault(id, Entries.EMPTY).selectionShape.get();
     }
 
     private static class SelectionEntry {
@@ -173,6 +85,27 @@ public class BoxCollection {
             this.collision = collision;
             this.selection = selection;
             this.box = box;
+        }
+    }
+
+    public static class Entries {
+        public static final Entries EMPTY = new Entries(new ArrayList<>());
+        public final Lazy<ArrayList<Entry>> source;
+        public final Lazy<ArrayList<Box>> all;
+        public final Lazy<ArrayList<Box>> collision;
+        public final Lazy<ArrayList<Box>> selection;
+        public final Lazy<VoxelShape> shape;
+        public final Lazy<VoxelShape> collisionShape;
+        public final Lazy<VoxelShape> selectionShape;
+
+        public Entries(ArrayList<Entry> entries) {
+            this.source = Lazy.of(() -> new ArrayList<>(entries));
+            this.all = Lazy.of(() -> this.source.get().stream().map(e -> e.box).collect(Collectors.toCollection(ArrayList::new)));
+            this.collision = Lazy.of(() -> this.source.get().stream().filter(e -> e.collision).map(e -> e.box).collect(Collectors.toCollection(ArrayList::new)));
+            this.selection = Lazy.of(() -> this.source.get().stream().filter(e -> e.selection).map(e -> e.box).collect(Collectors.toCollection(ArrayList::new)));
+            this.shape = Lazy.of(() -> this.all.get().stream().map(Box::toShape).reduce(VoxelShapes::or).orElseGet(VoxelShapes::empty));
+            this.collisionShape = Lazy.of(() -> this.collision.get().stream().map(Box::toShape).reduce(VoxelShapes::or).orElseGet(VoxelShapes::empty));
+            this.selectionShape = Lazy.of(() -> this.selection.get().stream().map(Box::toShape).reduce(VoxelShapes::or).orElseGet(VoxelShapes::empty));
         }
     }
 
@@ -210,7 +143,7 @@ public class BoxCollection {
         }
 
         public Builder addBoxes(BoxCollection boxCollection) {
-            boxes.addAll(boxCollection.boxes);
+            boxes.addAll(boxCollection.boxes.source.get());
             return this;
         }
 
