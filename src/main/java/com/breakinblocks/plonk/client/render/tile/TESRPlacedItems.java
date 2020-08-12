@@ -1,6 +1,8 @@
 package com.breakinblocks.plonk.client.render.tile;
 
+import com.breakinblocks.plonk.Plonk;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
+import cpw.mods.fml.common.Loader;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.entity.RenderItem;
@@ -20,6 +22,7 @@ import static net.minecraftforge.client.IItemRenderer.ItemRenderType.ENTITY;
 import static net.minecraftforge.client.IItemRenderer.ItemRendererHelper.BLOCK_3D;
 
 public class TESRPlacedItems extends TileEntitySpecialRenderer {
+    private static final boolean ITEM_PHYSIC = Loader.isModLoaded(Plonk.ITEM_PHYSIC_MOD_ID);
     private final RenderBlocks renderBlocks = new RenderBlocks();
 
     public TESRPlacedItems() {
@@ -101,8 +104,9 @@ public class TESRPlacedItems extends TileEntitySpecialRenderer {
                         GL11.glTranslated(left ? -0.25 : 0.25, 0.0, top ? -0.25 : 0.25);
                         break;
                 }
-                //renderStack(world, stack, partialTicks, halfSize, world.rand.nextBoolean());
-                renderStack(world, stack, partialTicks, halfSize, false);
+                //ITEM_PHYSIC = world.getTotalWorldTime() % 200 < 100;
+                //renderStack(world, stack, partialTicks, halfSize, world.getTotalWorldTime() % 10 < 5);
+                renderStack(world, stack, partialTicks, halfSize, true);
                 GL11.glPopMatrix();
             }
         }
@@ -125,8 +129,9 @@ public class TESRPlacedItems extends TileEntitySpecialRenderer {
             EntityItem entityItem = new EntityItem(world, 0.0, 0.0, 0.0, stack);
             entityItem.getEntityItem().stackSize = 1;
             entityItem.hoverStart = 0.0f;
+            entityItem.rotationYaw = 0.0f;
+            entityItem.onGround = true;
             boolean isRenderBlock = isGoingToRenderAsBlock(stack);
-            double t = world.getTotalWorldTime() + partialTicks;
 
             if (halfSize || isRenderBlock) {
                 GL11.glScaled(0.5, 0.5, 0.5);
@@ -144,6 +149,7 @@ public class TESRPlacedItems extends TileEntitySpecialRenderer {
 
                 if (renderInFrame) {
                     GL11.glRotated(90.0, 0.0, 1.0, 0.0);
+                    if (ITEM_PHYSIC) GL11.glTranslated(0.0, -0.09, 0.0);
                     GL11.glTranslated(0.0, -0.05, 0.0);
                     GL11.glScaled(1.0 / 1.25, 1.0 / 1.25, 1.0 / 1.25);
                 }
@@ -160,6 +166,9 @@ public class TESRPlacedItems extends TileEntitySpecialRenderer {
                     GL11.glRotatef(180.0F, 0.0F, 1.0F, 0.0F);
                     if (renderInFrame) {
                         GL11.glRotatef(-180.0F, 0.0F, 1.0F, 0.0F);
+                        if (ITEM_PHYSIC) GL11.glTranslatef(0.0F, -0.09F, 0.0F);
+                    } else {
+                        if (ITEM_PHYSIC) GL11.glRotatef(-90.0F, 1.0F, 0.0F, 0.0F);
                     }
                 } else {
                     if (!renderInFrame) {
@@ -179,7 +188,7 @@ public class TESRPlacedItems extends TileEntitySpecialRenderer {
             boolean prevRenderInFrame = RenderItem.renderInFrame;
             RenderItem.renderInFrame = renderInFrame;
             // RenderItem.doRender
-            GL11.glTranslated(0, -0.1, 0.0);
+            if (!ITEM_PHYSIC) GL11.glTranslated(0, -0.1, 0.0);
             RenderManager.instance.renderEntityWithPosYaw(entityItem, 0.0, 0.0, 0.0, 0.0f, 0.0f);
             RenderItem.renderInFrame = prevRenderInFrame;
 

@@ -17,6 +17,7 @@ public class Plonk {
     public static final String MOD_ID = "plonk";
     public static final String NAME = "Plonk";
     public static final String VERSION = "@VERSION@";
+    public static final String ITEM_PHYSIC_MOD_ID = "itemphysic";
 
     public static final Logger LOG = LogManager.getLogger(MOD_ID);
     public static final SimpleNetworkWrapper CHANNEL = NetworkRegistry.INSTANCE.newSimpleChannel(Plonk.MOD_ID);
