@@ -1,3 +1,8 @@
+## [NEXT] - YYYY-MM-DD
+- Updated to 1.16.1
+- Can no longer washed away by water or other fluids
+- Can be waterlogged
+
 ## [1.0.0] - 2020-01-08
 - Updated to 1.12.2
 - Placed items 'block' can be instantly broken
