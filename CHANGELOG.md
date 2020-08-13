@@ -1,4 +1,4 @@
-## [NEXT] - YYYY-MM-DD
+## [0.0.4] - 2020-08-13
 - Made compatible with ItemPhysic mod
 
 ## [0.0.3] - 2019-12-07
