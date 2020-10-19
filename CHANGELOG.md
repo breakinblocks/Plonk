@@ -1,4 +1,4 @@
-## [NEXT] - YYY -MM-DD
+## [5.0.0] - 2020-10-19
 - Cannot be washed away by fluids anymore
 - Fix null selection box crash
 - Added rotation to tile: Sneak + Place Key (empty hand) to rotate tile (4 increments)
