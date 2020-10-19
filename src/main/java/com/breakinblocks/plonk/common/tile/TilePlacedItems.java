@@ -78,8 +78,9 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
     public static final int RENDER_TYPE_ITEM = 0;
     public static final int ITEM_ROTATION_COUNT = 16;
     private static final Logger LOG = LogManager.getLogger();
-    private int tileRotation = 0;
+
     boolean needsCleaning = true;
+    private int tileRotation = 0;
     private NonNullList<ItemStack> contents = NonNullList.withSize(this.getSizeInventory(), ItemStack.EMPTY);
     private ItemMeta[] contentsMeta = new ItemMeta[this.getSizeInventory()];
     private ItemStack[] contentsDisplay = new ItemStack[0];
