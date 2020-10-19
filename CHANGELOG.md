@@ -1,5 +1,7 @@
 ## [NEXT] - YYYY-MM-DD
 - Fix null selection box crash
+- Added rotation to tile: Sneak + Place Key (empty hand) to rotate tile (4 increments)
+- Added rotation to each item: Sneak + Right Click (empty hand) to rotate item (16 increments)
 
 ## [0.0.4] - 2020-08-13
 - Made compatible with ItemPhysic mod

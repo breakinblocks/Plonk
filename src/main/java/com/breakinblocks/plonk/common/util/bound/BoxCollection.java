@@ -9,6 +9,7 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
@@ -120,6 +121,7 @@ public class BoxCollection {
 
     @FunctionalInterface
     public interface ICollisionRayTrace {
+        @Nullable
         MovingObjectPosition apply(World world, int x, int y, int z, Vec3 from, Vec3 to);
     }
 

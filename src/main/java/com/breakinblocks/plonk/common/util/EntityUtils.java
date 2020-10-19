@@ -2,6 +2,7 @@ package com.breakinblocks.plonk.common.util;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.Vec3;
 
 public class EntityUtils {
@@ -25,4 +26,13 @@ public class EntityUtils {
         return Vec3.createVectorHelper(d0, d1, d2);
     }
 
+    /**
+     * Silent version of EntityLivingBase#setHeldItem for players only
+     *
+     * @param player target
+     * @param stack  stack to set
+     */
+    public static void setHeldItemSilent(EntityPlayer player, ItemStack stack) {
+        player.inventory.setInventorySlotContents(player.inventory.currentItem, stack);
+    }
 }

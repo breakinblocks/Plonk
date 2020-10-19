@@ -98,22 +98,6 @@ public class ItemUtils {
         return insertStackAdv(inv, stack).remainder;
     }
 
-    public static class InsertStackResult {
-        /**
-         * Remaining items if partially inserted, null if fully inserted, original stack if no insertion.
-         */
-        public final ItemStack remainder;
-        /**
-         * Slots in the target inventory that had items inserted into them
-         */
-        public final int[] slots;
-
-        public InsertStackResult(ItemStack remainder, int[] slots) {
-            this.remainder = remainder;
-            this.slots = slots;
-        }
-    }
-
     /**
      * Attempts to insert stack into inventory, returning information object about what happened.
      *
@@ -159,5 +143,21 @@ public class ItemUtils {
             slotsArray[i] = slots.get(i);
         }
         return new InsertStackResult(stack, slotsArray);
+    }
+
+    public static class InsertStackResult {
+        /**
+         * Remaining items if partially inserted, null if fully inserted, original stack if no insertion.
+         */
+        public final ItemStack remainder;
+        /**
+         * Slots in the target inventory that had items inserted into them
+         */
+        public final int[] slots;
+
+        public InsertStackResult(ItemStack remainder, int[] slots) {
+            this.remainder = remainder;
+            this.slots = slots;
+        }
     }
 }

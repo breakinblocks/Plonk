@@ -20,6 +20,7 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
@@ -70,8 +71,9 @@ public class BlockPlacedItems extends Block {
     }
 
     @Override
+    @Nullable
     public Item getItemDropped(int meta, Random rand, int fortune) {
-        return null;
+        return null; // TODO: Update item null
     }
 
     @Override
@@ -111,8 +113,12 @@ public class BlockPlacedItems extends Block {
             // TODO: Update item nulls
             if (stack != null) {
                 //ItemUtils.dropItemWithinBlock(world, x, y, z, stack);
-                ItemUtils.dropItemOnEntity(player, stack);
-                tile.setInventorySlotContents(slot, null);
+                if (player.isSneaking()) {
+                    tile.rotateSlot(slot);
+                } else {
+                    ItemUtils.dropItemOnEntity(player, stack);
+                    tile.setInventorySlotContents(slot, null);
+                }
                 tile.markDirty();
                 tile.clean();
             }
@@ -138,6 +144,20 @@ public class BlockPlacedItems extends Block {
     @Override
     public void onBlockPlacedBy(World world, int x, int y, int z, EntityLivingBase entity, ItemStack stack) {
         super.onBlockPlacedBy(world, x, y, z, entity, stack);
+        // Set the rotation of the tile based on the player's yaw and facing
+        int meta = world.getBlockMetadata(x, y, z);
+        TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(x, y, z);
+        float yaw = entity.rotationYaw % 360f;
+        if (yaw < 0) yaw += 360f;
+        int rotation = Math.round(yaw / 90f) % 4;
+        if (meta == 0) { // Down
+            rotation = (rotation + 2) % 4;
+        } else if (meta == 1) { // Up
+            rotation = 4 - rotation;
+        } else {
+            rotation = 0;
+        }
+        tile.setTileRotation(rotation);
     }
 
     @Override
@@ -151,6 +171,7 @@ public class BlockPlacedItems extends Block {
     }
 
     @Override
+    @Nullable // TODO: Remove Nullable
     public ItemStack getPickBlock(MovingObjectPosition target, World world, int x, int y, int z, EntityPlayer player) {
         TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(x, y, z);
         int index = tile.getContentsBoxes().selectionLastEntry.id;
