@@ -9,17 +9,7 @@ public class MaterialPlacedItems extends Material {
     }
 
     @Override
-    public boolean isSolid() {
-        return false;
-    }
-
-    @Override
-    public boolean blocksLight() {
-        return false;
-    }
-
-    @Override
-    public boolean blocksMovement() {
+    public boolean isOpaque() {
         return false;
     }
 }
