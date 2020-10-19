@@ -64,8 +64,11 @@ public class BoxCollection {
 
     /**
      * Return the last non-colliding + colliding bounding box
+     * If there was none, returns the render box
      */
     public AxisAlignedBB getSelectedBoundingBoxFromPool() {
+        if (selectionLastAABB == null)
+            return renderBox.toAABB();
         return selectionLastAABB;
     }
 

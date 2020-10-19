@@ -2,6 +2,7 @@ package com.breakinblocks.plonk.client.render.tile;
 
 import com.breakinblocks.plonk.common.block.BlockPlacedItems;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
+import com.breakinblocks.plonk.common.tile.TilePlacedItems.ItemMeta;
 import com.breakinblocks.plonk.common.util.MatrixUtils;
 import net.minecraft.block.properties.PropertyDirection;
 import net.minecraft.client.Minecraft;
@@ -102,15 +103,19 @@ public class TESRPlacedItems extends TileEntitySpecialRenderer<TilePlacedItems> 
 
         GL11.glTranslated(0.0, -0.5, 0.0);
 
+        //Rotate about axis
+        GL11.glRotated(-te.getTileRotationAngle(), 0.0, 1.0, 0.0);
+
         ItemStack[] contents = te.getContentsDisplay();
-        int[] contentsRenderType = te.getContentsRenderType();
+        ItemMeta[] contentsMeta = te.getContentsMeta();
         int num = contents.length;
 
         if (num > 0) {
             boolean halfSize = num > 1;
             for (int slot = 0; slot < num; slot++) {
-                GL11.glPushMatrix();
                 ItemStack stack = te.getStackInSlot(slot);
+                if (stack.isEmpty()) continue;
+                GL11.glPushMatrix();
                 switch (num) {
                     case 1:
                         // No shift
@@ -130,7 +135,7 @@ public class TESRPlacedItems extends TileEntitySpecialRenderer<TilePlacedItems> 
                         break;
                 }
                 //renderStack(world, stack, partialTicks, halfSize, world.rand.nextBoolean());
-                renderStack(te.getWorld(), stack, contentsRenderType[slot], partialTicks, halfSize);
+                renderStack(te.getWorld(), stack, contentsMeta[slot], partialTicks, halfSize);
                 GL11.glPopMatrix();
             }
         }
@@ -142,27 +147,21 @@ public class TESRPlacedItems extends TileEntitySpecialRenderer<TilePlacedItems> 
      * Render item at location facing up
      * Refer to ItemFrame rendering
      *
-     * @param world    Client world
-     * @param stack    ItemStack to render
-     * @param halfSize If items should be rendered at half size (blocks are always rendered half size)
-     */
-    /**
-     * Render item at location facing up
-     * Refer to ItemFrame rendering
-     *
      * @param world        Client world
      * @param stack        ItemStack to render
-     * @param renderType   renderType
+     * @param meta         Metadata for the stack
      * @param partialTicks fractional tick
      * @param halfSize     If items should be rendered at half size (blocks are always rendered half size)
      */
-    public void renderStack(World world, ItemStack stack, int renderType, float partialTicks, boolean halfSize) {
+    public void renderStack(World world, ItemStack stack, ItemMeta meta, float partialTicks, boolean halfSize) {
         // net.minecraft.client.renderer.entity.RenderItemFrame.renderItem
-        if (stack.isEmpty()) return;
         GlStateManager.pushMatrix();
         GlStateManager.disableLighting();
         GlStateManager.pushAttrib();
         RenderHelper.enableStandardItemLighting();
+
+        // Rotate item
+        GL11.glRotated(-meta.getRotationAngle(), 0.0, 1.0, 0.0);
 
         // GROUND
         //GlStateManager.translate(0f, -0.125f, 0f);
@@ -170,7 +169,7 @@ public class TESRPlacedItems extends TileEntitySpecialRenderer<TilePlacedItems> 
 
         // FIXED
         GlStateManager.rotate(180f, 0f, 1f, 0f);
-        switch (renderType) {
+        switch (meta.renderType) {
             case RENDER_TYPE_BLOCK: {
                 GlStateManager.translate(0f, 0.25f, 0f);
                 renderItem.renderItem(stack, ItemCameraTransforms.TransformType.FIXED);

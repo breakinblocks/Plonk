@@ -3,15 +3,18 @@ package com.breakinblocks.plonk.client;
 import com.breakinblocks.plonk.Plonk;
 import com.breakinblocks.plonk.client.render.tile.TESRPlacedItems;
 import com.breakinblocks.plonk.common.packet.PacketPlaceItem;
+import com.breakinblocks.plonk.common.packet.PacketRotateTile;
 import com.breakinblocks.plonk.common.registry.RegistryItems;
+import com.breakinblocks.plonk.common.tile.TilePlacedItems;
 import com.breakinblocks.plonk.common.util.EntityUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
-import net.minecraft.client.gui.GuiIngame;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
@@ -33,16 +36,15 @@ public class ClientEvents {
         Minecraft mc = Minecraft.getMinecraft();
         World world = mc.world;
         EntityPlayerSP player = mc.player;
-        GuiIngame ingameGUI = mc.ingameGUI;
-        if (FMLClientHandler.instance().getClient().inGameHasFocus) {
+        if (FMLClientHandler.instance().getClient().inGameHasFocus && mc.ingameGUI != null) {
             if (KEY_PLACE.isPressed()) {
-                ItemStack held = player.getHeldItemMainhand();
-                if (ingameGUI != null && !held.isEmpty()) {
-                    RayTraceResult hit = mc.objectMouseOver;
-                    if (hit.typeOfHit == RayTraceResult.Type.BLOCK) {
-                        float hitX = (float) hit.hitVec.x;
-                        float hitY = (float) hit.hitVec.y;
-                        float hitZ = (float) hit.hitVec.z;
+                RayTraceResult hit = mc.objectMouseOver;
+                if (hit.typeOfHit == RayTraceResult.Type.BLOCK) {
+                    float hitX = (float) hit.hitVec.x;
+                    float hitY = (float) hit.hitVec.y;
+                    float hitZ = (float) hit.hitVec.z;
+                    ItemStack held = player.getHeldItemMainhand();
+                    if (!held.isEmpty()) {
                         int renderType = TESRPlacedItems.getRenderTypeFromStack(held);
                         ItemStack toPlace = new ItemStack(RegistryItems.placed_items, 1);
                         RegistryItems.placed_items.setHeldStack(toPlace, held, renderType);
@@ -54,10 +56,24 @@ public class ClientEvents {
                         } else {
                             EntityUtils.setHeldItemSilent(player, EnumHand.MAIN_HAND, held);
                         }
+                    } else if (player.isSneaking()) {
+                        if (!rotatePlacedItemsTile(world, hit.getBlockPos())) {
+                            rotatePlacedItemsTile(world, hit.getBlockPos().offset(hit.sideHit));
+                        }
                     }
                 }
             }
         }
+    }
+
+    private boolean rotatePlacedItemsTile(World world, BlockPos pos) {
+        TileEntity te = world.getTileEntity(pos);
+        if (te instanceof TilePlacedItems) {
+            ((TilePlacedItems) te).rotateTile();
+            Plonk.CHANNEL.sendToServer(new PacketRotateTile(pos));
+            return true;
+        }
+        return false;
     }
 
     public void registerKeyBindings() {

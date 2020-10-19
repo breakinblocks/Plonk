@@ -39,6 +39,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
 public class BlockPlacedItems extends Block {
@@ -87,7 +88,7 @@ public class BlockPlacedItems extends Block {
     @Override
     @SuppressWarnings("deprecation")
     public void addCollisionBoxToList(IBlockState state, World worldIn, BlockPos pos, AxisAlignedBB entityBox, List<AxisAlignedBB> collidingBoxes, @Nullable Entity entityIn, boolean isActualState) {
-        TilePlacedItems tile = (TilePlacedItems) worldIn.getTileEntity(pos);
+        TilePlacedItems tile = (TilePlacedItems) Objects.requireNonNull(worldIn.getTileEntity(pos));
         tile.getContentsBoxes().addCollidingBoxes(pos, entityBox, collidingBoxes);
     }
 
@@ -173,8 +174,12 @@ public class BlockPlacedItems extends Block {
             ItemStack stack = tile.getStackInSlot(slot);
             if (!stack.isEmpty()) {
                 //ItemUtils.dropItemWithinBlock(worldId, x, y, z, stack);
-                ItemUtils.dropItemOnEntity(player, stack);
-                tile.setInventorySlotContents(slot, ItemStack.EMPTY);
+                if (player.isSneaking()) {
+                    tile.rotateSlot(slot);
+                } else {
+                    ItemUtils.dropItemOnEntity(player, stack);
+                    tile.setInventorySlotContents(slot, ItemStack.EMPTY);
+                }
                 tile.markDirty();
                 tile.clean();
             }
@@ -186,6 +191,25 @@ public class BlockPlacedItems extends Block {
     @Override
     protected BlockStateContainer createBlockState() {
         return new BlockStateContainer(this, FACING);
+    }
+
+    @Override
+    public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
+        super.onBlockPlacedBy(worldIn, pos, state, placer, stack);
+        // Set the rotation of the tile based on the player's yaw and facing
+        EnumFacing facing = worldIn.getBlockState(pos).getValue(FACING);
+        TilePlacedItems tile = (TilePlacedItems) worldIn.getTileEntity(pos);
+        float yaw = placer.rotationYaw % 360f;
+        if (yaw < 0) yaw += 360f;
+        int rotation = Math.round(yaw / 90f) % 4;
+        if (facing == EnumFacing.UP) { // Down
+            rotation = (rotation + 2) % 4;
+        } else if (facing == EnumFacing.DOWN) { // Up
+            rotation = 4 - rotation;
+        } else {
+            rotation = 0;
+        }
+        tile.setTileRotation(rotation);
     }
 
     @Override

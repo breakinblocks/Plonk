@@ -1,3 +1,8 @@
+## [NEXT] - YYYY-MM-DD
+- Fix null selection box crash
+- Added rotation to tile: Sneak + Place Key (empty hand) to rotate tile (4 increments)
+- Added rotation to each item: Sneak + Right Click (empty hand) to rotate item (16 increments)
+
 ## [1.0.0] - 2020-01-08
 - Updated to 1.12.2
 - Placed items 'block' can be instantly broken
