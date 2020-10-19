@@ -1,4 +1,4 @@
-## [NEXT] - YYYY-MM-DD
+## [9.0.0] - 2020-10-19
 - Updated to 1.16.3
 - Cannot be washed away by fluids anymore
 - Can be waterlogged
