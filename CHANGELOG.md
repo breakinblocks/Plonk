@@ -1,3 +1,6 @@
+## [NEXT] - YYYY-MM-DD
+- Fix null selection box crash
+
 ## [0.0.4] - 2020-08-13
 - Made compatible with ItemPhysic mod
 

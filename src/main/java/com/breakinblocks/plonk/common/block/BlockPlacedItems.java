@@ -21,6 +21,7 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
 public class BlockPlacedItems extends Block {
@@ -43,8 +44,8 @@ public class BlockPlacedItems extends Block {
 
     @Override
     public AxisAlignedBB getSelectedBoundingBoxFromPool(World world, int x, int y, int z) {
-        TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(x, y, z);
-        return tile == null ? null : tile.getContentsBoxes().getSelectedBoundingBoxFromPool();
+        TilePlacedItems tile = (TilePlacedItems) Objects.requireNonNull(world.getTileEntity(x, y, z));
+        return tile.getContentsBoxes().getSelectedBoundingBoxFromPool();
     }
 
     @Override
