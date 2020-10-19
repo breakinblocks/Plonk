@@ -1,5 +1,5 @@
 ## [NEXT] - YYYY-MM-DD
-- Updated to 1.16.1
+- Updated to 1.16.3
 - Can no longer washed away by water or other fluids
 - Can be waterlogged
 - Fix null selection box crash

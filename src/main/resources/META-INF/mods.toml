@@ -11,13 +11,13 @@ logoFile="pack.png"
 credits="Mojang for Minecraft. Forge for the modding framework. Draconic Evolution for the idea."
 authors="Plonk contributors"
 description="Place items in the world like item frames but on any surface"
-[[dependencies.bbchat]]
+[[dependencies.plonk]]
 modId="forge"
 mandatory=true
 versionRange="[${forge_version_major},)"
 ordering="AFTER"
 side="BOTH"
-[[dependencies.bbchat]]
+[[dependencies.plonk]]
 modId="minecraft"
 mandatory=true
 versionRange="[${mc_version}]"
