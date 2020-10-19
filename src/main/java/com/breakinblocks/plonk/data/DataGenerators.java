@@ -10,7 +10,7 @@ public class DataGenerators {
     @SubscribeEvent
     public static void gatherData(GatherDataEvent evt) {
         if (evt.includeServer()) {
-            evt.getGenerator().addProvider(new BlockStates(evt.getGenerator(), Plonk.MODID, evt.getExistingFileHelper()));
+            evt.getGenerator().addProvider(new BlockStates(evt.getGenerator(), Plonk.MOD_ID, evt.getExistingFileHelper()));
         }
     }
 }

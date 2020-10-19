@@ -9,6 +9,6 @@ public class DataGenUtils {
     }
 
     public static ResourceLocation plonk(String path) {
-        return new ResourceLocation(Plonk.MODID, path);
+        return new ResourceLocation(Plonk.MOD_ID, path);
     }
 }

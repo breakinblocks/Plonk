@@ -2,6 +2,7 @@ package com.breakinblocks.plonk.client.render.tile;
 
 import com.breakinblocks.plonk.common.block.BlockPlacedItems;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
+import com.breakinblocks.plonk.common.tile.TilePlacedItems.ItemMeta;
 import com.breakinblocks.plonk.common.util.MatrixUtils;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
@@ -117,16 +118,20 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
 
         matrixStackIn.translate(0.0, -0.5, 0.0);
 
+        //Rotate about axis
+        matrixStackIn.rotate(new Quaternion(Vector3f.YP, (float) -tileEntityIn.getTileRotationAngle(), true));
+
         ItemStack[] contents = tileEntityIn.getContentsDisplay();
-        int[] contentsRenderType = tileEntityIn.getContentsRenderType();
+        ItemMeta[] contentsMeta = tileEntityIn.getContentsMeta();
         int num = contents.length;
         int packedLightIn = getPackedLight(world, pos);
 
         if (num > 0) {
             boolean halfSize = num > 1;
             for (int slot = 0; slot < num; slot++) {
+                ItemStack stack = tileEntityIn.getStackInSlot(slot);
+                if (stack.isEmpty()) continue;
                 matrixStackIn.push();
-                ItemStack itemStack = tileEntityIn.getStackInSlot(slot);
                 switch (num) {
                     case 1:
                         // No shift
@@ -146,7 +151,7 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
                         break;
                 }
                 //renderStack(world, stack, partialTicks, halfSize, world.rand.nextBoolean());
-                renderStack(partialTicks, matrixStackIn, bufferIn, packedLightIn, itemStack, contentsRenderType[slot], halfSize);
+                renderStack(partialTicks, matrixStackIn, bufferIn, packedLightIn, stack, contentsMeta[slot], halfSize);
                 matrixStackIn.pop();
             }
         }
@@ -178,16 +183,20 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
      * @param bufferIn      render type buffer
      * @param packedLightIn Block and Sky light combined
      * @param stack         ItemStack to render
-     * @param renderType    renderType
+     * @param meta          Metadata for the stack
      * @param halfSize      If items should be rendered at half size (blocks are always rendered half size)
      * @see ItemFrameRenderer#render(ItemFrameEntity, float, float, MatrixStack, IRenderTypeBuffer, int)
      */
-    public void renderStack(float partialTicks, MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int packedLightIn, ItemStack stack, int renderType, boolean halfSize) {
+    public void renderStack(float partialTicks, MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int packedLightIn, ItemStack stack, ItemMeta meta, boolean halfSize) {
         if (stack.isEmpty()) return;
         matrixStackIn.push();
         GlStateManager.disableLighting();
         GlStateManager.pushLightingAttributes();
         RenderHelper.enableStandardItemLighting();
+
+        // Rotate item
+        //GL11.glRotated(-meta.getRotationAngle(), 0.0, 1.0, 0.0);
+        matrixStackIn.rotate(new Quaternion(new Vector3f(0f, 1f, 0f), (float) -meta.getRotationAngle(), true));
 
         // GROUND
         //matrixStackIn.translate(0f, -0.125f, 0f);
@@ -196,7 +205,7 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
         // FIXED
         //GlStateManager.rotate(180f, 0f, 1f, 0f);
         matrixStackIn.rotate(new Quaternion(new Vector3f(0f, 1f, 0f), 180, true));
-        switch (renderType) {
+        switch (meta.renderType) {
             case RENDER_TYPE_BLOCK: {
                 matrixStackIn.translate(0f, 0.25f, 0f);
 

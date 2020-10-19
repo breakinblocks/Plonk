@@ -22,7 +22,7 @@ public class RegistryItems {
             try {
                 if (Modifier.isStatic(f.getModifiers())) {
                     if (Item.class.isAssignableFrom(f.getType())) {
-                        ResourceLocation rl = new ResourceLocation(Plonk.MODID, f.getName());
+                        ResourceLocation rl = new ResourceLocation(Plonk.MOD_ID, f.getName());
                         LOG.info(REGISTRIES, "Registering Item: " + rl);
                         Item item = (Item) f.get(null);
                         item.setRegistryName(rl);

@@ -210,8 +210,12 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
             ItemStack stack = tile.getStackInSlot(slot);
             if (!stack.isEmpty()) {
                 //ItemUtils.dropItemWithinBlock(worldId, x, y, z, stack);
-                ItemUtils.dropItemOnEntity(player, stack);
-                tile.setInventorySlotContents(slot, ItemStack.EMPTY);
+                if (player.isSneaking()) {
+                    tile.rotateSlot(slot);
+                } else {
+                    ItemUtils.dropItemOnEntity(player, stack);
+                    tile.setInventorySlotContents(slot, ItemStack.EMPTY);
+                }
                 tile.markDirty();
                 tile.clean();
             }
@@ -224,6 +228,26 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
     protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
         super.fillStateContainer(builder);
         builder.add(FACING, WATERLOGGED);
+    }
+
+    @Override
+    public void onBlockPlacedBy(World worldIn, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
+        super.onBlockPlacedBy(worldIn, pos, state, placer, stack);
+        if (placer == null) return;
+        // Set the rotation of the tile based on the player's yaw and facing
+        Direction facing = worldIn.getBlockState(pos).get(FACING);
+        TilePlacedItems tile = (TilePlacedItems) worldIn.getTileEntity(pos);
+        float yaw = placer.rotationYaw % 360f;
+        if (yaw < 0) yaw += 360f;
+        int rotation = Math.round(yaw / 90f) % 4;
+        if (facing == Direction.UP) { // Down
+            rotation = (rotation + 2) % 4;
+        } else if (facing == Direction.DOWN) { // Up
+            rotation = 4 - rotation;
+        } else {
+            rotation = 0;
+        }
+        tile.setTileRotation(rotation);
     }
 
     @Override

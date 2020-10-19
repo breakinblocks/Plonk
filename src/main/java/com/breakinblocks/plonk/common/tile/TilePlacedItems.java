@@ -5,6 +5,7 @@ import com.breakinblocks.plonk.common.registry.RegistryTileEntities;
 import com.breakinblocks.plonk.common.util.ItemUtils;
 import com.breakinblocks.plonk.common.util.bound.Box;
 import com.breakinblocks.plonk.common.util.bound.BoxCollection;
+import com.google.common.collect.ImmutableMap;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.player.PlayerEntity;
@@ -23,10 +24,15 @@ import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 public class TilePlacedItems extends TileEntity implements ISidedInventory, ITickableTileEntity {
+
+    public static final int NBT_VERSION = 1;
 
     public static final DirectionProperty FACING = BlockPlacedItems.FACING;
     public static final float HEIGHT_PLATE = 1.0f / 32f;
@@ -61,15 +67,21 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
             HEIGHT_ITEM,
             0.75
     );
-
+    public static final String TAG_VERSION = "Version";
+    public static final String TAG_TILE_ROTATION = "TileRotation";
+    public static final int TILE_ROTATION_COUNT = 4;
+    public static final String TAG_ITEM_ROTATION = "ItemRotation";
     public static final String TAG_ITEMS = "Items";
     public static final String TAG_SLOT = "Slot";
     public static final String TAG_RENDER_TYPE = "RenderType";
     public static final int RENDER_TYPE_BLOCK = 1;
     public static final int RENDER_TYPE_ITEM = 0;
+    public static final int ITEM_ROTATION_COUNT = 16;
+    private static final Logger LOG = LogManager.getLogger();
+    private int tileRotation = 0;
     boolean needsCleaning = true;
     private NonNullList<ItemStack> contents = NonNullList.withSize(this.getSizeInventory(), ItemStack.EMPTY);
-    private int[] contentsRenderType = new int[this.getSizeInventory()];
+    private ItemMeta[] contentsMeta = new ItemMeta[this.getSizeInventory()];
     private ItemStack[] contentsDisplay = new ItemStack[0];
     private BoxCollection contentsBoxes = new BoxCollection.Builder()
             .addBox(0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0)
@@ -77,6 +89,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
 
     public TilePlacedItems() {
         super(RegistryTileEntities.placed_items);
+        Arrays.fill(this.contentsMeta, ItemMeta.DEFAULT);
     }
 
     /**
@@ -137,7 +150,8 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
                     if (!contents.get(j).isEmpty()) {
                         contents.set(i, contents.get(j));
                         // Also update the hitbox
-                        contentsRenderType[i] = contentsRenderType[j];
+                        contentsMeta[i] = contentsMeta[j];
+                        contentsMeta[j] = ItemMeta.DEFAULT;
                         contents.set(j, ItemStack.EMPTY);
                         changed = true;
                         break;
@@ -183,23 +197,39 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
 
         switch (count) {
             case 1:
-                builder.addBox(1, getBox(count, contentsRenderType[0]));
+                builder.addBox(1, getBox(count, contentsMeta[0].renderType));
                 break;
             case 2:
-                builder.addBox(1, getBox(count, contentsRenderType[0]).translate(-0.25, 0, 0));
-                builder.addBox(2, getBox(count, contentsRenderType[1]).translate(0.25, 0, 0));
+                builder.addBox(1, getBox(count, contentsMeta[0].renderType).translate(-0.25, 0, 0));
+                builder.addBox(2, getBox(count, contentsMeta[1].renderType).translate(0.25, 0, 0));
                 break;
             case 4:
-                builder.addBox(4, getBox(count, contentsRenderType[3]).translate(0.25, 0, 0.25));
+                builder.addBox(4, getBox(count, contentsMeta[3].renderType).translate(0.25, 0, 0.25));
             case 3:
-                builder.addBox(1, getBox(count, contentsRenderType[0]).translate(-0.25, 0, -0.25));
-                builder.addBox(2, getBox(count, contentsRenderType[1]).translate(0.25, 0, -0.25));
-                builder.addBox(3, getBox(count, contentsRenderType[2]).translate(-0.25, 0, 0.25));
+                builder.addBox(1, getBox(count, contentsMeta[0].renderType).translate(-0.25, 0, -0.25));
+                builder.addBox(2, getBox(count, contentsMeta[1].renderType).translate(0.25, 0, -0.25));
+                builder.addBox(3, getBox(count, contentsMeta[2].renderType).translate(-0.25, 0, 0.25));
                 break;
             default:
                 builder.addBox(0, 0.0, 0.0, 0.0, 1.0, HEIGHT_PLATE, 1.0);
         }
 
+        // Apply Tile Rotation clockwise
+        switch (tileRotation % TILE_ROTATION_COUNT) {
+            case 0: // None
+                break;
+            case 1: // 90
+                builder.apply(Box::rotateY270);
+                break;
+            case 2: // 180
+                builder.apply(Box::rotateY180);
+                break;
+            case 3: // 270
+                builder.apply(Box::rotateY90);
+                break;
+        }
+
+        // Apply Facing
         Direction facing = this.world.getBlockState(this.getPos()).get(FACING);
 
         switch (facing) {
@@ -212,13 +242,13 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
                 builder.apply(Box::rotateX90);
                 break;
             case NORTH: // SOUTH
-                builder.apply(box -> box.rotateX90().rotateY180());
+                builder.apply(Box::rotateX90).apply(Box::rotateY180);
                 break;
             case EAST: // WEST
-                builder.apply(box -> box.rotateX90().rotateY90());
+                builder.apply(Box::rotateX90).apply(Box::rotateY90);
                 break;
             case WEST: // EAST
-                builder.apply(box -> box.rotateX90().rotateY270());
+                builder.apply(Box::rotateX90).apply(Box::rotateY270);
                 break;
         }
 
@@ -228,18 +258,21 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
     @Override
     public void read(BlockState state, CompoundNBT tag) {
         super.read(state, tag);
+        NBTUpgrader.upgrade(tag);
         ListNBT tagItems = tag.getList(TAG_ITEMS, 10);
         this.contents = NonNullList.withSize(this.getSizeInventory(), ItemStack.EMPTY);
-        this.contentsRenderType = new int[this.getSizeInventory()];
+        this.contentsMeta = new ItemMeta[this.getSizeInventory()];
+        Arrays.fill(this.contentsMeta, ItemMeta.DEFAULT);
 
         for (int i = 0; i < tagItems.size(); i++) {
             CompoundNBT tagItem = tagItems.getCompound(i);
             int slot = tagItem.getByte(TAG_SLOT) & 255;
             int renderType = tagItem.getInt(TAG_RENDER_TYPE);
+            int itemRotation = tagItem.getInt(TAG_ITEM_ROTATION);
 
             if (slot < this.contents.size()) {
                 this.contents.set(slot, ItemStack.read(tagItem));
-                this.contentsRenderType[slot] = renderType;
+                this.contentsMeta[slot] = new ItemMeta(renderType, itemRotation);
             }
         }
     }
@@ -247,13 +280,16 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
     @Override
     public CompoundNBT write(CompoundNBT tag) {
         super.write(tag);
+        tag.putInt(TAG_VERSION, NBT_VERSION);
+        tag.putInt(TAG_TILE_ROTATION, tileRotation);
         ListNBT tagItems = new ListNBT();
 
         for (int slot = 0; slot < this.contents.size(); slot++) {
             if (!this.contents.get(slot).isEmpty()) {
                 CompoundNBT tagItem = new CompoundNBT();
                 tagItem.putByte(TAG_SLOT, (byte) slot);
-                tagItem.putInt(TAG_RENDER_TYPE, this.contentsRenderType[slot]);
+                tagItem.putInt(TAG_RENDER_TYPE, this.contentsMeta[slot].renderType);
+                tagItem.putInt(TAG_ITEM_ROTATION, this.contentsMeta[slot].rotation);
                 this.contents.get(slot).write(tagItem);
                 tagItems.add(tagItem);
             }
@@ -405,12 +441,35 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
         return true;
     }
 
+    public int getTileRotation() {
+        return tileRotation;
+    }
+
+    public void setTileRotation(int tileRotation) {
+        this.tileRotation = tileRotation % TILE_ROTATION_COUNT;
+    }
+
+    public double getTileRotationAngle() {
+        return 360d * this.getTileRotation() / TILE_ROTATION_COUNT;
+    }
+
+    public void rotateTile() {
+        this.tileRotation = (this.tileRotation + 1) % TILE_ROTATION_COUNT;
+        updateContentsDisplay();
+    }
+
+    public void rotateSlot(int slot) {
+        if (0 <= slot && slot < contentsMeta.length) {
+            contentsMeta[slot] = contentsMeta[slot].rotate();
+        }
+    }
+
     public ItemStack[] getContentsDisplay() {
         return contentsDisplay;
     }
 
-    public int[] getContentsRenderType() {
-        return contentsRenderType;
+    public ItemMeta[] getContentsMeta() {
+        return contentsMeta;
     }
 
     public BoxCollection getContentsBoxes() {
@@ -428,9 +487,81 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
         ItemUtils.InsertStackResult result = ItemUtils.insertStackAdv(this, stack);
         if (result.remainder != stack) {
             for (int slot : result.slots) {
-                contentsRenderType[slot] = renderType;
+                contentsMeta[slot] = contentsMeta[slot].withRenderType(renderType);
             }
         }
         return result.remainder;
+    }
+
+    public static final class ItemMeta {
+        public static final ItemMeta DEFAULT = new ItemMeta(0, 0);
+        public final int renderType;
+        public final int rotation;
+
+        private ItemMeta(int renderType, int rotation) {
+            this.renderType = renderType;
+            this.rotation = rotation;
+        }
+
+        public ItemMeta withRenderType(int renderType) {
+            return new ItemMeta(renderType, rotation);
+        }
+
+        public ItemMeta withRotation(int rotation) {
+            return new ItemMeta(renderType, rotation);
+        }
+
+        public ItemMeta rotate() {
+            return withRotation((rotation + 1) % ITEM_ROTATION_COUNT);
+        }
+
+        public double getRotationAngle() {
+            return 360d * rotation / TilePlacedItems.ITEM_ROTATION_COUNT;
+        }
+    }
+
+    private static class NBTUpgrader {
+        public static final ImmutableMap<Integer, Upgrade> UPGRADES = ImmutableMap.<Integer, Upgrade>builder()
+                .put(0, NBTUpgrader::upgradeFrom0To1)
+                .build();
+
+        public static void upgrade(CompoundNBT tag) {
+            int tileVersion = tag.getInt(TAG_VERSION); // Defaults to 0 if it doesn't exist
+            while (tileVersion < NBT_VERSION && UPGRADES.containsKey(tileVersion)) {
+                UPGRADES.get(tileVersion).apply(tag);
+                tileVersion = tag.getInt(TAG_VERSION);
+            }
+            if (tileVersion < NBT_VERSION) {
+                // Couldn't be upgraded which shouldn't happen
+                throw new RuntimeException("Failed to upgrade an existing tile!");
+            } else if (tileVersion > NBT_VERSION) {
+                // Mod being downgraded
+                LOG.warn("Placed Items tile version " + tileVersion + " > " + NBT_VERSION + " (current). Potential loss of data.");
+            }
+        }
+
+        public static void upgradeFrom0To1(CompoundNBT tag) {
+            final String TAG_IS_BLOCK = "IsBlock";
+            final String TAG_VERSION = "Version";
+            final String TAG_TILE_ROTATION = "TileRotation";
+            final String TAG_ITEMS = "Items";
+            final String TAG_RENDER_TYPE = "RenderType";
+            final String TAG_ITEM_ROTATION = "ItemRotation";
+            tag.putInt(TAG_VERSION, 1);
+            tag.putInt(TAG_TILE_ROTATION, 0);
+            ListNBT tagItems = tag.getList(TAG_ITEMS, 10);
+            for (int i = 0; i < tagItems.size(); i++) {
+                CompoundNBT tagItem = tagItems.getCompound(i);
+                if (tagItem.contains(TAG_IS_BLOCK)) {
+                    boolean isBlock = tagItem.getBoolean(TAG_IS_BLOCK);
+                    tagItem.putInt(TAG_RENDER_TYPE, isBlock ? 1 : 0);
+                }
+                tagItem.putInt(TAG_ITEM_ROTATION, 0);
+            }
+        }
+
+        private interface Upgrade {
+            void apply(CompoundNBT tag);
+        }
     }
 }

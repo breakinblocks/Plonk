@@ -38,7 +38,7 @@ public class RegistryBlocks {
             try {
                 if (Modifier.isStatic(f.getModifiers())) {
                     if (Block.class.isAssignableFrom(f.getType())) {
-                        ResourceLocation rl = new ResourceLocation(Plonk.MODID, f.getName());
+                        ResourceLocation rl = new ResourceLocation(Plonk.MOD_ID, f.getName());
                         LOG.info(REGISTRIES, "Registering Block: " + rl);
                         Block block = (Block) f.get(null);
                         block.setRegistryName(rl);

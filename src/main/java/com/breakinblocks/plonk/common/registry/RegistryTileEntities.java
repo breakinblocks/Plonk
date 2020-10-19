@@ -24,7 +24,7 @@ public class RegistryTileEntities {
             try {
                 if (Modifier.isStatic(f.getModifiers())) {
                     if (f.getType() == TileEntityType.class) {
-                        ResourceLocation rl = new ResourceLocation(Plonk.MODID, f.getName());
+                        ResourceLocation rl = new ResourceLocation(Plonk.MOD_ID, f.getName());
                         LOG.info(REGISTRIES, "Registering TileEntity: " + rl);
                         TileEntityType<?> type = (TileEntityType<?>) f.get(null);
                         type.setRegistryName(rl);

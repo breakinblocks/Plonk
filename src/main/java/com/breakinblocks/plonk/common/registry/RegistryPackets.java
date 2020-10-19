@@ -3,6 +3,7 @@ package com.breakinblocks.plonk.common.registry;
 import com.breakinblocks.plonk.Plonk;
 import com.breakinblocks.plonk.common.packet.PacketBase;
 import com.breakinblocks.plonk.common.packet.PacketPlaceItem;
+import com.breakinblocks.plonk.common.packet.PacketRotateTile;
 import net.minecraftforge.fml.network.simple.SimpleChannel;
 
 public class RegistryPackets {
@@ -23,5 +24,6 @@ public class RegistryPackets {
         int id = 0;
         // Client -> Server
         register(id++, new PacketPlaceItem());
+        register(id++, new PacketRotateTile());
     }
 }
