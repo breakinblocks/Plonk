@@ -1,4 +1,4 @@
-## [NEXT] - YYYY-MM-DD
+## [5.0.1] - 2020-10-21
 - Fix black screen when camera is inside block
 
 ## [5.0.0] - 2020-10-19
