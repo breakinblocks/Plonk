@@ -1,3 +1,6 @@
+## [NEXT] - YYYY-MM-DD
+- Fix black screen when camera is inside block
+
 ## [5.0.0] - 2020-10-19
 - Cannot be washed away by fluids anymore
 - Fix null selection box crash

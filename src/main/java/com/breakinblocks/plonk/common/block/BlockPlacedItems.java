@@ -73,6 +73,12 @@ public class BlockPlacedItems extends Block {
 
     @Override
     @SuppressWarnings("deprecation")
+    public boolean isFullCube(IBlockState state) {
+        return false;
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
     public EnumBlockRenderType getRenderType(IBlockState state) {
         //return EnumBlockRenderType.MODEL;
         return EnumBlockRenderType.ENTITYBLOCK_ANIMATED;
