@@ -8,24 +8,19 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
-import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.ItemFrameRenderer;
 import net.minecraft.client.renderer.model.IBakedModel;
 import net.minecraft.client.renderer.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.ItemFrameEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.state.DirectionProperty;
 import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Matrix4f;
 import net.minecraft.util.math.vector.Quaternion;
 import net.minecraft.util.math.vector.Vector3f;
-import net.minecraft.world.LightType;
-import net.minecraft.world.World;
 import net.minecraftforge.common.model.TransformationHelper;
 
 import java.util.Objects;
@@ -75,8 +70,7 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
     @Override
     public void render(TilePlacedItems tileEntityIn, float partialTicks, MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int combinedLightIn, int combinedOverlayIn) {
         Direction facing = Objects.requireNonNull(tileEntityIn.getWorld()).getBlockState(tileEntityIn.getPos()).get(FACING);
-        World world = tileEntityIn.getWorld();
-        BlockPos pos = tileEntityIn.getPos();
+
         matrixStackIn.push();
         // Centre of Block
         //matrixStackIn.translate(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
@@ -124,7 +118,6 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
         ItemStack[] contents = tileEntityIn.getContentsDisplay();
         ItemMeta[] contentsMeta = tileEntityIn.getContentsMeta();
         int num = contents.length;
-        int packedLightIn = getPackedLight(world, pos);
 
         if (num > 0) {
             boolean halfSize = num > 1;
@@ -151,7 +144,7 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
                         break;
                 }
                 //renderStack(world, stack, partialTicks, halfSize, world.rand.nextBoolean());
-                renderStack(partialTicks, matrixStackIn, bufferIn, packedLightIn, stack, contentsMeta[slot], halfSize);
+                renderStack(partialTicks, matrixStackIn, bufferIn, combinedLightIn, stack, contentsMeta[slot], halfSize);
                 matrixStackIn.pop();
             }
         }
@@ -160,34 +153,19 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
     }
 
     /**
-     * @see EntityRenderer#getPackedLight(Entity, float)
-     */
-    public final int getPackedLight(World world, BlockPos pos) {
-        return LightTexture.packLight(this.getBlockLight(world, pos), this.getSkyLight(world, pos));
-    }
-
-    protected int getSkyLight(World world, BlockPos pos) {
-        return world.getLightFor(LightType.SKY, pos);
-    }
-
-    protected int getBlockLight(World world, BlockPos pos) {
-        return world.getLightFor(LightType.BLOCK, pos);
-    }
-
-    /**
      * Render item at location facing up
      * Refer to ItemFrame rendering
      *
-     * @param partialTicks  fractional tick
-     * @param matrixStackIn transformation matrix stack
-     * @param bufferIn      render type buffer
-     * @param packedLightIn Block and Sky light combined
-     * @param stack         ItemStack to render
-     * @param meta          Metadata for the stack
-     * @param halfSize      If items should be rendered at half size (blocks are always rendered half size)
+     * @param partialTicks    fractional tick
+     * @param matrixStackIn   transformation matrix stack
+     * @param bufferIn        render type buffer
+     * @param combinedLightIn Block and Sky light combined
+     * @param stack           ItemStack to render
+     * @param meta            Metadata for the stack
+     * @param halfSize        If items should be rendered at half size (blocks are always rendered half size)
      * @see ItemFrameRenderer#render(ItemFrameEntity, float, float, MatrixStack, IRenderTypeBuffer, int)
      */
-    public void renderStack(float partialTicks, MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int packedLightIn, ItemStack stack, ItemMeta meta, boolean halfSize) {
+    public void renderStack(float partialTicks, MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int combinedLightIn, ItemStack stack, ItemMeta meta, boolean halfSize) {
         if (stack.isEmpty()) return;
         matrixStackIn.push();
         GlStateManager.disableLighting();
@@ -209,7 +187,7 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
             case RENDER_TYPE_BLOCK: {
                 matrixStackIn.translate(0f, 0.25f, 0f);
 
-                itemRenderer.renderItem(stack, ItemCameraTransforms.TransformType.FIXED, packedLightIn, OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn);
+                itemRenderer.renderItem(stack, ItemCameraTransforms.TransformType.FIXED, combinedLightIn, OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn);
             }
             break;
             case RENDER_TYPE_ITEM:
@@ -219,7 +197,7 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
                 matrixStackIn.rotate(new Quaternion(new Vector3f(1f, 0f, 0f), 90, true));
                 if (halfSize)
                     matrixStackIn.scale(0.5F, 0.5F, 0.5F);
-                itemRenderer.renderItem(stack, ItemCameraTransforms.TransformType.FIXED, packedLightIn, OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn);
+                itemRenderer.renderItem(stack, ItemCameraTransforms.TransformType.FIXED, combinedLightIn, OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn);
         }
 
         RenderHelper.disableStandardItemLighting();

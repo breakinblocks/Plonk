@@ -1,3 +1,6 @@
+## [NEXT] - YYYY-MM-DD
+- Use passed in combinedLightIn for rendering
+
 ## [9.0.0] - 2020-10-19
 - Updated to 1.16.3
 - Cannot be washed away by fluids anymore
