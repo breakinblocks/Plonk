@@ -1,3 +1,6 @@
+## [NEXT] - YYYY-MM-DD
+- Attempt to fix render crash when block does not have facing state
+
 ## [5.0.1] - 2020-10-21
 - Fix black screen when camera is inside block
 

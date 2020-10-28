@@ -5,10 +5,12 @@ import com.breakinblocks.plonk.common.tile.TilePlacedItems;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems.ItemMeta;
 import com.breakinblocks.plonk.common.util.MatrixUtils;
 import net.minecraft.block.properties.PropertyDirection;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
+import net.minecraft.client.renderer.tileentity.TileEntityShulkerBoxRenderer;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
@@ -68,9 +70,19 @@ public class TESRPlacedItems extends TileEntitySpecialRenderer<TilePlacedItems> 
         return hS > (1.0 - 0.001) && hRot > 0.001 ? RENDER_TYPE_BLOCK : RENDER_TYPE_ITEM;
     }
 
+    /**
+     * @see TileEntityShulkerBoxRenderer
+     */
     @Override
     public void render(TilePlacedItems te, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
-        EnumFacing facing = te.getWorld().getBlockState(te.getPos()).getValue(FACING);
+        // See Shulker Box Renderer
+        EnumFacing facing = EnumFacing.UP;
+        if (te.hasWorld()) {
+            IBlockState state = this.getWorld().getBlockState(te.getPos());
+            if (state.getBlock() instanceof BlockPlacedItems) {
+                facing = state.getValue(FACING);
+            }
+        }
 
         GL11.glPushMatrix();
         // Centre of Block
