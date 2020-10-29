@@ -91,8 +91,8 @@ dependencies {
 processResources {
     // this will ensure that this task is redone when the versions change.
     inputs.property 'mod_version', project.mod_version
-    inputs.property 'mc_version', project.mc_version
-    inputs.property 'forge_version_major', project.forge_version_major
+    inputs.property 'mc_version_range_supported', project.mc_version_range_supported
+    inputs.property 'forge_version_range_supported', project.forge_version_range_supported
 
     // replace stuff in mods.toml, nothing else
     from (sourceSets.main.resources.srcDirs) {
@@ -100,8 +100,8 @@ processResources {
 
         // replace mod_version and mc_version and forge_version_major
         expand 'mod_version': "${mod_version}",
-                'mc_version': "${mc_version}",
-                'forge_version_major' : "${forge_version_major}"
+                'mc_version_range_supported': "${mc_version_range_supported}",
+                'forge_version_range_supported' : "${forge_version_range_supported}"
     }
 
     // copy everything else except the mods.toml

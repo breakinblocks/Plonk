@@ -1,5 +1,5 @@
 modLoader="javafml"
-loaderVersion="[${forge_version_major},)"
+loaderVersion="${forge_version_range_supported}"
 license="MIT"
 issueTrackerURL="https://github.com/breakinblocks/Plonk/issues"
 [[mods]]
@@ -14,12 +14,12 @@ description="Place items in the world like item frames but on any surface"
 [[dependencies.plonk]]
 modId="forge"
 mandatory=true
-versionRange="[${forge_version_major},)"
+versionRange="${forge_version_range_supported}"
 ordering="AFTER"
 side="BOTH"
 [[dependencies.plonk]]
 modId="minecraft"
 mandatory=true
-versionRange="[${mc_version}]"
+versionRange="${mc_version_range_supported}"
 ordering="AFTER"
 side="BOTH"
