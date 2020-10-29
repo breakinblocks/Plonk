@@ -1,4 +1,4 @@
-## [NEXT] - YYYY-MM-DD
+## [5.0.2] - 2020-10-29
 - Attempt to fix render crash when block does not have facing state
 
 ## [5.0.1] - 2020-10-21
