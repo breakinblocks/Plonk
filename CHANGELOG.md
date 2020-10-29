@@ -1,5 +1,6 @@
 ## [NEXT] - YYYY-MM-DD
 - Use passed in combinedLightIn for rendering
+- Attempt to fix render crash when block does not have facing state
 
 ## [9.0.0] - 2020-10-19
 - Updated to 1.16.3

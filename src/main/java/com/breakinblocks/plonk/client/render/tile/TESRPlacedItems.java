@@ -6,12 +6,14 @@ import com.breakinblocks.plonk.common.tile.TilePlacedItems.ItemMeta;
 import com.breakinblocks.plonk.common.util.MatrixUtils;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.entity.ItemFrameRenderer;
 import net.minecraft.client.renderer.model.IBakedModel;
 import net.minecraft.client.renderer.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.tileentity.ShulkerBoxTileEntityRenderer;
 import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.entity.item.ItemFrameEntity;
@@ -67,9 +69,19 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
         return hS < (1.0 - 0.001) && hRot > 0.001 ? RENDER_TYPE_BLOCK : RENDER_TYPE_ITEM;
     }
 
+    /**
+     * @see ShulkerBoxTileEntityRenderer
+     */
     @Override
     public void render(TilePlacedItems tileEntityIn, float partialTicks, MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int combinedLightIn, int combinedOverlayIn) {
-        Direction facing = Objects.requireNonNull(tileEntityIn.getWorld()).getBlockState(tileEntityIn.getPos()).get(FACING);
+        // See Shulker Box Renderer
+        Direction facing = Direction.UP;
+        if (tileEntityIn.hasWorld()) {
+            BlockState blockstate = tileEntityIn.getBlockState();
+            if (blockstate.getBlock() instanceof BlockPlacedItems) {
+                facing = blockstate.get(FACING);
+            }
+        }
 
         matrixStackIn.push();
         // Centre of Block
