@@ -1,3 +1,7 @@
+## [NEXT] - YYYY-MM-DD
+- Fix no last selection crash
+- Add config for max stack size of each slot
+
 ## [5.0.2] - 2020-10-29
 - Attempt to fix render crash when block does not have facing state
 

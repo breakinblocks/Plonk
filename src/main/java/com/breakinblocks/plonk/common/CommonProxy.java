@@ -1,5 +1,6 @@
 package com.breakinblocks.plonk.common;
 
+import com.breakinblocks.plonk.common.config.PlonkConfig;
 import com.breakinblocks.plonk.common.registry.RegistryPackets;
 import com.breakinblocks.plonk.common.registry.RegistryTileEntities;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -11,6 +12,7 @@ public class CommonProxy {
     public final CommonEvents commonEvents = new CommonEvents();
 
     public void preInit(FMLPreInitializationEvent event) {
+        PlonkConfig.init(event.getSuggestedConfigurationFile());
         RegistryTileEntities.init();
         RegistryPackets.init();
     }
