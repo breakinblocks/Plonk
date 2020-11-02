@@ -20,8 +20,8 @@ public class BoxCollection {
     private final ArrayList<Entry> collisionBoxes;
     private final ArrayList<Entry> selectionBoxes;
     private final Box renderBox;
-    public Entry selectionLastEntry = null;
-    public AxisAlignedBB selectionLastAABB = null;
+    private Entry selectionLastEntry = null;
+    private AxisAlignedBB selectionLastAABB = null;
     private Entry boundsEntry = null;
 
     private BoxCollection(ArrayList<Entry> boxes) {
@@ -75,6 +75,15 @@ public class BoxCollection {
         if (selectionLastAABB == null)
             return renderBox.toAABB();
         return selectionLastAABB;
+    }
+
+    /**
+     * Gets the last selected id if available
+     *
+     * @return returns the last selected id or -1 if none
+     */
+    public int getSelectedId() {
+        return selectionLastEntry == null ? -1 : selectionLastEntry.id;
     }
 
     public MovingObjectPosition collisionRayTrace(Block block, ICollisionRayTrace collisionRayTrace, World world, int x, int y, int z, Vec3 from, Vec3 to) {

@@ -1,3 +1,6 @@
+## [NEXT] - YYYY-MM-DD
+- Fix no last selection crash
+
 ## [0.0.5] - 2020-10-19
 - Cannot be washed away by fluids anymore
 - Fix null selection box crash

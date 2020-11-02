@@ -107,7 +107,7 @@ public class BlockPlacedItems extends Block {
 
         if (world.func_147447_a(from, to, false, false, true) != null) {
             TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(x, y, z);
-            int index = tile.getContentsBoxes().selectionLastEntry.id;
+            int index = tile.getContentsBoxes().getSelectedId();
             int slot = index <= 0 ? 0 : index - 1;
             ItemStack stack = tile.getStackInSlot(slot);
             // TODO: Update item nulls
@@ -174,7 +174,7 @@ public class BlockPlacedItems extends Block {
     @Nullable // TODO: Remove Nullable
     public ItemStack getPickBlock(MovingObjectPosition target, World world, int x, int y, int z, EntityPlayer player) {
         TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(x, y, z);
-        int index = tile.getContentsBoxes().selectionLastEntry.id;
+        int index = tile.getContentsBoxes().getSelectedId();
         int slot = index <= 0 ? 0 : index - 1;
         return tile.getStackInSlot(slot);
     }
