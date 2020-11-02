@@ -4,10 +4,13 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 
 import java.util.ArrayList;
 
 public class ItemUtils {
+    private static final ItemStack REFERENCE = new ItemStack(Items.AIR);
+
     /**
      * Drop item on an entity
      *
@@ -93,6 +96,16 @@ public class ItemUtils {
             slotsArray[i] = slots.get(i);
         }
         return new InsertStackResult(remainder, slotsArray);
+    }
+
+    /**
+     * Get the maximum stack size of REFERENCE.
+     * This will usually be 64 but mods like StackUp! may change this.
+     *
+     * @return maximum stack size of REFERENCE
+     */
+    public static int getMaxStackSize() {
+        return REFERENCE.getMaxStackSize();
     }
 
     public static class InsertStackResult {

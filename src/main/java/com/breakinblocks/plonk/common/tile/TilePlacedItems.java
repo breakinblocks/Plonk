@@ -1,6 +1,7 @@
 package com.breakinblocks.plonk.common.tile;
 
 import com.breakinblocks.plonk.common.block.BlockPlacedItems;
+import com.breakinblocks.plonk.common.config.PlonkConfig;
 import com.breakinblocks.plonk.common.registry.RegistryTileEntities;
 import com.breakinblocks.plonk.common.util.ItemUtils;
 import com.breakinblocks.plonk.common.util.bound.Box;
@@ -402,7 +403,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
 
     @Override
     public int getInventoryStackLimit() {
-        return 64;
+        return PlonkConfig.getInventoryStackLimit();
     }
 
     @Override

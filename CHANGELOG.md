@@ -1,3 +1,7 @@
+## [NEXT] - YYYY-MM-DD
+- Fix no last selection crash
+- Add config for max stack size of each slot
+
 ## [9.0.1] - 2020-10-29
 - Use passed in combinedLightIn for rendering
 - Attempt to fix render crash when block does not have facing state
