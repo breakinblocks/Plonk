@@ -1,5 +1,6 @@
 ## [NEXT] - YYYY-MM-DD
 - Fix no last selection crash
+- Add config for max stack size of each slot
 
 ## [0.0.5] - 2020-10-19
 - Cannot be washed away by fluids anymore

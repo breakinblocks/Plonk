@@ -1,5 +1,6 @@
 package com.breakinblocks.plonk.common;
 
+import com.breakinblocks.plonk.common.config.PlonkConfig;
 import com.breakinblocks.plonk.common.registry.RegistryBlocks;
 import com.breakinblocks.plonk.common.registry.RegistryItems;
 import com.breakinblocks.plonk.common.registry.RegistryPackets;
@@ -10,6 +11,7 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 
 public class CommonProxy {
     public void preInit(FMLPreInitializationEvent event) {
+        PlonkConfig.init(event.getSuggestedConfigurationFile());
         RegistryBlocks.init();
         RegistryItems.init();
         RegistryTileEntities.init();

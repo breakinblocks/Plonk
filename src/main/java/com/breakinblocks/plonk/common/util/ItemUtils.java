@@ -3,6 +3,7 @@ package com.breakinblocks.plonk.common.util;
 import net.minecraft.block.BlockChest;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.init.Blocks;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -12,6 +13,9 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class ItemUtils {
+    // TODO: Update this to air
+    private static final ItemStack REFERENCE = new ItemStack(Blocks.stone);
+
     /**
      * Drop item within a block of area with 0.1 padding
      *
@@ -143,6 +147,16 @@ public class ItemUtils {
             slotsArray[i] = slots.get(i);
         }
         return new InsertStackResult(stack, slotsArray);
+    }
+
+    /**
+     * Get the maximum stack size of REFERENCE.
+     * This will usually be 64 but mods like StackUp! may change this.
+     *
+     * @return maximum stack size of REFERENCE
+     */
+    public static int getMaxStackSize() {
+        return REFERENCE.getMaxStackSize();
     }
 
     public static class InsertStackResult {
