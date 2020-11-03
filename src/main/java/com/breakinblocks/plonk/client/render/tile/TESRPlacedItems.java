@@ -168,9 +168,7 @@ public class TESRPlacedItems extends TileEntitySpecialRenderer<TilePlacedItems> 
     public void renderStack(World world, ItemStack stack, ItemMeta meta, float partialTicks, boolean halfSize) {
         // net.minecraft.client.renderer.entity.RenderItemFrame.renderItem
         GlStateManager.pushMatrix();
-        GlStateManager.disableLighting();
-        GlStateManager.pushAttrib();
-        RenderHelper.enableStandardItemLighting();
+        //GlStateManager.disableLighting();
 
         // Rotate item
         GL11.glRotated(-meta.getRotationAngle(), 0.0, 1.0, 0.0);
@@ -181,6 +179,9 @@ public class TESRPlacedItems extends TileEntitySpecialRenderer<TilePlacedItems> 
 
         // FIXED
         GlStateManager.rotate(180f, 0f, 1f, 0f);
+
+        //GlStateManager.pushAttrib();
+        //RenderHelper.enableStandardItemLighting();
         switch (meta.renderType) {
             case RENDER_TYPE_BLOCK: {
                 GlStateManager.translate(0f, 0.25f, 0f);
@@ -195,10 +196,10 @@ public class TESRPlacedItems extends TileEntitySpecialRenderer<TilePlacedItems> 
                     GlStateManager.scale(0.5F, 0.5F, 0.5F);
                 renderItem.renderItem(stack, ItemCameraTransforms.TransformType.FIXED);
         }
+        //RenderHelper.disableStandardItemLighting();
+        //GlStateManager.popAttrib();
 
-        RenderHelper.disableStandardItemLighting();
-        GlStateManager.popAttrib();
-        GlStateManager.enableLighting();
+        //GlStateManager.enableLighting();
         GlStateManager.popMatrix();
     }
 }
