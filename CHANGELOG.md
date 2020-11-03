@@ -1,4 +1,4 @@
-## [NEXT] - YYYY-MM-DD
+## [5.0.3] - 2020-11-03
 - Fix no last selection crash
 - Add config for max stack size of each slot
 - Fix lighting issues
