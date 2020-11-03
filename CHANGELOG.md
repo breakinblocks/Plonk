@@ -1,4 +1,4 @@
-## [NEXT] - YYYY-MM-DD
+## [0.0.6] - 2020-11-03
 - Fix no last selection crash
 - Add config for max stack size of each slot
 
