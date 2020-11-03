@@ -1,12 +1,12 @@
 // From MCP 1.12.2 for use in 1.7.10
 package mcp;
+
 import javax.annotation.Nonnull;
+import javax.annotation.meta.TypeQualifierDefault;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-
-import javax.annotation.meta.TypeQualifierDefault;
 
 /**
  * This annotation can be applied to a package, class or method to indicate that
@@ -18,10 +18,11 @@ import javax.annotation.meta.TypeQualifierDefault;
  * <li> there is a default parameter annotation applied to a more tightly nested
  * element.
  * </ul>
- *
  */
 @Documented
 @Nonnull
-@TypeQualifierDefault(ElementType.METHOD) // Note: This is a copy of javax.annotation.ParametersAreNonnullByDefault with target changed to METHOD
+@TypeQualifierDefault(ElementType.METHOD)
+// Note: This is a copy of javax.annotation.ParametersAreNonnullByDefault with target changed to METHOD
 @Retention(RetentionPolicy.RUNTIME)
-public @interface MethodsReturnNonnullByDefault {}
+public @interface MethodsReturnNonnullByDefault {
+}
