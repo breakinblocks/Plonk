@@ -98,7 +98,7 @@ processResources {
     from (sourceSets.main.resources.srcDirs) {
         include 'META-INF/mods.toml'
 
-        // replace mod_version and mc_version and forge_version_major
+        // replace mod_version and mc_version_range_supported and forge_version_range_supported
         expand 'mod_version': "${mod_version}",
                 'mc_version_range_supported': "${mc_version_range_supported}",
                 'forge_version_range_supported' : "${forge_version_range_supported}"
