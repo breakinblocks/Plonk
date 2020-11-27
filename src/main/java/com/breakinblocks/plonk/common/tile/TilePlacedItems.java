@@ -7,7 +7,6 @@ import com.breakinblocks.plonk.common.util.ItemUtils;
 import com.breakinblocks.plonk.common.util.bound.Box;
 import com.breakinblocks.plonk.common.util.bound.BoxCollection;
 import com.google.common.collect.ImmutableMap;
-import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.ISidedInventory;
@@ -258,8 +257,8 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
     }
 
     @Override
-    public void read(BlockState state, CompoundNBT tag) {
-        super.read(state, tag);
+    public void read(CompoundNBT tag) {
+        super.read(tag);
         NBTUpgrader.upgrade(tag);
         ListNBT tagItems = tag.getList(TAG_ITEMS, 10);
         this.contents = NonNullList.withSize(this.getSizeInventory(), ItemStack.EMPTY);
@@ -336,12 +335,12 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
     @Override
     public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
         Objects.requireNonNull(this.world);
-        this.handleUpdateTag(this.world.getBlockState(pkt.getPos()), pkt.getNbtCompound());
+        this.handleUpdateTag(pkt.getNbtCompound());
     }
 
     @Override
-    public void handleUpdateTag(BlockState state, CompoundNBT tag) {
-        super.handleUpdateTag(state, tag);
+    public void handleUpdateTag(CompoundNBT tag) {
+        super.handleUpdateTag(tag);
         updateContentsDisplay();
     }
 

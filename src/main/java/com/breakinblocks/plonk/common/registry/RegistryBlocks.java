@@ -2,7 +2,6 @@ package com.breakinblocks.plonk.common.registry;
 
 import com.breakinblocks.plonk.Plonk;
 import com.breakinblocks.plonk.common.block.BlockPlacedItems;
-import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.SoundType;
@@ -20,16 +19,11 @@ public class RegistryBlocks {
     /**
      * @see Blocks#GLASS
      */
-    public static final BlockPlacedItems placed_items = new BlockPlacedItems(AbstractBlock.Properties
+    public static final BlockPlacedItems placed_items = new BlockPlacedItems(Block.Properties
             .create(RegistryMaterials.placed_items)
             .hardnessAndResistance(0.3F)
             .sound(SoundType.STONE)
             .notSolid()
-            // Don't think the following are needed but... eh
-            .setAllowsSpawn((state, world, pos, type) -> false)
-            .setOpaque((state, world, pos) -> false)
-            .setSuffocates((state, world, pos) -> false)
-            .setBlocksVision((state, world, pos) -> false)
     );
     private static final Logger LOG = LogManager.getLogger();
 

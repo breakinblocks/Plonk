@@ -1,9 +1,9 @@
 package com.breakinblocks.plonk.common.util.bound;
 
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.util.math.vector.Vector3d;
 
 /**
  * Class for manipulating a box within the bounds of a block
@@ -275,7 +275,7 @@ public class Box {
     /**
      * @see Box#contains(double, double, double)
      */
-    public boolean contains(Vector3d vec) {
+    public boolean contains(Vec3d vec) {
         return contains(vec.x, vec.y, vec.z);
     }
 
@@ -291,7 +291,7 @@ public class Box {
     /**
      * @see Box#distanceSq(double, double, double)
      */
-    public double distanceSq(Vector3d vec) {
+    public double distanceSq(Vec3d vec) {
         return distanceSq(vec.x, vec.y, vec.z);
     }
 

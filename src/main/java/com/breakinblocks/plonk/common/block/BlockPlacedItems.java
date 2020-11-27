@@ -9,8 +9,8 @@ import net.minecraft.client.particle.ParticleManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
+import net.minecraft.fluid.IFluidState;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.BlockItemUseContext;
@@ -26,20 +26,21 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.client.event.DrawHighlightEvent;
-import net.minecraftforge.common.ForgeMod;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
+
+import static net.minecraft.entity.player.PlayerEntity.REACH_DISTANCE;
 
 /**
  * @see ChestBlock
@@ -55,7 +56,7 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
      */
     private final ThreadLocal<Boolean> picking = ThreadLocal.withInitial(() -> false);
 
-    public BlockPlacedItems(AbstractBlock.Properties properties) {
+    public BlockPlacedItems(Block.Properties properties) {
         super(properties);
         this.setDefaultState(this.stateContainer.getBaseState().with(FACING, Direction.UP));
     }
@@ -117,7 +118,7 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
     @Override
     @Deprecated
     @SuppressWarnings("deprecation")
-    public VoxelShape getRayTraceShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
+    public VoxelShape getRaytraceShape(BlockState state, IBlockReader worldIn, BlockPos pos) {
         // Used for colliding with the camera (third person)
         return VoxelShapes.empty();
     }
@@ -128,7 +129,7 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
     @Override
     public BlockState getStateForPlacement(BlockItemUseContext context) {
         Direction direction = context.getFace();
-        FluidState fluidstate = context.getWorld().getFluidState(context.getPos());
+        IFluidState fluidstate = context.getWorld().getFluidState(context.getPos());
         return this.getDefaultState().with(FACING, direction).with(WATERLOGGED, fluidstate.getFluid() == Fluids.WATER);
     }
 
@@ -137,7 +138,7 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
      */
     @Override
     @SuppressWarnings("deprecation")
-    public FluidState getFluidState(BlockState state) {
+    public IFluidState getFluidState(BlockState state) {
         return state.get(WATERLOGGED) ? Fluids.WATER.getStillFluidState(false) : super.getFluidState(state);
     }
 
@@ -156,7 +157,7 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
     @Override
     @SuppressWarnings("deprecation")
     public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
-        if (!state.isIn(newState.getBlock())) {
+        if (state.getBlock() != newState.getBlock()) {
             TileEntity tileentity = worldIn.getTileEntity(pos);
             if (tileentity instanceof IInventory) {
                 InventoryHelper.dropInventoryItems(worldIn, pos, (IInventory) tileentity);
@@ -176,7 +177,7 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
      */
     protected int getPickedSlot(IBlockReader worldIn, BlockPos pos, LivingEntity player) {
         if (picking.get()) return -1;
-        double blockReachDistance = Objects.requireNonNull(player.getAttribute(ForgeMod.REACH_DISTANCE.get())).getValue();
+        double blockReachDistance = Objects.requireNonNull(player.getAttribute(REACH_DISTANCE)).getValue();
         float partialTicks = 0.0f;
 
         // Might have issues if player is moving fast or turning their vision fast
@@ -189,7 +190,7 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
             picking.set(false);
         }
         if (traceResult.getType() == RayTraceResult.Type.BLOCK) {
-            Vector3d hitVec = traceResult.getHitVec().subtract(pos.getX(), pos.getY(), pos.getZ());
+            Vec3d hitVec = traceResult.getHitVec().subtract(pos.getX(), pos.getY(), pos.getZ());
             TilePlacedItems tile = (TilePlacedItems) worldIn.getTileEntity(pos);
             Objects.requireNonNull(tile);
             int index = tile.getContentsBoxes().getSelectionIndexFromHitVec(hitVec);

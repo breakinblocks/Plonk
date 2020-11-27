@@ -6,7 +6,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Hand;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.math.Vec3d;
 
 public class EntityUtils {
     /**
@@ -18,7 +18,7 @@ public class EntityUtils {
      * @see Entity#getEyePosition(float)
      * @deprecated
      */
-    public static Vector3d getEyePosition(Entity entity, float partialTicks) {
+    public static Vec3d getEyePosition(Entity entity, float partialTicks) {
         return entity.getEyePosition(partialTicks);
     }
 
