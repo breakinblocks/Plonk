@@ -13,6 +13,7 @@ import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUseContext;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
@@ -53,7 +54,7 @@ public class ClientEvents {
                         ItemStack toPlace = new ItemStack(RegistryItems.placed_items, 1);
                         RegistryItems.placed_items.setHeldStack(toPlace, held, renderType);
                         EntityUtils.setHeldItemSilent(player, Hand.MAIN_HAND, toPlace);
-                        if (toPlace.onItemUse(new ItemUseContext(player, Hand.MAIN_HAND, hit)).isSuccessOrConsume()) {
+                        if (toPlace.onItemUse(new ItemUseContext(player, Hand.MAIN_HAND, hit)) == ActionResultType.SUCCESS) {
                             Plonk.CHANNEL.sendToServer(new PacketPlaceItem(hit, renderType));
                             ItemStack newHeld = RegistryItems.placed_items.getHeldStack(toPlace);
                             EntityUtils.setHeldItemSilent(player, Hand.MAIN_HAND, newHeld);

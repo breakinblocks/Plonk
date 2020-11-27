@@ -23,7 +23,6 @@ public class RegistryBlocks {
             .create(RegistryMaterials.placed_items)
             .hardnessAndResistance(0.3F)
             .sound(SoundType.STONE)
-            .notSolid()
     );
     private static final Logger LOG = LogManager.getLogger();
 

@@ -8,6 +8,7 @@ import net.minecraft.item.ItemUseContext;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.network.play.ServerPlayNetHandler;
 import net.minecraft.network.play.client.CPlayerTryUseItemOnBlockPacket;
+import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraftforge.fml.network.NetworkDirection;
@@ -60,7 +61,7 @@ public class PacketPlaceItem extends PacketBase {
         ItemStack held = player.getHeldItemMainhand();
         RegistryItems.placed_items.setHeldStack(toPlace, held, renderType);
         EntityUtils.setHeldItemSilent(player, Hand.MAIN_HAND, toPlace);
-        if (toPlace.onItemUse(new ItemUseContext(player, Hand.MAIN_HAND, hit)).isSuccessOrConsume()) {
+        if (toPlace.onItemUse(new ItemUseContext(player, Hand.MAIN_HAND, hit)) == ActionResultType.SUCCESS) {
             ItemStack newHeld = RegistryItems.placed_items.getHeldStack(toPlace);
             EntityUtils.setHeldItemSilent(player, Hand.MAIN_HAND, newHeld);
         } else {

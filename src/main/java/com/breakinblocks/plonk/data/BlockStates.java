@@ -5,10 +5,7 @@ import net.minecraft.block.Block;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.util.Direction;
-import net.minecraftforge.client.model.generators.BlockModelBuilder;
-import net.minecraftforge.client.model.generators.BlockStateProvider;
-import net.minecraftforge.client.model.generators.ConfiguredModel;
-import net.minecraftforge.client.model.generators.ExistingFileHelper;
+import net.minecraftforge.client.model.generators.*;
 
 import java.util.function.Function;
 
@@ -16,8 +13,11 @@ import static com.breakinblocks.plonk.data.DataGenUtils.minecraft;
 import static com.breakinblocks.plonk.data.DataGenUtils.plonk;
 
 public class BlockStates extends net.minecraftforge.client.model.generators.BlockStateProvider {
+    private final ItemModelProviderProxy itemModels;
+
     public BlockStates(DataGenerator generator, String modid, ExistingFileHelper existingFileHelper) {
         super(generator, modid, existingFileHelper);
+        this.itemModels = new ItemModelProviderProxy(generator, modid, existingFileHelper);
     }
 
     /**
@@ -25,7 +25,7 @@ public class BlockStates extends net.minecraftforge.client.model.generators.Bloc
      */
     @Override
     protected void registerStatesAndModels() {
-        final BlockModelBuilder placed_items_model = models().withExistingParent("placed_items", minecraft("block/block"))
+        final BlockModelBuilder placed_items_model = withExistingParent("placed_items", minecraft("block/block"))
                 .texture("all", plonk("block/placed_items"))
                 .texture("particle", "#all")
                 .element()
@@ -45,5 +45,28 @@ public class BlockStates extends net.minecraftforge.client.model.generators.Bloc
                 });
         itemModels().getBuilder("placed_items")
                 .parent(placed_items_model);
+    }
+
+    private ItemModelProviderProxy itemModels() {
+        return this.itemModels;
+    }
+
+    public static class ItemModelProviderProxy extends ItemModelProvider {
+        public ItemModelProviderProxy(DataGenerator generator, String modid, ExistingFileHelper existingFileHelper) {
+            super(generator, modid, existingFileHelper);
+        }
+
+        public ItemModelBuilder getBuilder(String path) {
+            return super.getBuilder(path);
+        }
+
+        @Override
+        protected void registerModels() {
+        }
+
+        @Override
+        public String getName() {
+            return "Item Models";
+        }
     }
 }

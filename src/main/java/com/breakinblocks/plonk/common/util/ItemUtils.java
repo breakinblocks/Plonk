@@ -20,9 +20,9 @@ public class ItemUtils {
      */
     public static ItemEntity dropItemOnEntity(LivingEntity entity, ItemStack stack) {
         if (stack.isEmpty()) return null;
-        double x = entity.getPosX();
-        double y = entity.getPosY();
-        double z = entity.getPosZ();
+        double x = entity.posX;
+        double y = entity.posY;
+        double z = entity.posZ;
         ItemEntity entityItem = new ItemEntity(entity.world, x, y, z, stack.copy());
 
         entity.world.addEntity(entityItem);

@@ -4,23 +4,24 @@ import com.breakinblocks.plonk.common.block.BlockPlacedItems;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems.ItemMeta;
 import com.breakinblocks.plonk.common.util.MatrixUtils;
-import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.*;
+import net.minecraft.client.renderer.BlockRendererDispatcher;
+import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.client.renderer.ItemRenderer;
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.ItemFrameRenderer;
 import net.minecraft.client.renderer.model.IBakedModel;
 import net.minecraft.client.renderer.model.ItemCameraTransforms;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.tileentity.ShulkerBoxTileEntityRenderer;
 import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
-import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.entity.item.ItemFrameEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.state.DirectionProperty;
 import net.minecraft.util.Direction;
-import net.minecraftforge.common.model.TransformationHelper;
+
+import javax.vecmath.Matrix4f;
 
 import static com.breakinblocks.plonk.common.tile.TilePlacedItems.RENDER_TYPE_BLOCK;
 import static com.breakinblocks.plonk.common.tile.TilePlacedItems.RENDER_TYPE_ITEM;
@@ -35,14 +36,19 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
     private static final BufferBuilder bufferbuilder = tessellator.getBuffer();
     private static final BlockRendererDispatcher blockRendererDispatcher = mc.getBlockRendererDispatcher();
 
-    public TESRPlacedItems(TileEntityRendererDispatcher rendererDispatcherIn) {
-        super(rendererDispatcherIn);
-    }
-
     public static int getRenderTypeFromStack(ItemStack itemstack) {
         IBakedModel model = itemRenderer.getItemModelWithOverrides(itemstack, null, null);
-        Matrix4f matrixFixed = TransformationHelper.toTransformation(model.getItemCameraTransforms().getTransform(ItemCameraTransforms.TransformType.FIXED)).getMatrix();
-        Matrix4f matrixGui = TransformationHelper.toTransformation(model.getItemCameraTransforms().getTransform(ItemCameraTransforms.TransformType.GUI)).getMatrix();
+        Matrix4f matrixFixed = model.handlePerspective(ItemCameraTransforms.TransformType.FIXED).getRight();
+        if (matrixFixed == null) {
+            matrixFixed = new Matrix4f();
+            matrixFixed.setIdentity();
+        }
+        Matrix4f matrixGui = model.handlePerspective(ItemCameraTransforms.TransformType.GUI).getRight();
+        if (matrixGui == null) {
+            matrixGui = new Matrix4f();
+            matrixGui.setIdentity();
+        }
+
         Matrix4f difference = MatrixUtils.difference(matrixFixed, matrixGui);
         MatrixUtils.TransformData transform = new MatrixUtils.TransformData(difference);
 
@@ -61,14 +67,14 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
         //for (String line : message.split("\r?\n"))
         //    Minecraft.getInstance().ingameGUI.getChatGUI().printChatMessage(new StringTextComponent(line));
         // Change in scaling is < 1 and change in rotation at non-right angles;
-        return hS < (1.0 - 0.001) && hRot > 0.001 ? RENDER_TYPE_BLOCK : RENDER_TYPE_ITEM;
+        return hS > (1.0 - 0.001) && hRot > 0.001 ? RENDER_TYPE_BLOCK : RENDER_TYPE_ITEM;
     }
 
     /**
      * @see ShulkerBoxTileEntityRenderer
      */
     @Override
-    public void render(TilePlacedItems tileEntityIn, float partialTicks, MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int combinedLightIn, int combinedOverlayIn) {
+    public void render(TilePlacedItems tileEntityIn, double x, double y, double z, float partialTicks, int destroyStage) {
         // See Shulker Box Renderer
         Direction facing = Direction.UP;
         if (tileEntityIn.hasWorld()) {
@@ -78,49 +84,39 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
             }
         }
 
-        matrixStackIn.push();
+        GlStateManager.pushMatrix();
         // Centre of Block
-        //matrixStackIn.translate(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
-        matrixStackIn.translate(0.5, 0.5, 0.5);
+        GlStateManager.translated(x + 0.5, y + 0.5, z + 0.5);
 
         //Rotate Facing
         switch (facing) {
             case UP: // DOWN
                 break;
             case DOWN: // UP
-                //GL11.glRotated(180, 1.0, 0.0, 0.0);
-                //GL11.glRotated(180, 0.0, 1.0, 0.0);
-                matrixStackIn.rotate(Vector3f.XP.rotationDegrees(180));
-                matrixStackIn.rotate(Vector3f.YP.rotationDegrees(180));
+                GlStateManager.rotated(180, 1.0, 0.0, 0.0);
+                GlStateManager.rotated(180, 0.0, 1.0, 0.0);
                 break;
             case SOUTH: // NORTH
-                //GL11.glRotated(90, 1.0, 0.0, 0.0);
-                matrixStackIn.rotate(Vector3f.XP.rotationDegrees(90));
+                GlStateManager.rotated(90, 1.0, 0.0, 0.0);
                 break;
             case NORTH: // SOUTH
-                //GL11.glRotated(90, 1.0, 0.0, 0.0);
-                //GL11.glRotated(180, 0.0, 0.0, 1.0);
-                matrixStackIn.rotate(Vector3f.XP.rotationDegrees(90));
-                matrixStackIn.rotate(Vector3f.ZP.rotationDegrees(180));
+                GlStateManager.rotated(90, 1.0, 0.0, 0.0);
+                GlStateManager.rotated(180, 0.0, 0.0, 1.0);
                 break;
             case EAST: // WEST
-                //GL11.glRotated(90, 1.0, 0.0, 0.0);
-                //GL11.glRotated(-90, 0.0, 0.0, 1.0);
-                matrixStackIn.rotate(Vector3f.XP.rotationDegrees(90));
-                matrixStackIn.rotate(Vector3f.ZP.rotationDegrees(-90));
+                GlStateManager.rotated(90, 1.0, 0.0, 0.0);
+                GlStateManager.rotated(-90, 0.0, 0.0, 1.0);
                 break;
             case WEST: // EAST
-                //GL11.glRotated(90, 1.0, 0.0, 0.0);
-                //GL11.glRotated(90, 0.0, 0.0, 1.0);
-                matrixStackIn.rotate(Vector3f.XP.rotationDegrees(90));
-                matrixStackIn.rotate(Vector3f.ZP.rotationDegrees(90));
+                GlStateManager.rotated(90, 1.0, 0.0, 0.0);
+                GlStateManager.rotated(90, 0.0, 0.0, 1.0);
                 break;
         }
 
-        matrixStackIn.translate(0.0, -0.5, 0.0);
+        GlStateManager.translated(0.0, -0.5, 0.0);
 
         //Rotate about axis
-        matrixStackIn.rotate(new Quaternion(Vector3f.YP, (float) -tileEntityIn.getTileRotationAngle(), true));
+        GlStateManager.rotated(-tileEntityIn.getTileRotationAngle(), 0.0, 1.0, 0.0);
 
         ItemStack[] contents = tileEntityIn.getContentsDisplay();
         ItemMeta[] contentsMeta = tileEntityIn.getContentsMeta();
@@ -131,7 +127,7 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
             for (int slot = 0; slot < num; slot++) {
                 ItemStack stack = tileEntityIn.getStackInSlot(slot);
                 if (stack.isEmpty()) continue;
-                matrixStackIn.push();
+                GlStateManager.pushMatrix();
                 switch (num) {
                     case 1:
                         // No shift
@@ -139,77 +135,73 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
                     case 2:
                         // Shift left for slot 0
                         if (slot == 0) {
-                            matrixStackIn.translate(-0.25, 0.0, 0.0);
+                            GlStateManager.translated(-0.25, 0.0, 0.0);
                         } else {
-                            matrixStackIn.translate(0.25, 0.0, 0.0);
+                            GlStateManager.translated(0.25, 0.0, 0.0);
                         }
                         break;
                     default:
                         boolean left = slot % 2 == 0;
                         boolean top = (slot / 2) == 0;
-                        matrixStackIn.translate(left ? -0.25 : 0.25, 0.0, top ? -0.25 : 0.25);
+                        GlStateManager.translated(left ? -0.25 : 0.25, 0.0, top ? -0.25 : 0.25);
                         break;
                 }
                 //renderStack(world, stack, partialTicks, halfSize, world.rand.nextBoolean());
-                renderStack(partialTicks, matrixStackIn, bufferIn, combinedLightIn, stack, contentsMeta[slot], halfSize);
-                matrixStackIn.pop();
+                renderStack(partialTicks, stack, contentsMeta[slot], halfSize);
+                GlStateManager.popMatrix();
             }
         }
 
-        matrixStackIn.pop();
+        GlStateManager.popMatrix();
     }
 
     /**
      * Render item at location facing up
      * Refer to ItemFrame rendering
      *
-     * @param partialTicks    fractional tick
-     * @param matrixStackIn   transformation matrix stack
-     * @param bufferIn        render type buffer
-     * @param combinedLightIn Block and Sky light combined
-     * @param stack           ItemStack to render
-     * @param meta            Metadata for the stack
-     * @param halfSize        If items should be rendered at half size (blocks are always rendered half size)
-     * @see ItemFrameRenderer#render(ItemFrameEntity, float, float, MatrixStack, IRenderTypeBuffer, int)
+     * @param partialTicks fractional tick
+     * @param stack        ItemStack to render
+     * @param meta         Metadata for the stack
+     * @param halfSize     If items should be rendered at half size (blocks are always rendered half size)
+     * @see ItemFrameRenderer#doRender(ItemFrameEntity, double, double, double, float, float)
      */
-    public void renderStack(float partialTicks, MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int combinedLightIn, ItemStack stack, ItemMeta meta, boolean halfSize) {
+    public void renderStack(float partialTicks, ItemStack stack, ItemMeta meta, boolean halfSize) {
         if (stack.isEmpty()) return;
-        matrixStackIn.push();
-        GlStateManager.disableLighting();
-        GlStateManager.pushLightingAttributes();
-        RenderHelper.enableStandardItemLighting();
+        GlStateManager.pushMatrix();
+        //GlStateManager.disableLighting();
 
         // Rotate item
-        //GL11.glRotated(-meta.getRotationAngle(), 0.0, 1.0, 0.0);
-        matrixStackIn.rotate(new Quaternion(new Vector3f(0f, 1f, 0f), (float) -meta.getRotationAngle(), true));
+        GlStateManager.rotated(-meta.getRotationAngle(), 0.0, 1.0, 0.0);
 
         // GROUND
         //matrixStackIn.translate(0f, -0.125f, 0f);
         //matrixStackIn.scale(2F, 2F, 2F);
 
         // FIXED
-        //GlStateManager.rotate(180f, 0f, 1f, 0f);
-        matrixStackIn.rotate(new Quaternion(new Vector3f(0f, 1f, 0f), 180, true));
+        GlStateManager.rotatef(180f, 0f, 1f, 0f);
+
+        //GlStateManager.pushLightingAttributes();
+        //RenderHelper.enableStandardItemLighting();
         switch (meta.renderType) {
             case RENDER_TYPE_BLOCK: {
-                matrixStackIn.translate(0f, 0.25f, 0f);
+                GlStateManager.translatef(0f, 0.25f, 0f);
 
-                itemRenderer.renderItem(stack, ItemCameraTransforms.TransformType.FIXED, combinedLightIn, OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn);
+                itemRenderer.renderItem(stack, ItemCameraTransforms.TransformType.FIXED);
             }
             break;
             case RENDER_TYPE_ITEM:
             default:
-                matrixStackIn.translate(0f, 2f / 48, 0f);
-                //GlStateManager.rotate(90f, 1f, 0f, 0f);
-                matrixStackIn.rotate(new Quaternion(new Vector3f(1f, 0f, 0f), 90, true));
+                GlStateManager.translatef(0f, 2f / 48, 0f);
+                GlStateManager.rotatef(90f, 1f, 0f, 0f);
                 if (halfSize)
-                    matrixStackIn.scale(0.5F, 0.5F, 0.5F);
-                itemRenderer.renderItem(stack, ItemCameraTransforms.TransformType.FIXED, combinedLightIn, OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn);
+                    GlStateManager.scalef(0.5F, 0.5F, 0.5F);
+                itemRenderer.renderItem(stack, ItemCameraTransforms.TransformType.FIXED);
         }
 
-        RenderHelper.disableStandardItemLighting();
-        GlStateManager.popAttributes();
-        GlStateManager.enableLighting();
-        matrixStackIn.pop();
+        //RenderHelper.disableStandardItemLighting();
+        //GlStateManager.popAttributes();
+
+        //GlStateManager.enableLighting();
+        GlStateManager.popMatrix();
     }
 }

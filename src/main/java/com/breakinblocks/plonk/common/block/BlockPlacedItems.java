@@ -20,7 +20,7 @@ import net.minecraft.state.DirectionProperty;
 import net.minecraft.state.StateContainer;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ActionResultType;
+import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
@@ -35,7 +35,7 @@ import net.minecraft.world.IWorld;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
-import net.minecraftforge.client.event.DrawHighlightEvent;
+import net.minecraftforge.client.event.DrawBlockHighlightEvent;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
@@ -51,7 +51,7 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
     /**
      * This is such a hack. Find a better way to do this eventually please???
-     * The issue with handling the {@link DrawHighlightEvent.HighlightBlock} event is that
+     * The issue with handling the {@link DrawBlockHighlightEvent.HighlightBlock} event is that
      * it would break with other mods that add a custom block highlight...
      */
     private final ThreadLocal<Boolean> picking = ThreadLocal.withInitial(() -> false);
@@ -168,6 +168,11 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
         }
     }
 
+    @Override
+    public BlockRenderLayer getRenderLayer() {
+        return BlockRenderLayer.CUTOUT;
+    }
+
     /**
      * This can be called server side so needs to be ray-traced again
      *
@@ -201,8 +206,8 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
 
     @Override
     @SuppressWarnings("deprecation")
-    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
-        if (worldIn.isRemote) return ActionResultType.SUCCESS;
+    public boolean onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
+        if (worldIn.isRemote) return true;
 
         int slot = getPickedSlot(worldIn, pos, player);
         if (slot >= 0) {
@@ -220,7 +225,7 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
                 tile.markDirty();
                 tile.clean();
             }
-            return ActionResultType.CONSUME;
+            return true;
         }
         return super.onBlockActivated(state, worldIn, pos, player, handIn, hit);
     }

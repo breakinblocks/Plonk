@@ -14,8 +14,7 @@ public class RegistryPackets {
                 id, packet.getClass().asSubclass(PacketBase.class),
                 PacketBase::write,
                 packet::read,
-                PacketBase::onMessage,
-                packet.getNetworkDirection()
+                PacketBase::onMessage
         );
     }
 
