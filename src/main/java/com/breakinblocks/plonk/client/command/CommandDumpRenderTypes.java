@@ -18,11 +18,13 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.text.TextComponentString;
 
 import javax.vecmath.Matrix4d;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class CommandDumpRenderTypes extends CommandBase {
     private static final RenderItem renderItem = Minecraft.getMinecraft().getRenderItem();
@@ -30,10 +32,16 @@ public class CommandDumpRenderTypes extends CommandBase {
     private static LinkedHashSet<ItemStackRef> getAllStacks() {
         LinkedHashSet<ItemStackRef> items = new LinkedHashSet<>();
 
-        Block.REGISTRY.forEach(block -> items.add(new ItemStackRef(Item.getItemFromBlock(block))));
-        Item.REGISTRY.forEach(item -> items.add(new ItemStackRef(item)));
+        Block.REGISTRY.forEach(block -> items.addAll(getAllStacks(Item.getItemFromBlock(block))));
+        Item.REGISTRY.forEach(item -> items.addAll(getAllStacks(item)));
 
         return items;
+    }
+
+    private static List<ItemStackRef> getAllStacks(Item item) {
+        NonNullList<ItemStack> subItems = NonNullList.create();
+        item.getSubItems(net.minecraft.creativetab.CreativeTabs.SEARCH, subItems);
+        return subItems.stream().map(ItemStackRef::new).collect(Collectors.toList());
     }
 
     /**
@@ -55,11 +63,11 @@ public class CommandDumpRenderTypes extends CommandBase {
     /**
      * For each transform, it'll describe the (translation, scale, rotation) and (hS, hRot)
      */
-    private static LinkedHashMap<String, String> getRenderData(ItemStack stack) {
+    private static Stream<Map.Entry<String, String>> getRenderData(ItemStack stack) {
         IBakedModel model = renderItem.getItemModelWithOverrides(stack, null, null);
         TransformType[] types = new TransformType[]{
-                TransformType.GUI,
-                TransformType.FIXED
+                TransformType.FIXED,
+                TransformType.GUI
         };
         Map<String, Matrix4d> baseTransforms = Arrays.stream(types).collect(Collectors.toMap(
                 type -> type.name().toLowerCase(Locale.ROOT),
@@ -68,7 +76,7 @@ public class CommandDumpRenderTypes extends CommandBase {
                 LinkedHashMap::new
         ));
         Map<String, Matrix4d> transforms = new LinkedHashMap<>();
-        transforms.put("gui->fixed", MatrixUtils.difference(baseTransforms.get("gui"), baseTransforms.get("fixed")));
+        transforms.put("fixed->gui", MatrixUtils.difference(baseTransforms.get("fixed"), baseTransforms.get("gui")));
         transforms.putAll(baseTransforms);
 
         return transforms.entrySet().stream()
@@ -76,13 +84,7 @@ public class CommandDumpRenderTypes extends CommandBase {
                     final String transformName = kv.getKey();
                     return describeTransform(kv.getValue()).entrySet().stream()
                             .map(e -> new AbstractMap.SimpleEntry<>(transformName + "." + e.getKey(), e.getValue()));
-                })
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        (a, b) -> b,
-                        LinkedHashMap::new
-                ));
+                });
     }
 
     /**
@@ -134,8 +136,15 @@ public class CommandDumpRenderTypes extends CommandBase {
 
         final String[] renderDataHeadersTemp = {""};
         getAllStacks().stream().map(ref -> ref.stack).forEachOrdered(stack -> {
-            LinkedHashMap<String, String> renderData = getRenderData(stack);
-            renderData.put("renderType", String.valueOf(TESRPlacedItems.getRenderTypeFromStack(stack)));
+            LinkedHashMap<String, String> renderData = Stream.concat(
+                    Stream.of(new AbstractMap.SimpleEntry<>("renderType", String.valueOf(TESRPlacedItems.getRenderTypeFromStack(stack)))),
+                    getRenderData(stack)
+            ).collect(Collectors.toMap(
+                    Map.Entry::getKey,
+                    Map.Entry::getValue,
+                    (a, b) -> b,
+                    LinkedHashMap::new
+            ));
             if (renderDataHeadersTemp[0].isEmpty())
                 renderDataHeadersTemp[0] = String.join("\t", renderData.keySet());
             data.put(String.join("\t", renderData.values()), describeStack(stack));
