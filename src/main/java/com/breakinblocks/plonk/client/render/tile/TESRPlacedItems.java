@@ -1,5 +1,6 @@
 package com.breakinblocks.plonk.client.render.tile;
 
+import com.breakinblocks.plonk.client.util.RenderUtils;
 import com.breakinblocks.plonk.common.block.BlockPlacedItems;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems.ItemMeta;
@@ -38,17 +39,8 @@ public class TESRPlacedItems extends TileEntitySpecialRenderer<TilePlacedItems> 
 
     public static int getRenderTypeFromStack(ItemStack itemstack) {
         IBakedModel model = renderItem.getItemModelWithOverrides(itemstack, null, null);
-        Matrix4f matrixFixed = model.handlePerspective(ItemCameraTransforms.TransformType.FIXED).getRight();
-        if (matrixFixed == null) {
-            matrixFixed = new Matrix4f();
-            matrixFixed.setIdentity();
-        }
-        Matrix4f matrixGui = model.handlePerspective(ItemCameraTransforms.TransformType.GUI).getRight();
-        if (matrixGui == null) {
-            matrixGui = new Matrix4f();
-            matrixGui.setIdentity();
-        }
-
+        Matrix4f matrixFixed = RenderUtils.getModelTransformMatrix(model, ItemCameraTransforms.TransformType.FIXED);
+        Matrix4f matrixGui = RenderUtils.getModelTransformMatrix(model, ItemCameraTransforms.TransformType.GUI);
         Matrix4d difference = MatrixUtils.difference(new Matrix4d(matrixFixed), new Matrix4d(matrixGui));
         MatrixUtils.TransformData transform = new MatrixUtils.TransformData(difference);
 

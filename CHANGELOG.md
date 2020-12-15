@@ -1,3 +1,6 @@
+## [NEXT] - YYYY-MM-DD
+- Add command to dump item stack render type data
+
 ## [5.0.3] - 2020-11-03
 - Fix no last selection crash
 - Add config for max stack size of each slot
