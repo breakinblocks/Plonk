@@ -1,5 +1,6 @@
 ## [NEXT] - YYYY-MM-DD
 - Add command to dump item stack render type data
+- Adjust render type heuristic: Signs, beds and shields now use item rendering
 
 ## [5.0.3] - 2020-11-03
 - Fix no last selection crash

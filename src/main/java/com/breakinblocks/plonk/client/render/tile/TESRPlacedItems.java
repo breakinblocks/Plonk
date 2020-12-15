@@ -33,6 +33,7 @@ public class TESRPlacedItems extends TileEntitySpecialRenderer<TilePlacedItems> 
     private static final Tessellator tessellator = Tessellator.getInstance();
     private static final BufferBuilder bufferbuilder = tessellator.getBuffer();
     private static final BlockRendererDispatcher blockRendererDispatcher = mc.getBlockRendererDispatcher();
+    private static final double EPS = 0.001;
 
     public TESRPlacedItems() {
     }
@@ -58,8 +59,12 @@ public class TESRPlacedItems extends TileEntitySpecialRenderer<TilePlacedItems> 
         //String message = String.format("hS=%.3f hRot=%.3f\n", hS, hRot) + transform.toString();
         //for (String line : message.split("\r?\n"))
         //    Minecraft.getMinecraft().ingameGUI.addChatMessage(ChatType.CHAT, new TextComponentString(line));
-        // Change in scaling is > 1 and change in rotation at non-right angles;
-        return hS > (1.0 - 0.001) && hRot > 0.001 ? RENDER_TYPE_BLOCK : RENDER_TYPE_ITEM;
+        // The following is a heuristic
+        // Use block rendering: hRot ~= 83.80586
+        final double blockRot = 83.80586;
+        if (blockRot - EPS <= hRot && hRot <= blockRot + EPS)
+            return RENDER_TYPE_BLOCK;
+        return RENDER_TYPE_ITEM;
     }
 
     /**
