@@ -157,11 +157,11 @@ public class CommandDumpRenderTypes extends CommandBase {
         }
 
         StringBuilder output = new StringBuilder();
+        output.append("stacks\t");
         output.append(renderDataHeaders);
-        output.append("\tstacks");
         data.keySet().forEach(k -> output
-                .append("\n").append(k)
-                .append("\t").append(String.join(",", data.get(k)))
+                .append("\n").append(String.join(",", data.get(k)))
+                .append("\t").append(k)
         );
         Plonk.LOG.info(output);
         sender.sendMessage(new TextComponentString(
