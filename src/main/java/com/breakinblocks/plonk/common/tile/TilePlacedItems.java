@@ -249,6 +249,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
     public void readFromNBT(NBTTagCompound tag) {
         super.readFromNBT(tag);
         NBTUpgrader.upgrade(tag);
+        this.tileRotation = tag.getInteger(TAG_TILE_ROTATION);
         NBTTagList tagItems = tag.getTagList(TAG_ITEMS, 10);
         this.contents = new ItemStack[this.getSizeInventory()];
         this.contentsMeta = new ItemMeta[this.getSizeInventory()];

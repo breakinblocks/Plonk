@@ -1,3 +1,6 @@
+## [NEXT] - YYYY-MM-DD
+- Fix tile rotation not being read
+
 ## [0.0.6] - 2020-11-03
 - Fix no last selection crash
 - Add config for max stack size of each slot
