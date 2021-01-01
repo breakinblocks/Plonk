@@ -261,6 +261,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
     public void read(BlockState state, CompoundNBT tag) {
         super.read(state, tag);
         NBTUpgrader.upgrade(tag);
+        this.tileRotation = tag.getInt(TAG_TILE_ROTATION);
         ListNBT tagItems = tag.getList(TAG_ITEMS, 10);
         this.contents = NonNullList.withSize(this.getSizeInventory(), ItemStack.EMPTY);
         this.contentsMeta = new ItemMeta[this.getSizeInventory()];

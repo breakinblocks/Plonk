@@ -5,7 +5,7 @@ import net.minecraft.util.math.vector.Matrix4f;
 
 public class MatrixUtils {
     /**
-     * Calculate the difference between two transforms
+     * Calculate the transform to convert between two transforms
      * Assumes both input matrices have an inverse
      *
      * @param a Start transformation

@@ -1,3 +1,8 @@
+## [NEXT] - YYYY-MM-DD
+- Add command to dump item stack render type data (currently not usable)
+- Adjust render type heuristic: Signs, beds and shields now use item rendering
+- Fix tile rotation not being read
+
 # [9.0.3] - 2020-11-22
 - Updated to 1.16.4
 
