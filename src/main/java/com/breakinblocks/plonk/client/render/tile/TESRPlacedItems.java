@@ -21,7 +21,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.state.DirectionProperty;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.vector.Matrix4f;
-import net.minecraft.util.math.vector.Quaternion;
 import net.minecraft.util.math.vector.Vector3f;
 
 import static com.breakinblocks.plonk.common.tile.TilePlacedItems.RENDER_TYPE_BLOCK;
@@ -194,7 +193,7 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
 
         // FIXED
         //GlStateManager.rotate(180f, 0f, 1f, 0f);
-        matrixStackIn.rotate(new Quaternion(Vector3f.YP, 180, true));
+        matrixStackIn.rotate(Vector3f.YP.rotationDegrees(180f));
 
         //GlStateManager.pushLightingAttributes();
         //RenderHelper.enableStandardItemLighting();
