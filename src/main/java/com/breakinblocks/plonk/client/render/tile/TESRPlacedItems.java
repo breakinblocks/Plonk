@@ -1,5 +1,6 @@
 package com.breakinblocks.plonk.client.render.tile;
 
+import com.breakinblocks.plonk.client.util.RenderUtils;
 import com.breakinblocks.plonk.common.block.BlockPlacedItems;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems.ItemMeta;
@@ -35,20 +36,12 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
     private static final Tessellator tessellator = Tessellator.getInstance();
     private static final BufferBuilder bufferbuilder = tessellator.getBuffer();
     private static final BlockRendererDispatcher blockRendererDispatcher = mc.getBlockRendererDispatcher();
+    private static final double EPS = 0.001;
 
     public static int getRenderTypeFromStack(ItemStack itemstack) {
         IBakedModel model = itemRenderer.getItemModelWithOverrides(itemstack, null, null);
-        Matrix4f matrixFixed = model.handlePerspective(ItemCameraTransforms.TransformType.FIXED).getRight();
-        if (matrixFixed == null) {
-            matrixFixed = new Matrix4f();
-            matrixFixed.setIdentity();
-        }
-        Matrix4f matrixGui = model.handlePerspective(ItemCameraTransforms.TransformType.GUI).getRight();
-        if (matrixGui == null) {
-            matrixGui = new Matrix4f();
-            matrixGui.setIdentity();
-        }
-
+        Matrix4f matrixFixed = RenderUtils.getModelTransformMatrix(model, ItemCameraTransforms.TransformType.FIXED);
+        Matrix4f matrixGui = RenderUtils.getModelTransformMatrix(model, ItemCameraTransforms.TransformType.GUI);
         Matrix4f difference = MatrixUtils.difference(matrixFixed, matrixGui);
         MatrixUtils.TransformData transform = new MatrixUtils.TransformData(difference);
 
@@ -66,8 +59,12 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
         //String message = String.format("hS=%.3f hRot=%.3f\n", hS, hRot) + transform.toString();
         //for (String line : message.split("\r?\n"))
         //    Minecraft.getInstance().ingameGUI.getChatGUI().printChatMessage(new StringTextComponent(line));
-        // Change in scaling is < 1 and change in rotation at non-right angles;
-        return hS > (1.0 - 0.001) && hRot > 0.001 ? RENDER_TYPE_BLOCK : RENDER_TYPE_ITEM;
+        // The following is a heuristic
+        // Use block rendering: hRot ~= 83.80586
+        final double blockRot = 83.80586;
+        if (blockRot - EPS <= hRot && hRot <= blockRot + EPS)
+            return RENDER_TYPE_BLOCK;
+        return RENDER_TYPE_ITEM;
     }
 
     /**
@@ -197,7 +194,6 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
                     GlStateManager.scalef(0.5F, 0.5F, 0.5F);
                 itemRenderer.renderItem(stack, ItemCameraTransforms.TransformType.FIXED);
         }
-
         //RenderHelper.disableStandardItemLighting();
         //GlStateManager.popAttributes();
 
