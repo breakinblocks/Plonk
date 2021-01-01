@@ -6,7 +6,6 @@ import com.breakinblocks.plonk.common.tile.TilePlacedItems;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems.ItemMeta;
 import com.breakinblocks.plonk.common.util.MatrixUtils;
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
@@ -128,7 +127,7 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
         matrixStackIn.translate(0.0, -0.5, 0.0);
 
         //Rotate about axis
-        matrixStackIn.rotate(new Quaternion(Vector3f.YP, (float) -tileEntityIn.getTileRotationAngle(), true));
+        matrixStackIn.rotate(Vector3f.YP.rotationDegrees((float) -tileEntityIn.getTileRotationAngle()));
 
         ItemStack[] contents = tileEntityIn.getContentsDisplay();
         ItemMeta[] contentsMeta = tileEntityIn.getContentsMeta();
@@ -183,13 +182,11 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
     public void renderStack(float partialTicks, MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int combinedLightIn, ItemStack stack, ItemMeta meta, boolean halfSize) {
         if (stack.isEmpty()) return;
         matrixStackIn.push();
-        GlStateManager.disableLighting();
-        GlStateManager.pushLightingAttributes();
-        RenderHelper.enableStandardItemLighting();
+        //GlStateManager.disableLighting();
 
         // Rotate item
         //GL11.glRotated(-meta.getRotationAngle(), 0.0, 1.0, 0.0);
-        matrixStackIn.rotate(new Quaternion(new Vector3f(0f, 1f, 0f), (float) -meta.getRotationAngle(), true));
+        matrixStackIn.rotate(Vector3f.YP.rotationDegrees((float) -meta.getRotationAngle()));
 
         // GROUND
         //matrixStackIn.translate(0f, -0.125f, 0f);
@@ -197,7 +194,10 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
 
         // FIXED
         //GlStateManager.rotate(180f, 0f, 1f, 0f);
-        matrixStackIn.rotate(new Quaternion(new Vector3f(0f, 1f, 0f), 180, true));
+        matrixStackIn.rotate(new Quaternion(Vector3f.YP, 180, true));
+
+        //GlStateManager.pushLightingAttributes();
+        //RenderHelper.enableStandardItemLighting();
         switch (meta.renderType) {
             case RENDER_TYPE_BLOCK: {
                 matrixStackIn.translate(0f, 0.25f, 0f);
@@ -209,15 +209,15 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
             default:
                 matrixStackIn.translate(0f, 2f / 48, 0f);
                 //GlStateManager.rotate(90f, 1f, 0f, 0f);
-                matrixStackIn.rotate(new Quaternion(new Vector3f(1f, 0f, 0f), 90, true));
+                matrixStackIn.rotate(Vector3f.XP.rotationDegrees(90f));
                 if (halfSize)
                     matrixStackIn.scale(0.5F, 0.5F, 0.5F);
                 itemRenderer.renderItem(stack, ItemCameraTransforms.TransformType.FIXED, combinedLightIn, OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn);
         }
+        //RenderHelper.disableStandardItemLighting();
+        //GlStateManager.popAttributes();
 
-        RenderHelper.disableStandardItemLighting();
-        GlStateManager.popAttributes();
-        GlStateManager.enableLighting();
+        //GlStateManager.enableLighting();
         matrixStackIn.pop();
     }
 }
