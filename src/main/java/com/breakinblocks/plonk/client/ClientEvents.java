@@ -1,6 +1,7 @@
 package com.breakinblocks.plonk.client;
 
 import com.breakinblocks.plonk.Plonk;
+import com.breakinblocks.plonk.client.command.CommandClientPlonk;
 import com.breakinblocks.plonk.client.render.tile.TESRPlacedItems;
 import com.breakinblocks.plonk.common.packet.PacketPlaceItem;
 import com.breakinblocks.plonk.common.packet.PacketRotateTile;
@@ -22,6 +23,7 @@ import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
+import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 
 import static net.minecraft.client.util.InputMappings.Type.KEYSYM;
 import static net.minecraftforge.client.settings.KeyConflictContext.IN_GAME;
@@ -78,5 +80,10 @@ public class ClientEvents {
             return true;
         }
         return false;
+    }
+
+    @SubscribeEvent
+    public static void serverStarting(FMLServerStartingEvent event) {
+        new CommandClientPlonk().register(event.getServer().getCommandManager().getDispatcher());
     }
 }
