@@ -67,6 +67,5 @@ public class Plonk {
         RegistryTESRs.init();
         RenderTypeLookup.setRenderLayer(RegistryBlocks.placed_items, RenderType.getCutout());
         ClientEvents.registerKeyBindings();
-        // TODO REGISTER CLIENTSIDE COMMAND
     }
 }
