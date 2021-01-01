@@ -1,4 +1,4 @@
-package com.breakinblocks.plonk.client.command;
+package com.breakinblocks.plonk.common.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;

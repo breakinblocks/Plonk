@@ -1,5 +1,6 @@
 package com.breakinblocks.plonk.client.command;
 
+import com.breakinblocks.plonk.common.command.IPlonkCommand;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.command.CommandSource;
