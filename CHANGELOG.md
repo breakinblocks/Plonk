@@ -1,4 +1,4 @@
-## [NEXT] - YYYY-MM-DD
+## [0.0.7] - 2021-01-01
 - Fix tile rotation not being read
 
 ## [0.0.6] - 2020-11-03
