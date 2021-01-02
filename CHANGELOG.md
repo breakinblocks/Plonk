@@ -1,4 +1,4 @@
-## [NEXT] - YYYY-MM-DD
+## [9.0.5] - 2021-01-02
 - Fix removing last item setting to air instead of using fluid state
 
 ## [9.0.4] - 2021-01-01
