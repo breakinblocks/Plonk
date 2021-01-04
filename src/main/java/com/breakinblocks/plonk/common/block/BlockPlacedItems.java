@@ -3,7 +3,14 @@ package com.breakinblocks.plonk.common.block;
 import com.breakinblocks.plonk.common.registry.RegistryTileEntities;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
 import com.breakinblocks.plonk.common.util.ItemUtils;
-import net.minecraft.block.*;
+import net.minecraft.block.AbstractGlassBlock;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockRenderType;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.ChestBlock;
+import net.minecraft.block.DirectionalBlock;
+import net.minecraft.block.IWaterLoggable;
+import net.minecraft.block.SoundType;
 import net.minecraft.client.multiplayer.PlayerController;
 import net.minecraft.client.particle.ParticleManager;
 import net.minecraft.entity.Entity;
@@ -100,8 +107,8 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
             return tile.getContentsBoxes().getSelectionShape();
         int slot = -1;
         Entity entity = context.getEntity();
-        if (entity instanceof LivingEntity) {
-            slot = getPickedSlot(worldIn, pos, (LivingEntity) entity);
+        if (entity instanceof PlayerEntity) {
+            slot = getPickedSlot(tile, pos, (PlayerEntity) entity);
         }
         return slot >= 0 ? tile.getContentsBoxes().getSelectionShapeById(slot + 1) : tile.getContentsBoxes().getSelectionShape();
     }
@@ -175,7 +182,7 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
      * @see Entity#pick(double, float, boolean)
      * @see PlayerController#getBlockReachDistance()
      */
-    protected int getPickedSlot(IBlockReader worldIn, BlockPos pos, LivingEntity player) {
+    protected int getPickedSlot(TilePlacedItems tile, BlockPos pos, PlayerEntity player) {
         if (picking.get()) return -1;
         double blockReachDistance = Objects.requireNonNull(player.getAttribute(REACH_DISTANCE)).getValue();
         float partialTicks = 0.0f;
@@ -191,8 +198,6 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
         }
         if (traceResult.getType() == RayTraceResult.Type.BLOCK) {
             Vec3d hitVec = traceResult.getHitVec().subtract(pos.getX(), pos.getY(), pos.getZ());
-            TilePlacedItems tile = (TilePlacedItems) worldIn.getTileEntity(pos);
-            Objects.requireNonNull(tile);
             int index = tile.getContentsBoxes().getSelectionIndexFromHitVec(hitVec);
             return index <= 0 ? 0 : index - 1;
         }
@@ -204,10 +209,11 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
     public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
         if (worldIn.isRemote) return ActionResultType.SUCCESS;
 
-        int slot = getPickedSlot(worldIn, pos, player);
+        TilePlacedItems tile = (TilePlacedItems) worldIn.getTileEntity(pos);
+        if (tile == null) return ActionResultType.SUCCESS;
+
+        int slot = getPickedSlot(tile, pos, player);
         if (slot >= 0) {
-            TilePlacedItems tile = (TilePlacedItems) worldIn.getTileEntity(pos);
-            Objects.requireNonNull(tile);
             ItemStack stack = tile.getStackInSlot(slot);
             if (!stack.isEmpty()) {
                 //ItemUtils.dropItemWithinBlock(worldId, x, y, z, stack);
@@ -235,9 +241,10 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
     public void onBlockPlacedBy(World worldIn, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         super.onBlockPlacedBy(worldIn, pos, state, placer, stack);
         if (placer == null) return;
+        TilePlacedItems tile = (TilePlacedItems) worldIn.getTileEntity(pos);
+        Objects.requireNonNull(tile);
         // Set the rotation of the tile based on the player's yaw and facing
         Direction facing = worldIn.getBlockState(pos).get(FACING);
-        TilePlacedItems tile = (TilePlacedItems) worldIn.getTileEntity(pos);
         float yaw = placer.rotationYaw % 360f;
         if (yaw < 0) yaw += 360f;
         int rotation = Math.round(yaw / 90f) % 4;
@@ -266,7 +273,7 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
     public ItemStack getPickBlock(BlockState state, RayTraceResult target, IBlockReader world, BlockPos pos, PlayerEntity player) {
         TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(pos);
         if (tile == null) return ItemStack.EMPTY;
-        int slot = getPickedSlot(world, pos, player);
+        int slot = getPickedSlot(tile, pos, player);
         return slot >= 0 ? tile.getStackInSlot(slot) : ItemStack.EMPTY;
     }
 

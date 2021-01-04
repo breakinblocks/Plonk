@@ -8,7 +8,6 @@ import com.breakinblocks.plonk.common.util.bound.Box;
 import com.breakinblocks.plonk.common.util.bound.BoxCollection;
 import com.google.common.collect.ImmutableMap;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.fluid.IFluidState;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.inventory.ItemStackHelper;
 import net.minecraft.item.ItemStack;
@@ -118,8 +117,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
         // If empty tile
         if (last_not_empty == -1) {
             Objects.requireNonNull(this.world);
-            IFluidState fluidState = this.world.getFluidState(this.pos);
-            this.world.setBlockState(this.pos, fluidState.getBlockState());
+            this.world.removeBlock(this.pos, false);
             return true;
         }
 
