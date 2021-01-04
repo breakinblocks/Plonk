@@ -1,4 +1,4 @@
-## [NEXT] - YYYY-MM-DD
+## [7.0.3] - 2021-01-04
 - Fix #8: Crash when Enderman ray-traces block
 
 ## [7.0.2] - 2021-01-02
