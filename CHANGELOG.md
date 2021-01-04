@@ -1,3 +1,6 @@
+## [NEXT] - YYYY-MM-DD
+- Fix #8: Crash when Enderman ray-traces block
+
 ## [9.0.5] - 2021-01-02
 - Fix removing last item setting to air instead of using fluid state
 
