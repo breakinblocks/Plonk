@@ -109,6 +109,7 @@ public class BlockPlacedItems extends Block {
     @SuppressWarnings("deprecation")
     public AxisAlignedBB getSelectedBoundingBox(IBlockState state, World worldIn, BlockPos pos) {
         TilePlacedItems tile = (TilePlacedItems) worldIn.getTileEntity(pos);
+        Objects.requireNonNull(tile);
         return tile.getContentsBoxes().getSelectedBoundingBoxFromPool();
     }
 
@@ -142,6 +143,7 @@ public class BlockPlacedItems extends Block {
     @SuppressWarnings("deprecation")
     public RayTraceResult collisionRayTrace(IBlockState blockState, World worldIn, BlockPos pos, Vec3d start, Vec3d end) {
         TilePlacedItems tile = (TilePlacedItems) worldIn.getTileEntity(pos);
+        Objects.requireNonNull(tile);
         return tile.getContentsBoxes().collisionRayTrace(this, super::collisionRayTrace, blockState, worldIn, pos, start, end);
     }
 
@@ -174,6 +176,7 @@ public class BlockPlacedItems extends Block {
 
         if (worldId.rayTraceBlocks(from, to, false, false, true) != null) {
             TilePlacedItems tile = (TilePlacedItems) worldId.getTileEntity(pos);
+            Objects.requireNonNull(tile);
             int index = tile.getContentsBoxes().getSelectedId();
             int slot = index <= 0 ? 0 : index - 1;
             ItemStack stack = tile.getStackInSlot(slot);
@@ -204,6 +207,7 @@ public class BlockPlacedItems extends Block {
         // Set the rotation of the tile based on the player's yaw and facing
         EnumFacing facing = worldIn.getBlockState(pos).getValue(FACING);
         TilePlacedItems tile = (TilePlacedItems) worldIn.getTileEntity(pos);
+        Objects.requireNonNull(tile);
         float yaw = placer.rotationYaw % 360f;
         if (yaw < 0) yaw += 360f;
         int rotation = Math.round(yaw / 90f) % 4;

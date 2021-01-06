@@ -9,6 +9,7 @@ import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
@@ -53,11 +54,9 @@ public class BoxCollection {
 
     public void addCollidingBoxes(BlockPos pos, AxisAlignedBB entityBox, List<AxisAlignedBB> collidingBoxes) {
         for (Entry entry : collisionBoxes) {
-            if (entry.collision) {
-                AxisAlignedBB blockBox = entry.box.toAABB().offset(pos);
-                if (blockBox.intersects(entityBox)) {
-                    collidingBoxes.add(blockBox);
-                }
+            AxisAlignedBB blockBox = entry.box.toAABB().offset(pos);
+            if (blockBox.intersects(entityBox)) {
+                collidingBoxes.add(blockBox);
             }
         }
     }
@@ -81,6 +80,7 @@ public class BoxCollection {
         return selectionLastEntry == null ? -1 : selectionLastEntry.id;
     }
 
+    @Nullable
     public RayTraceResult collisionRayTrace(Block block, ICollisionRayTrace collisionRayTrace, IBlockState blockState, World worldIn, BlockPos pos, Vec3d start, Vec3d end) {
         int num = this.boxes.size();
         RayTraceResult[] mops = new RayTraceResult[num];
@@ -123,6 +123,7 @@ public class BoxCollection {
 
     @FunctionalInterface
     public interface ICollisionRayTrace {
+        @Nullable
         RayTraceResult apply(IBlockState blockState, World worldIn, BlockPos pos, Vec3d start, Vec3d end);
     }
 
@@ -191,8 +192,7 @@ public class BoxCollection {
         }
 
         public BoxCollection build() {
-            BoxCollection boxCollection = new BoxCollection(boxes);
-            return boxCollection;
+            return new BoxCollection(boxes);
         }
     }
 }
