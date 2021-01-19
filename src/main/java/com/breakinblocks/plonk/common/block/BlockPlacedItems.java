@@ -167,7 +167,10 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
         if (!state.isIn(newState.getBlock())) {
             TileEntity tileentity = worldIn.getTileEntity(pos);
             if (tileentity instanceof IInventory) {
-                InventoryHelper.dropInventoryItems(worldIn, pos, (IInventory) tileentity);
+                // Need this to prevent dupes: See MinecraftForge#7609
+                if (!worldIn.restoringBlockSnapshots) {
+                    InventoryHelper.dropInventoryItems(worldIn, pos, (IInventory) tileentity);
+                }
                 worldIn.updateComparatorOutputLevel(pos, this);
             }
 
