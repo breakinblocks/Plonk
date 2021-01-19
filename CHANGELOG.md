@@ -1,4 +1,5 @@
 ## [NEXT] - YYYY-MM-DD
+- Update to Minecraft 1.16.5 (supports 1.16.x)
 - Fix #9: Dupe bug when block place is canceled (see MinecraftForge#7609)
 
 ## [9.0.6] - 2021-01-04
