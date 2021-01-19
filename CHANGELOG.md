@@ -1,3 +1,6 @@
+## [NEXT] - YYYY-MM-DD
+- Fix #9: Dupe bug when block place is canceled (see MinecraftForge#7609)
+
 ## [8.0.3] - 2021-01-04
 - Fix #8: Crash when Enderman ray-traces block
 
