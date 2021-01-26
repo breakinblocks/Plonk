@@ -1,6 +1,9 @@
 # blocks
 tile.placed_items.name=Placed Items
 
+# items
+item.plonk_wand.name=Plonk Wand
+
 # containers
 container.placed_items=Placed Items
 

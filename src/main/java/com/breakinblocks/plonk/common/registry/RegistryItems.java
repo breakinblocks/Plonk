@@ -2,6 +2,7 @@ package com.breakinblocks.plonk.common.registry;
 
 import com.breakinblocks.plonk.Plonk;
 import com.breakinblocks.plonk.common.item.ItemBlockPlacedItems;
+import com.breakinblocks.plonk.common.item.ItemPlonkWand;
 import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.item.Item;
 
@@ -10,6 +11,7 @@ import java.lang.reflect.Modifier;
 
 public class RegistryItems {
     public static final ItemBlockPlacedItems placed_items = new ItemBlockPlacedItems();
+    public static final ItemPlonkWand plonk_wand = new ItemPlonkWand();
 
     public static void init() {
         for (Field f : RegistryItems.class.getDeclaredFields()) {
