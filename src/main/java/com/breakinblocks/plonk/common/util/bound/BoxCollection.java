@@ -155,8 +155,7 @@ public class BoxCollection {
         }
 
         public BoxCollection build() {
-            BoxCollection boxCollection = new BoxCollection(boxes);
-            return boxCollection;
+            return new BoxCollection(boxes);
         }
     }
 }
