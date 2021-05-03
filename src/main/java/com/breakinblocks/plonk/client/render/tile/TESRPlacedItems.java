@@ -140,7 +140,7 @@ public class TESRPlacedItems extends TileEntitySpecialRenderer {
         entityItem.hoverStart = 0.0f;
         entityItem.rotationYaw = 0.0f;
         entityItem.onGround = true;
-        int renderType = getRenderTypeFromStack(stack);
+        int renderType = meta.renderType;
 
         if (halfSize || renderType == RENDER_TYPE_BLOCK) {
             GL11.glScaled(0.5, 0.5, 0.5);
