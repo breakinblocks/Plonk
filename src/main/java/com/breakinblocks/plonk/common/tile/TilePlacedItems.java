@@ -6,6 +6,7 @@ import com.breakinblocks.plonk.common.util.ItemUtils;
 import com.breakinblocks.plonk.common.util.bound.Box;
 import com.breakinblocks.plonk.common.util.bound.BoxCollection;
 import com.google.common.collect.ImmutableMap;
+import cpw.mods.fml.common.registry.GameData;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.entity.player.EntityPlayer;
@@ -414,7 +415,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
 
     @Override
     public boolean isItemValidForSlot(int slot, ItemStack stack) {
-        return true;
+        return !PlonkConfig.unplaceableItems.contains(GameData.getItemRegistry().getNameForObject(stack.getItem()));
     }
 
     @Override

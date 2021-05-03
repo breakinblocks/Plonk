@@ -8,11 +8,18 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.common.config.Configuration;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class PlonkConfig {
     public static Configuration config;
 
     public static int maxStackSize = -1;
+
+    public static Set<String> unplaceableItems = Collections.emptySet();
 
     public static int getInventoryStackLimit() {
         return maxStackSize <= 0 ? ItemUtils.getMaxStackSize() : maxStackSize;
@@ -23,6 +30,14 @@ public class PlonkConfig {
                 "maxStackSize", Configuration.CATEGORY_GENERAL, -1, -1, Integer.MAX_VALUE,
                 "Max stack size per slot (-1 or 0 to use default). Going above 64 needs a mod like StackUp!."
         );
+
+        unplaceableItems = Arrays.stream(config.getStringList(
+                "unplaceableItems", Configuration.CATEGORY_GENERAL, new String[]{
+                        Plonk.CARRY_ON_MOD_ID + ":entity_item",
+                        Plonk.CARRY_ON_MOD_ID + ":tile_item"
+                },
+                "Items that cannot be placed down, in the format 'modid:item_id' e.g. minecraft:carrot"
+        )).collect(Collectors.toCollection(LinkedHashSet::new));
 
         if (config.hasChanged()) {
             config.save();

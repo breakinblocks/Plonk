@@ -1,3 +1,7 @@
+## [NEXT] - YYYY-MM-DD
+
+- Add config for unplaceable items
+
 ## [0.0.7] - 2021-01-01
 
 - Fix tile rotation not being read

@@ -116,6 +116,7 @@ public class ItemUtils {
      * @param inv   Inventory to insert into
      * @param stack Stack to insert
      * @return The remaining items and slots inserted into
+     * @see net.minecraft.tileentity.TileEntityHopper
      */
     public static InsertStackResult insertStackAdv(IInventory inv, @Nullable ItemStack stack) {
         //TODO: Update null stacks
@@ -127,6 +128,9 @@ public class ItemUtils {
         ArrayList<Integer> slots = new ArrayList<>();
 
         for (int slot = 0; slot < size; slot++) {
+            if (!inv.isItemValidForSlot(slot, stack)) {
+                continue;
+            }
             ItemStack current = inv.getStackInSlot(slot);
             if (current == null) {
                 current = stack.copy();
