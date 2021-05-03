@@ -4,6 +4,7 @@ import com.breakinblocks.plonk.common.registry.RegistryMaterials;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
 import com.breakinblocks.plonk.common.util.EntityUtils;
 import com.breakinblocks.plonk.common.util.ItemUtils;
+import com.breakinblocks.plonk.common.util.WorldUtils;
 import net.minecraft.block.Block;
 import net.minecraft.client.multiplayer.PlayerControllerMP;
 import net.minecraft.entity.Entity;
@@ -22,7 +23,6 @@ import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Objects;
 import java.util.Random;
 
 public class BlockPlacedItems extends Block {
@@ -39,14 +39,15 @@ public class BlockPlacedItems extends Block {
 
     @Override
     public void addCollisionBoxesToList(World world, int x, int y, int z, AxisAlignedBB collider, List collisions, Entity entity) {
-        TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(x, y, z);
-        tile.getContentsBoxes().addCollisionBoxesToList(this, super::addCollisionBoxesToList, world, x, y, z, collider, collisions, entity);
+        WorldUtils.withTile(world, x, y, z, TilePlacedItems.class,
+                tile -> tile.getContentsBoxes().addCollisionBoxesToList(this, super::addCollisionBoxesToList, world, x, y, z, collider, collisions, entity));
     }
 
     @Override
     public AxisAlignedBB getSelectedBoundingBoxFromPool(World world, int x, int y, int z) {
-        TilePlacedItems tile = (TilePlacedItems) Objects.requireNonNull(world.getTileEntity(x, y, z));
-        return tile.getContentsBoxes().getSelectedBoundingBoxFromPool();
+        return WorldUtils.withTile(world, x, y, z, TilePlacedItems.class,
+                tile -> tile.getContentsBoxes().getSelectedBoundingBoxFromPool(),
+                () -> super.getSelectedBoundingBoxFromPool(world, x, y, z));
     }
 
     @Override
@@ -78,8 +79,9 @@ public class BlockPlacedItems extends Block {
 
     @Override
     public MovingObjectPosition collisionRayTrace(World world, int x, int y, int z, Vec3 from, Vec3 to) {
-        TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(x, y, z);
-        return tile.getContentsBoxes().collisionRayTrace(this, super::collisionRayTrace, world, x, y, z, from, to);
+        return WorldUtils.withTile(world, x, y, z, TilePlacedItems.class,
+                tile -> tile.getContentsBoxes().collisionRayTrace(this, super::collisionRayTrace, world, x, y, z, from, to),
+                () -> null);
     }
 
     /**
@@ -137,8 +139,8 @@ public class BlockPlacedItems extends Block {
 
     @Override
     public void setBlockBoundsBasedOnState(IBlockAccess iba, int x, int y, int z) {
-        TilePlacedItems tile = (TilePlacedItems) iba.getTileEntity(x, y, z);
-        tile.getContentsBoxes().setBlockBoundsBasedOnState(this, iba, x, y, z);
+        WorldUtils.withTile(iba, x, y, z, TilePlacedItems.class,
+                tile -> tile.getContentsBoxes().setBlockBoundsBasedOnState(this, iba, x, y, z));
     }
 
     @Override
@@ -173,9 +175,10 @@ public class BlockPlacedItems extends Block {
     @Override
     @Nullable // TODO: Remove Nullable
     public ItemStack getPickBlock(MovingObjectPosition target, World world, int x, int y, int z, EntityPlayer player) {
-        TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(x, y, z);
-        int index = tile.getContentsBoxes().getSelectedId();
-        int slot = index <= 0 ? 0 : index - 1;
-        return tile.getStackInSlot(slot);
+        return WorldUtils.withTile(world, x, y, z, TilePlacedItems.class, tile -> {
+            int index = tile.getContentsBoxes().getSelectedId();
+            int slot = index <= 0 ? 0 : index - 1;
+            return tile.getStackInSlot(slot);
+        }, () -> null);
     }
 }
