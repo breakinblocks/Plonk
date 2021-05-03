@@ -1,63 +1,64 @@
-buildscript {
-    repositories {
-        mavenCentral()
-        jcenter()
-        maven {
-            name = "forge"
-            url = "http://files.minecraftforge.net/maven"
-        }
-        maven {
-            name = "sonatype"
-            url = "https://oss.sonatype.org/content/repositories/snapshots/"
-        }
-    }
-    dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
-    }
+@file:Suppress("PropertyName")
+
+import net.kyori.blossom.BlossomExtension
+import net.minecraftforge.gradle.tasks.user.SourceCopyTask
+import net.minecraftforge.gradle.user.UserExtension
+
+val mod_version: String by project
+val mc_version: String by project
+val mc_version_range_supported: String by project
+val forge_version: String by project
+val forge_version_range_supported: String by project
+
+plugins {
+    id("net.kyori.blossom")
+    id("forge")
 }
 
-apply plugin: 'forge'
+version = mod_version
+group = "com.breakinblocks.bbchat"
+base.archivesBaseName = "plonk-${mc_version}"
 
-version = "${mc_version}-${mod_version}"
-group = "com.breakinblocks.plonk" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = "plonk"
-
-sourceCompatibility = targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
-compileJava {
-    sourceCompatibility = targetCompatibility = '1.8'
+configure<JavaPluginConvention> {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 }
 
-minecraft {
+configure<UserExtension> {
     version = "${mc_version}-${forge_version}-${mc_version}"
     runDir = "run"
-    
-    replace "@VERSION@", project.version
-    replaceIn "Plonk.java"
 }
 
 dependencies {
 
 }
 
-processResources {
-    // this will ensure that this task is redone when the versions change.
-    inputs.property "version", project.version
-    inputs.property "mcversion", project.minecraft.version
+// Use Blossom instead of FG source replacement
+tasks.filterIsInstance(SourceCopyTask::class.java).forEach { it.enabled = false }
 
-    // replace stuff in mcmod.info, nothing else
-    from(sourceSets.main.resources.srcDirs) {
-        include 'mcmod.info'
-                
-        // replace version and mcversion
-        expand 'version':project.version, 'mcversion':project.minecraft.version
+configure<BlossomExtension> {
+    replaceToken("version = \"\"", "version = \"${mod_version}\"")
+    replaceToken("dependencies = \"\"", "dependencies = \"required-after:Forge@${forge_version_range_supported};\"")
+    replaceToken("acceptedMinecraftVersions = \"\"", "acceptedMinecraftVersions = \"${mc_version_range_supported}\"")
+    replaceTokenIn("/Plonk.java")
+}
+
+tasks.named<ProcessResources>("processResources") {
+    inputs.property("mod_version", mod_version)
+    inputs.property("mc_version", mc_version)
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    from(sourceSets["main"].resources.srcDirs) {
+        include("mcmod.info")
+        expand(
+            "mod_version" to mod_version,
+            "mc_version" to mc_version
+        )
     }
-        
-    // copy everything else, thats not the mcmod.info
-    from(sourceSets.main.resources.srcDirs) {
-        exclude 'mcmod.info'
+    from(sourceSets["main"].resources.srcDirs) {
+        exclude("mcmod.info")
     }
 }
 
-runClient {
-    args '--username', 'Dev'
+tasks.named<JavaExec>("runClient") {
+    args("--username", "Dev")
 }
