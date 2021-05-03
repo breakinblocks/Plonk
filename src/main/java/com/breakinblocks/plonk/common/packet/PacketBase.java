@@ -5,7 +5,9 @@ import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 import io.netty.buffer.ByteBuf;
 
-public abstract class PacketBase<PKT extends PacketBase> implements IMessage, IMessageHandler<PKT, IMessage> {
+import javax.annotation.Nullable;
+
+public abstract class PacketBase<PKT extends PacketBase<PKT>> implements IMessage, IMessageHandler<PKT, IMessage> {
 
     @Override
     public abstract void fromBytes(ByteBuf buf);
@@ -13,7 +15,9 @@ public abstract class PacketBase<PKT extends PacketBase> implements IMessage, IM
     @Override
     public abstract void toBytes(ByteBuf buf);
 
+    @SuppressWarnings("IfStatementWithIdenticalBranches")
     @Override
+    @Nullable
     public IMessage onMessage(PKT message, MessageContext ctx) {
         if (isAsync()) {
             message.handle(ctx);

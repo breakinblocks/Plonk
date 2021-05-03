@@ -19,6 +19,7 @@ public class PacketPlaceItem extends PacketBase<PacketPlaceItem> {
     private float hitZ;
     private int renderType;
 
+    @SuppressWarnings("unused")
     public PacketPlaceItem() {
     }
 

@@ -5,6 +5,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Vec3;
 
+import javax.annotation.Nullable;
+
 public class EntityUtils {
     /**
      * Gets the position of the entity's eyes
@@ -32,7 +34,8 @@ public class EntityUtils {
      * @param player target
      * @param stack  stack to set
      */
-    public static void setHeldItemSilent(EntityPlayer player, ItemStack stack) {
+    // TODO: Update item nulls
+    public static void setHeldItemSilent(EntityPlayer player, @Nullable ItemStack stack) {
         player.inventory.setInventorySlotContents(player.inventory.currentItem, stack);
     }
 }

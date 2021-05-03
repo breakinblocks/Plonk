@@ -23,7 +23,6 @@ import static net.minecraftforge.client.IItemRenderer.ItemRendererHelper.BLOCK_3
 
 public class TESRPlacedItems extends TileEntitySpecialRenderer {
     private static final boolean ITEM_PHYSIC = Loader.isModLoaded(Plonk.ITEM_PHYSIC_MOD_ID);
-    private final RenderBlocks renderBlocks = new RenderBlocks();
 
     public TESRPlacedItems() {
     }

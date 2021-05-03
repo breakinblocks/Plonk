@@ -118,11 +118,11 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
             if (first_empty > last_not_empty) return false;
         }
 
-        updateContents();
+        boolean shifted = updateContents();
 
         updateContentsDisplay();
 
-        return true;
+        return shifted;
     }
 
     /**
@@ -154,10 +154,8 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
 
     /**
      * Update the array used for display and rendering and the hit boxes
-     *
-     * @return size of the array
      */
-    private int updateContentsDisplay() {
+    private void updateContentsDisplay() {
         int count = 0;
         for (int i = 0; i < contents.length; i++) {
             // TODO: Update null check
@@ -168,8 +166,6 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
         contentsDisplay = Arrays.copyOf(contents, count);
 
         updateContentsBoxes(count);
-
-        return count;
     }
 
     private Box getBox(int count, int renderType) {
@@ -245,6 +241,10 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
         contentsBoxes = builder.build();
     }
 
+    /**
+     * @see net.minecraft.tileentity.TileEntityChest
+     */
+    @SuppressWarnings("ConstantConditions")
     @Override
     public void readFromNBT(NBTTagCompound tag) {
         super.readFromNBT(tag);
@@ -370,7 +370,8 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
     }
 
     @Override
-    public void setInventorySlotContents(int slot, ItemStack stack) {
+    //TODO: Update null stacks
+    public void setInventorySlotContents(int slot, @Nullable ItemStack stack) {
         //TODO: Update null items
         if (stack == null || stack.stackSize <= 0) {
             contents[slot] = null;
@@ -474,7 +475,8 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
      * @param renderType if the stack to be inserted should be treated as a block for display
      * @return the remaining items if successful, or the original stack if not
      */
-    public ItemStack insertStack(ItemStack stack, int renderType) {
+    @Nullable //TODO: Update null stacks
+    public ItemStack insertStack(@Nullable ItemStack stack, int renderType) {
         ItemUtils.InsertStackResult result = ItemUtils.insertStackAdv(this, stack);
         if (result.remainder != stack) {
             for (int slot : result.slots) {

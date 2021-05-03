@@ -9,6 +9,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -27,9 +28,12 @@ public class ItemUtils {
      * @return The resulting item entity if it was spawned
      * @see BlockChest#breakBlock(net.minecraft.world.World, int, int, int, net.minecraft.block.Block, int)
      */
-    public static EntityItem dropItemWithinBlock(World world, int x, int y, int z, ItemStack stack) {
+    @SuppressWarnings("RedundantCast")
+    @Nullable
+    public static EntityItem dropItemWithinBlock(World world, int x, int y, int z, @Nullable ItemStack stack) {
         // TODO: Update item nulls
-        if (stack == null || stack.stackSize <= 0) return null;
+        if (stack == null || stack.stackSize <= 0)
+            return null;
 
         Random rand = world.rand;
 
@@ -46,8 +50,7 @@ public class ItemUtils {
         if (stack.hasTagCompound()) {
             entityItem.getEntityItem().setTagCompound((NBTTagCompound) stack.getTagCompound().copy());
         }
-        world.spawnEntityInWorld(entityItem);
-        return entityItem;
+        return world.spawnEntityInWorld(entityItem) ? entityItem : null;
     }
 
     /**
@@ -57,9 +60,12 @@ public class ItemUtils {
      * @param stack  Stack to drop
      * @return Resulting item entity if it was spawned
      */
-    public static EntityItem dropItemOnEntity(EntityLivingBase entity, ItemStack stack) {
+    // TODO: Update item nulls
+    @Nullable
+    public static EntityItem dropItemOnEntity(EntityLivingBase entity, @Nullable ItemStack stack) {
         // TODO: Update item nulls
-        if (stack == null || stack.stackSize <= 0) return null;
+        if (stack == null || stack.stackSize <= 0)
+            return null;
         double x = entity.posX;
         double y = entity.posY;
         double z = entity.posZ;
@@ -81,7 +87,8 @@ public class ItemUtils {
      * @param b Second item
      * @return True if the item, damage and nbt are the same
      */
-    public static boolean areStacksEqualIgnoringSize(ItemStack a, ItemStack b) {
+    // TODO: Update item nulls
+    public static boolean areStacksEqualIgnoringSize(@Nullable ItemStack a, @Nullable ItemStack b) {
         if (a == null) {
             return b == null;
         } else {
@@ -98,6 +105,7 @@ public class ItemUtils {
      * @param stack Stack to insert
      * @return Remaining items if partially inserted, null if fully inserted, original stack if no insertion.
      */
+    @Nullable //TODO: Update null stacks
     public static ItemStack insertStack(IInventory inv, ItemStack stack) {
         return insertStackAdv(inv, stack).remainder;
     }
@@ -107,11 +115,12 @@ public class ItemUtils {
      *
      * @param inv   Inventory to insert into
      * @param stack Stack to insert
-     * @return
+     * @return The remaining items and slots inserted into
      */
-    public static InsertStackResult insertStackAdv(IInventory inv, ItemStack stack) {
+    public static InsertStackResult insertStackAdv(IInventory inv, @Nullable ItemStack stack) {
         //TODO: Update null stacks
-        if (stack == null) return null;
+        if (stack == null)
+            return new InsertStackResult(null, new int[0]);
         int stackSizeLimit = Math.min(stack.getMaxStackSize(), inv.getInventoryStackLimit());
         int size = inv.getSizeInventory();
 
@@ -163,13 +172,15 @@ public class ItemUtils {
         /**
          * Remaining items if partially inserted, null if fully inserted, original stack if no insertion.
          */
+        @Nullable //TODO: Update null stacks
         public final ItemStack remainder;
         /**
          * Slots in the target inventory that had items inserted into them
          */
         public final int[] slots;
 
-        public InsertStackResult(ItemStack remainder, int[] slots) {
+        //TODO: Update null stacks
+        public InsertStackResult(@Nullable ItemStack remainder, int[] slots) {
             this.remainder = remainder;
             this.slots = slots;
         }

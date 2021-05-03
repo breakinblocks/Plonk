@@ -9,6 +9,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.Facing;
 import net.minecraft.world.World;
 
+import javax.annotation.Nullable;
+
 public class ItemBlockPlacedItems extends ItemBlock {
     private static final String TAG_HELD = "Held";
     private static final String TAG_RENDER_TYPE = TilePlacedItems.TAG_RENDER_TYPE;
@@ -17,7 +19,8 @@ public class ItemBlockPlacedItems extends ItemBlock {
         super(RegistryBlocks.placed_items);
     }
 
-    public void setHeldStack(ItemStack stack, ItemStack held, int renderType) {
+    // TODO: Update item nulls
+    public void setHeldStack(ItemStack stack, @Nullable ItemStack held, int renderType) {
         NBTTagCompound tagCompound = stack.getTagCompound();
         if (tagCompound == null)
             tagCompound = new NBTTagCompound();
@@ -33,6 +36,7 @@ public class ItemBlockPlacedItems extends ItemBlock {
         stack.setTagCompound(tagCompound);
     }
 
+    @Nullable
     public ItemStack getHeldStack(ItemStack stack) {
         NBTTagCompound tagCompound = stack.getTagCompound();
 
@@ -54,10 +58,9 @@ public class ItemBlockPlacedItems extends ItemBlock {
      *
      * @param placerStack ItemBlockPlacedItems reference stack, which should contain renderType information
      * @param tile        TilePlacedItems to insert into
-     * @param player      That is currently holding the item to be inserted
      * @return true if stack was at least partially successfully inserted
      */
-    protected boolean tryInsertStack(ItemStack placerStack, TilePlacedItems tile, EntityPlayer player) {
+    protected boolean tryInsertStack(ItemStack placerStack, TilePlacedItems tile) {
         ItemStack heldItem = getHeldStack(placerStack);
         int renderType = getHeldRenderType(placerStack);
         ItemStack remainder = tile.insertStack(heldItem, renderType);
@@ -71,9 +74,12 @@ public class ItemBlockPlacedItems extends ItemBlock {
     }
 
     @Override
-    public boolean onItemUse(ItemStack placerStack, EntityPlayer player, World world, int x, int y, int z, int side, float hitX, float hitY, float hitZ) {
+    public boolean onItemUse(@Nullable ItemStack placerStack, EntityPlayer player, World world, int x, int y, int z, int side, float hitX, float hitY, float hitZ) {
         //TODO: Update null stacks
-        if (placerStack == null || getHeldStack(placerStack) == null || getHeldStack(placerStack).stackSize <= 0)
+        if (placerStack == null)
+            return false;
+        ItemStack heldStack = getHeldStack(placerStack);
+        if (heldStack == null || heldStack.stackSize <= 0)
             return false;
 
         TilePlacedItems tile = null;
@@ -88,7 +94,7 @@ public class ItemBlockPlacedItems extends ItemBlock {
             }
         }
 
-        if (tile != null && tryInsertStack(placerStack, tile, player)) {
+        if (tile != null && tryInsertStack(placerStack, tile)) {
             world.playSoundEffect(tile.xCoord + 0.5, tile.yCoord + 0.5, tile.zCoord + 0.5, this.field_150939_a.stepSound.func_150496_b(), (this.field_150939_a.stepSound.getVolume() + 1.0F) / 2.0F, this.field_150939_a.stepSound.getPitch() * 0.8F);
             return true;
         }
@@ -100,15 +106,18 @@ public class ItemBlockPlacedItems extends ItemBlock {
     @Override
     public boolean placeBlockAt(ItemStack placerStack, EntityPlayer player, World world, int x, int y, int z, int side, float hitX, float hitY, float hitZ, int metadata) {
         //TODO: Update null stacks
-        if (getHeldStack(placerStack) == null || getHeldStack(placerStack).stackSize <= 0) return false;
-        if (!super.placeBlockAt(placerStack, player, world, x, y, z, side, hitX, hitY, hitZ, metadata)) return false;
+        ItemStack heldStack = getHeldStack(placerStack);
+        if (heldStack == null || heldStack.stackSize <= 0)
+            return false;
+        if (!super.placeBlockAt(placerStack, player, world, x, y, z, side, hitX, hitY, hitZ, metadata))
+            return false;
 
         TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(x, y, z);
         if (tile == null)
             return false;
 
         // Insert into freshly placed tile
-        if (tryInsertStack(placerStack, tile, player)) {
+        if (tryInsertStack(placerStack, tile)) {
             world.playSoundEffect((float) tile.xCoord + 0.5F, (float) tile.yCoord + 0.5F, (float) tile.zCoord + 0.5F, this.field_150939_a.stepSound.func_150496_b(), (this.field_150939_a.stepSound.getVolume() + 1.0F) / 2.0F, this.field_150939_a.stepSound.getPitch() * 0.8F);
             return true;
         }

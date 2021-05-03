@@ -6,6 +6,7 @@ import net.minecraft.client.gui.GuiScreen;
 
 import java.util.Set;
 
+@SuppressWarnings("unused")
 public class GuiFactoryPlonk implements IModGuiFactory {
     @Override
     public void initialize(Minecraft minecraftInstance) {

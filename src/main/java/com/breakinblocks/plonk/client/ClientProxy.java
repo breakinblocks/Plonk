@@ -4,6 +4,7 @@ import com.breakinblocks.plonk.client.registry.RegistryTESRs;
 import com.breakinblocks.plonk.common.CommonProxy;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 
+@SuppressWarnings("unused")
 public class ClientProxy extends CommonProxy {
 
     public final ClientEvents CLIENT_EVENTS = new ClientEvents();

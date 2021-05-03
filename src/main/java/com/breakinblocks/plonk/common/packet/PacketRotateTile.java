@@ -13,6 +13,7 @@ public class PacketRotateTile extends PacketBase<PacketRotateTile> {
     private int y;
     private int z;
 
+    @SuppressWarnings("unused")
     public PacketRotateTile() {
     }
 
