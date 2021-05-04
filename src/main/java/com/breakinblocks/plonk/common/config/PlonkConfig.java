@@ -5,6 +5,7 @@ import com.breakinblocks.plonk.common.util.ItemUtils;
 import cpw.mods.fml.client.event.ConfigChangedEvent.OnConfigChangedEvent;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.config.Configuration;
 
 import java.io.File;
@@ -19,7 +20,7 @@ public class PlonkConfig {
 
     public static int maxStackSize = -1;
 
-    public static Set<String> unplaceableItems = Collections.emptySet();
+    public static Set<ResourceLocation> unplaceableItems = Collections.emptySet();
 
     public static int getInventoryStackLimit() {
         return maxStackSize <= 0 ? ItemUtils.getMaxStackSize() : maxStackSize;
@@ -37,7 +38,7 @@ public class PlonkConfig {
                         Plonk.CARRY_ON_MOD_ID + ":tile_item"
                 },
                 "Items that cannot be placed down, in the format 'modid:item_id' e.g. minecraft:carrot"
-        )).collect(Collectors.toCollection(LinkedHashSet::new));
+        )).map(ResourceLocation::new).collect(Collectors.toCollection(LinkedHashSet::new));
 
         if (config.hasChanged()) {
             config.save();

@@ -6,7 +6,6 @@ import com.breakinblocks.plonk.common.util.ItemUtils;
 import com.breakinblocks.plonk.common.util.bound.Box;
 import com.breakinblocks.plonk.common.util.bound.BoxCollection;
 import com.google.common.collect.ImmutableMap;
-import cpw.mods.fml.common.registry.GameData;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.entity.player.EntityPlayer;
@@ -18,6 +17,7 @@ import net.minecraft.network.NetworkManager;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.AxisAlignedBB;
 
 import javax.annotation.Nullable;
@@ -243,7 +243,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
     }
 
     /**
-     * @see net.minecraft.tileentity.TileEntityChest
+     * @see TileEntityChest
      */
     @SuppressWarnings("ConstantConditions")
     @Override
@@ -415,7 +415,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
 
     @Override
     public boolean isItemValidForSlot(int slot, ItemStack stack) {
-        return !PlonkConfig.unplaceableItems.contains(GameData.getItemRegistry().getNameForObject(stack.getItem()));
+        return !PlonkConfig.unplaceableItems.contains(ItemUtils.getIdentifier(stack));
     }
 
     @Override
@@ -470,7 +470,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
 
 
     /**
-     * Attempt to insert the given stack, also recording the isBlock status if needed
+     * Attempt to insert the given stack, also recording the renderType status if needed
      *
      * @param stack      to be inserted
      * @param renderType if the stack to be inserted should be treated as a block for display

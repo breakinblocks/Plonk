@@ -1,12 +1,16 @@
 package com.breakinblocks.plonk.common.util;
 
+import cpw.mods.fml.common.registry.GameData;
 import net.minecraft.block.BlockChest;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.init.Blocks;
 import net.minecraft.inventory.IInventory;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntityHopper;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
@@ -75,9 +79,7 @@ public class ItemUtils {
             entityItem.getEntityItem().setTagCompound((NBTTagCompound) stack.getTagCompound().copy());
         }
 
-        entity.worldObj.spawnEntityInWorld(entityItem);
-
-        return entityItem;
+        return entity.worldObj.spawnEntityInWorld(entityItem) ? entityItem : null;
     }
 
     /**
@@ -116,7 +118,7 @@ public class ItemUtils {
      * @param inv   Inventory to insert into
      * @param stack Stack to insert
      * @return The remaining items and slots inserted into
-     * @see net.minecraft.tileentity.TileEntityHopper
+     * @see TileEntityHopper
      */
     public static InsertStackResult insertStackAdv(IInventory inv, @Nullable ItemStack stack) {
         //TODO: Update null stacks
@@ -170,6 +172,26 @@ public class ItemUtils {
      */
     public static int getMaxStackSize() {
         return REFERENCE.getMaxStackSize();
+    }
+
+    /**
+     * Gets the identifier for the given stack.
+     *
+     * @param stack target stack
+     * @return Item's Identifier
+     */
+    // TODO: Update null stacks
+    @Nullable
+    public static ResourceLocation getIdentifier(@Nullable ItemStack stack) {
+        if (stack == null)
+            return null;
+        Item item = stack.getItem();
+        if (item == null)
+            return null;
+        String name = GameData.getItemRegistry().getNameForObject(item);
+        if (name == null)
+            return null;
+        return new ResourceLocation(name);
     }
 
     public static class InsertStackResult {
