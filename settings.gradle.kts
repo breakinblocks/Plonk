@@ -14,7 +14,7 @@ pluginManagement {
     repositories {
         maven {
             name = "MinecraftForge"
-            url = uri("https://files.minecraftforge.net/maven")
+            url = uri("https://maven.minecraftforge.net")
             content {
                 includeGroup("de.oceanlabs.mcp")
                 includeGroup("net.minecraftforge")
