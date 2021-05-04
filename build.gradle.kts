@@ -16,7 +16,7 @@ plugins {
 }
 
 version = mod_version
-group = "com.breakinblocks.bbchat"
+group = "com.breakinblocks.plonk"
 base.archivesBaseName = "plonk-${mc_version}"
 
 configure<JavaPluginConvention> {
