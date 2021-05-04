@@ -28,7 +28,7 @@ public class EntityUtils {
      * @param player target
      * @param hand   hand to set
      * @param stack  stack to set
-     * @see EntityLivingBase#setHeldItem(net.minecraft.util.EnumHand, net.minecraft.item.ItemStack)
+     * @see EntityLivingBase#setHeldItem(EnumHand, ItemStack)
      */
     public static void setHeldItemSilent(EntityPlayer player, EnumHand hand, ItemStack stack) {
         if (hand == EnumHand.MAIN_HAND) {
@@ -47,7 +47,7 @@ public class EntityUtils {
      * @param player target
      * @param slotIn equipment slot to set
      * @param stack  stack to set
-     * @see EntityPlayer#setItemStackToSlot(net.minecraft.inventory.EntityEquipmentSlot, net.minecraft.item.ItemStack)
+     * @see EntityPlayer#setItemStackToSlot(EntityEquipmentSlot, ItemStack)
      */
     public static void setItemStackToSlotSilent(EntityPlayer player, EntityEquipmentSlot slotIn, ItemStack stack) {
         if (slotIn == EntityEquipmentSlot.MAINHAND) {
