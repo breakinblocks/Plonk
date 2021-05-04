@@ -1,7 +1,9 @@
 package com.breakinblocks.plonk.common.item;
 
+import com.breakinblocks.plonk.common.config.PlonkConfig;
 import com.breakinblocks.plonk.common.registry.RegistryBlocks;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
+import com.breakinblocks.plonk.common.util.ItemUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
@@ -79,7 +81,7 @@ public class ItemBlockPlacedItems extends ItemBlock {
         if (placerStack == null)
             return false;
         ItemStack heldStack = getHeldStack(placerStack);
-        if (heldStack == null || heldStack.stackSize <= 0)
+        if (heldStack == null || heldStack.stackSize <= 0 || PlonkConfig.unplaceableItems.contains(ItemUtils.getIdentifier(heldStack)))
             return false;
 
         TilePlacedItems tile = null;
