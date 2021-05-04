@@ -1,7 +1,9 @@
 package com.breakinblocks.plonk.common.item;
 
+import com.breakinblocks.plonk.common.config.PlonkConfig;
 import com.breakinblocks.plonk.common.registry.RegistryBlocks;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
+import com.breakinblocks.plonk.common.util.ItemUtils;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
@@ -74,7 +76,7 @@ public class ItemBlockPlacedItems extends ItemBlock {
         if (placerStack.isEmpty())
             return EnumActionResult.FAIL;
         ItemStack heldStack = getHeldStack(placerStack);
-        if (heldStack.isEmpty())
+        if (heldStack.isEmpty() || PlonkConfig.unplaceableItems.contains(ItemUtils.getIdentifier(heldStack)))
             return EnumActionResult.FAIL;
 
         TilePlacedItems tile = null;
