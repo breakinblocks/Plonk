@@ -6,6 +6,7 @@ import net.minecraft.init.Items;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntityHopper;
+import net.minecraft.util.ResourceLocation;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -113,6 +114,17 @@ public class ItemUtils {
      */
     public static int getMaxStackSize() {
         return REFERENCE.getMaxStackSize();
+    }
+
+    /**
+     * Gets the identifier for the given stack.
+     *
+     * @param stack target stack
+     * @return Item's Identifier
+     */
+    @Nullable
+    public static ResourceLocation getIdentifier(ItemStack stack) {
+        return stack.getItem().getRegistryName();
     }
 
     public static class InsertStackResult {
