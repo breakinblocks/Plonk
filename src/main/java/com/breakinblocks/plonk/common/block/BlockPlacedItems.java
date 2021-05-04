@@ -165,7 +165,7 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
     @Override
     @SuppressWarnings("deprecation")
     public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
-        if (!state.isIn(newState.getBlock())) {
+        if (!state.matchesBlock(newState.getBlock())) {
             TileEntity tileentity = worldIn.getTileEntity(pos);
             if (tileentity instanceof IInventory) {
                 // Need this to prevent dupes: See MinecraftForge#7609

@@ -16,6 +16,7 @@ import net.minecraft.command.Commands;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.vector.Matrix4f;
@@ -37,7 +38,7 @@ public class CommandDumpRenderTypes implements IPlonkCommand {
     private static LinkedHashSet<ItemStackRef> getAllStacks() {
         LinkedHashSet<ItemStackRef> items = new LinkedHashSet<>();
 
-        ForgeRegistries.BLOCKS.forEach(block -> items.addAll(getAllStacks(Item.getItemFromBlock(block))));
+        ForgeRegistries.BLOCKS.forEach(block -> items.addAll(getAllStacks(Item.BLOCK_TO_ITEM.getOrDefault(block, Items.AIR))));
         ForgeRegistries.ITEMS.forEach(item -> items.addAll(getAllStacks(item)));
 
         return items;

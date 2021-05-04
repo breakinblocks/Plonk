@@ -2,9 +2,6 @@ pluginManagement {
     resolutionStrategy {
         eachPlugin {
             when (requested.id.toString()) {
-                "net.kyori.blossom" -> {
-                    useModule("net.kyori:blossom:1.2.0")
-                }
                 "net.minecraftforge.gradle" -> {
                     // TODO: Change when merged and released: https://github.com/MinecraftForge/ForgeGradle/pull/763
                     //useModule("net.minecraftforge.gradle:ForgeGradle:4.1.7")
@@ -28,11 +25,6 @@ pluginManagement {
             url = uri("https://sciwhiz12.tk/maven")
             content {
                 includeGroup("tk.sciwhiz12.gradle")
-            }
-        }
-        gradlePluginPortal {
-            content {
-                includeGroup("net.kyori")
             }
         }
         mavenCentral()

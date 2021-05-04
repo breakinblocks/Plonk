@@ -1,6 +1,5 @@
 @file:Suppress("PropertyName")
 
-import net.kyori.blossom.BlossomExtension
 import net.minecraftforge.gradle.userdev.UserDevExtension
 
 val mod_version: String by project
@@ -12,7 +11,6 @@ val mappings_channel: String by project
 val mappings_version: String by project
 
 plugins {
-    id("net.kyori.blossom")
     id("net.minecraftforge.gradle")
 }
 
@@ -27,12 +25,12 @@ configure<JavaPluginConvention> {
 
 configure<UserDevExtension> {
     mappings(mappings_channel, mappings_version)
+    accessTransformer(file("src/main/resources/META-INF/accesstransformer.cfg"))
     runs {
         create("client") {
             workingDirectory(file("run"))
             property("forge.logging.markers", "SCAN,REGISTRIES,REGISTRYDUMP")
             property("forge.logging.console.level", "debug")
-            args("--username", "Dev")
             mods {
                 create("plonk") {
                     sources = listOf(sourceSets["main"])
@@ -49,18 +47,26 @@ configure<UserDevExtension> {
                 }
             }
         }
+        create("data") {
+            workingDirectory(file("run"))
+            property("forge.logging.markers", "SCAN,REGISTRIES,REGISTRYDUMP")
+            property("forge.logging.console.level", "debug")
+            args(
+                "--mod", "plonk", "--all",
+                "--existing", file("src/main/resources/"),
+                "--output", file("src/generated/resources/")
+            )
+            mods {
+                create("plonk") {
+                    sources = listOf(sourceSets["main"])
+                }
+            }
+        }
     }
 }
 
 dependencies {
     add("minecraft", "net.minecraftforge:forge:${mc_version}-${forge_version}")
-}
-
-configure<BlossomExtension> {
-    replaceToken("version = \"\"", "version = \"${mod_version}\"")
-    replaceToken("dependencies = \"\"", "dependencies = \"required-after:forge@${forge_version_range_supported};\"")
-    replaceToken("acceptedMinecraftVersions = \"\"", "acceptedMinecraftVersions = \"${mc_version_range_supported}\"")
-    replaceTokenIn("/Plonk.java")
 }
 
 tasks.named<ProcessResources>("processResources") {
@@ -76,5 +82,35 @@ tasks.named<ProcessResources>("processResources") {
     }
     from(sourceSets["main"].resources.srcDirs) {
         exclude("mcmod.info")
+    }
+}
+
+tasks.named<ProcessResources>("processResources") {
+    inputs.property("mod_version", mod_version)
+    inputs.property("mc_version_range_supported", mc_version_range_supported)
+    inputs.property("forge_version_range_supported", forge_version_range_supported)
+    from(sourceSets["main"].resources.srcDirs) {
+        include("META-INF/mods.toml")
+        expand(
+            "mod_version" to mod_version,
+            "mc_version_range_supported" to mc_version_range_supported,
+            "forge_version_range_supported" to forge_version_range_supported
+        )
+    }
+    from(sourceSets["main"].resources.srcDirs) {
+        exclude("META-INF/mods.toml")
+    }
+}
+
+tasks.named<Jar>("jar") {
+    manifest {
+        attributes(
+            "Specification-Title" to "Plonk",
+            "Specification-Vendor" to "Breakin' Blocks",
+            "Specification-Version" to "1",
+            "Implementation-Title" to project.name,
+            "Implementation-Version" to project.version,
+            "Implementation-Vendor" to "Breakin' Blocks"
+        )
     }
 }
