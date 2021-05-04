@@ -6,6 +6,7 @@ import com.breakinblocks.plonk.common.CommonProxy;
 import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 
+@SuppressWarnings("unused")
 public class ClientProxy extends CommonProxy {
 
     public final ClientEvents CLIENT_EVENTS = new ClientEvents();

@@ -9,6 +9,7 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
+@SuppressWarnings("unused")
 public class RegistryTileEntities {
     public static final Class<TilePlacedItems> placed_items = TilePlacedItems.class;
 

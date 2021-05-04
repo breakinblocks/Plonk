@@ -14,6 +14,7 @@ import static net.minecraft.entity.player.EntityPlayer.REACH_DISTANCE;
 public class PacketRotateTile extends PacketBase<PacketRotateTile> {
     private BlockPos pos;
 
+    @SuppressWarnings("unused")
     public PacketRotateTile() {
     }
 

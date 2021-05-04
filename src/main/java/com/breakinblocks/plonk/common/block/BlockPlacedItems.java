@@ -3,6 +3,7 @@ package com.breakinblocks.plonk.common.block;
 import com.breakinblocks.plonk.common.registry.RegistryMaterials;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
 import com.breakinblocks.plonk.common.util.ItemUtils;
+import com.breakinblocks.plonk.common.util.WorldUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockChest;
 import net.minecraft.block.BlockDirectional;
@@ -86,15 +87,16 @@ public class BlockPlacedItems extends Block {
     @Override
     @SuppressWarnings("deprecation")
     public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
-        TilePlacedItems tile = (TilePlacedItems) source.getTileEntity(pos);
-        return tile != null ? tile.getContentsBoxes().getBoundingBox(pos) : FULL_BLOCK_AABB;
+        return WorldUtils.withTile(source, pos, TilePlacedItems.class,
+                tile -> tile.getContentsBoxes().getBoundingBox(pos),
+                () -> FULL_BLOCK_AABB);
     }
 
     @Override
     @SuppressWarnings("deprecation")
     public void addCollisionBoxToList(IBlockState state, World worldIn, BlockPos pos, AxisAlignedBB entityBox, List<AxisAlignedBB> collidingBoxes, @Nullable Entity entityIn, boolean isActualState) {
-        TilePlacedItems tile = (TilePlacedItems) Objects.requireNonNull(worldIn.getTileEntity(pos));
-        tile.getContentsBoxes().addCollidingBoxes(pos, entityBox, collidingBoxes);
+        WorldUtils.withTile(worldIn, pos, TilePlacedItems.class,
+                tile -> tile.getContentsBoxes().addCollidingBoxes(pos, entityBox, collidingBoxes));
     }
 
     @Nullable
@@ -108,9 +110,9 @@ public class BlockPlacedItems extends Block {
     @SideOnly(Side.CLIENT)
     @SuppressWarnings("deprecation")
     public AxisAlignedBB getSelectedBoundingBox(IBlockState state, World worldIn, BlockPos pos) {
-        TilePlacedItems tile = (TilePlacedItems) worldIn.getTileEntity(pos);
-        Objects.requireNonNull(tile);
-        return tile.getContentsBoxes().getSelectedBoundingBoxFromPool();
+        return WorldUtils.withTile(worldIn, pos, TilePlacedItems.class,
+                tile -> tile.getContentsBoxes().getSelectedBoundingBoxFromPool(),
+                () -> FULL_BLOCK_AABB);
     }
 
     @Override
@@ -142,9 +144,9 @@ public class BlockPlacedItems extends Block {
     @Override
     @SuppressWarnings("deprecation")
     public RayTraceResult collisionRayTrace(IBlockState blockState, World worldIn, BlockPos pos, Vec3d start, Vec3d end) {
-        TilePlacedItems tile = (TilePlacedItems) worldIn.getTileEntity(pos);
-        Objects.requireNonNull(tile);
-        return tile.getContentsBoxes().collisionRayTrace(this, super::collisionRayTrace, blockState, worldIn, pos, start, end);
+        return WorldUtils.withTile(worldIn, pos, TilePlacedItems.class,
+                tile -> tile.getContentsBoxes().collisionRayTrace(this, super::collisionRayTrace, blockState, worldIn, pos, start, end),
+                () -> null);
     }
 
     @Override
@@ -234,11 +236,11 @@ public class BlockPlacedItems extends Block {
 
     @Override
     public ItemStack getPickBlock(IBlockState state, RayTraceResult target, World world, BlockPos pos, EntityPlayer player) {
-        TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(pos);
-        if (tile == null) return ItemStack.EMPTY;
-        int index = tile.getContentsBoxes().getSelectedId();
-        int slot = index <= 0 ? 0 : index - 1;
-        return tile.getStackInSlot(slot);
+        return WorldUtils.withTile(world, pos, TilePlacedItems.class, tile -> {
+            int index = tile.getContentsBoxes().getSelectedId();
+            int slot = index <= 0 ? 0 : index - 1;
+            return tile.getStackInSlot(slot);
+        }, () -> ItemStack.EMPTY);
     }
 
     @Override

@@ -53,10 +53,9 @@ public class ItemBlockPlacedItems extends ItemBlock {
      *
      * @param placerStack ItemBlockPlacedItems reference stack, which should contain renderType information
      * @param tile        TilePlacedItems to insert into
-     * @param player      That is currently holding the item to be inserted
      * @return true if stack was at least partially successfully inserted
      */
-    protected boolean tryInsertStack(ItemStack placerStack, TilePlacedItems tile, EntityPlayer player) {
+    protected boolean tryInsertStack(ItemStack placerStack, TilePlacedItems tile) {
         ItemStack heldItem = getHeldStack(placerStack);
         int renderType = getHeldRenderType(placerStack);
         ItemStack remainder = tile.insertStack(heldItem, renderType);
@@ -71,8 +70,12 @@ public class ItemBlockPlacedItems extends ItemBlock {
 
     @Override
     public EnumActionResult onItemUse(EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-        ItemStack placerStack = player.getHeldItem(EnumHand.MAIN_HAND);
-        if (getHeldStack(placerStack).isEmpty()) return EnumActionResult.FAIL;
+        ItemStack placerStack = player.getHeldItem(hand);
+        if (placerStack.isEmpty())
+            return EnumActionResult.FAIL;
+        ItemStack heldStack = getHeldStack(placerStack);
+        if (heldStack.isEmpty())
+            return EnumActionResult.FAIL;
 
         TilePlacedItems tile = null;
         if (world.getBlockState(pos).getBlock() == RegistryBlocks.placed_items) {
@@ -84,7 +87,7 @@ public class ItemBlockPlacedItems extends ItemBlock {
             }
         }
 
-        if (tile != null && tryInsertStack(placerStack, tile, player)) {
+        if (tile != null && tryInsertStack(placerStack, tile)) {
             IBlockState state = world.getBlockState(pos);
             SoundType soundtype = state.getBlock().getSoundType(state, world, pos, player);
             world.playSound(player, pos, soundtype.getPlaceSound(), SoundCategory.BLOCKS, (soundtype.getVolume() + 1.0F) / 2.0F, soundtype.getPitch() * 0.8F);
@@ -97,14 +100,17 @@ public class ItemBlockPlacedItems extends ItemBlock {
 
     @Override
     public boolean placeBlockAt(ItemStack placerStack, EntityPlayer player, World world, BlockPos pos, EnumFacing side, float hitX, float hitY, float hitZ, IBlockState newState) {
-        if (getHeldStack(placerStack).isEmpty()) return false;
-        if (!super.placeBlockAt(placerStack, player, world, pos, side, hitX, hitY, hitZ, newState)) return false;
+        ItemStack heldStack = getHeldStack(placerStack);
+        if (heldStack.isEmpty())
+            return false;
+        if (!super.placeBlockAt(placerStack, player, world, pos, side, hitX, hitY, hitZ, newState))
+            return false;
 
         TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(pos);
         if (tile == null)
             return false;
 
         // Insert into freshly placed tile
-        return tryInsertStack(placerStack, tile, player);
+        return tryInsertStack(placerStack, tile);
     }
 }

@@ -7,7 +7,9 @@ import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import net.minecraftforge.fml.relauncher.Side;
 
-public abstract class PacketBase<PKT extends PacketBase> implements IMessage, IMessageHandler<PKT, IMessage> {
+import javax.annotation.Nullable;
+
+public abstract class PacketBase<PKT extends PacketBase<PKT>> implements IMessage, IMessageHandler<PKT, IMessage> {
 
     @Override
     public abstract void fromBytes(ByteBuf buf);
@@ -16,9 +18,10 @@ public abstract class PacketBase<PKT extends PacketBase> implements IMessage, IM
     public abstract void toBytes(ByteBuf buf);
 
     @Override
+    @Nullable
     public IMessage onMessage(PKT message, MessageContext ctx) {
         if (ctx.side != this.getSideBound())
-            throw new RuntimeException(this.getClass().getName() + " should only be received on side " + this.getSideBound().toString());
+            throw new RuntimeException(this.getClass().getName() + " should only be received on side " + this.getSideBound());
 
         if (isAsync()) {
             message.handle(ctx);

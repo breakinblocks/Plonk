@@ -17,6 +17,7 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.NonNullList;
@@ -123,11 +124,11 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
             if (first_empty > last_not_empty) return false;
         }
 
-        updateContents();
+        boolean shifted = updateContents();
 
         updateContentsDisplay();
 
-        return true;
+        return shifted;
     }
 
     /**
@@ -158,10 +159,8 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
 
     /**
      * Update the array used for display and rendering and the hit boxes
-     *
-     * @return size of the array
      */
-    private int updateContentsDisplay() {
+    private void updateContentsDisplay() {
         int count = 0;
         for (int i = 0; i < contents.size(); i++) {
             if (!contents.get(i).isEmpty()) {
@@ -171,8 +170,6 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
         contentsDisplay = contents.stream().limit(count).toArray(ItemStack[]::new);
 
         updateContentsBoxes(count);
-
-        return count;
     }
 
     private Box getBox(int count, int renderType) {
@@ -248,6 +245,10 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
         contentsBoxes = builder.build();
     }
 
+    /**
+     * @see TileEntityChest
+     */
+    @SuppressWarnings("ConstantConditions")
     @Override
     public void readFromNBT(NBTTagCompound tag) {
         super.readFromNBT(tag);
@@ -421,7 +422,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
 
     @Override
     public boolean isItemValidForSlot(int slot, ItemStack stack) {
-        return true;
+        return !PlonkConfig.unplaceableItems.contains(stack.getItem().getRegistryName());
     }
 
     @Override

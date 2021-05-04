@@ -7,6 +7,7 @@ import net.minecraftforge.fml.client.IModGuiFactory;
 import java.util.Collections;
 import java.util.Set;
 
+@SuppressWarnings("unused")
 public class GuiFactoryPlonk implements IModGuiFactory {
     @Override
     public void initialize(Minecraft minecraftInstance) {

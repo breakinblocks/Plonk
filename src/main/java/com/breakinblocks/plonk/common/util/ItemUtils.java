@@ -5,7 +5,9 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntityHopper;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 
 public class ItemUtils {
@@ -18,16 +20,16 @@ public class ItemUtils {
      * @param stack  Stack to drop
      * @return Resulting item entity if it was spawned
      */
+    @Nullable
     public static EntityItem dropItemOnEntity(EntityLivingBase entity, ItemStack stack) {
-        if (stack.isEmpty()) return null;
+        if (stack.isEmpty())
+            return null;
         double x = entity.posX;
         double y = entity.posY;
         double z = entity.posZ;
         EntityItem entityItem = new EntityItem(entity.world, x, y, z, stack.copy());
 
-        entity.world.spawnEntity(entityItem);
-
-        return entityItem;
+        return entity.world.spawnEntity(entityItem) ? entityItem : null;
     }
 
     /**
@@ -63,10 +65,12 @@ public class ItemUtils {
      *
      * @param inv   Inventory to insert into
      * @param stack Stack to insert
-     * @return
+     * @return The remaining items and slots inserted into
+     * @see TileEntityHopper
      */
     public static InsertStackResult insertStackAdv(IInventory inv, ItemStack stack) {
-        if (stack.isEmpty()) return new InsertStackResult(stack, new int[0]);
+        if (stack.isEmpty())
+            return new InsertStackResult(stack, new int[0]);
         int stackSizeLimit = Math.min(stack.getMaxStackSize(), inv.getInventoryStackLimit());
         int size = inv.getSizeInventory();
 
@@ -75,6 +79,9 @@ public class ItemUtils {
         ItemStack remainder = stack;
 
         for (int slot = 0; slot < size && !remainder.isEmpty(); slot++) {
+            if (!inv.isItemValidForSlot(slot, stack)) {
+                continue;
+            }
             ItemStack current = inv.getStackInSlot(slot);
             if (!current.isEmpty() && !areStacksEqualIgnoringSize(current, remainder)) continue;
             int toTransfer = Math.min(current.getCount() + remainder.getCount(), stackSizeLimit) - current.getCount();

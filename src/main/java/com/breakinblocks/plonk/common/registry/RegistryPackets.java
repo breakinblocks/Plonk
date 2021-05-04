@@ -9,6 +9,7 @@ import net.minecraftforge.fml.relauncher.Side;
 public class RegistryPackets {
     private static final SimpleNetworkWrapper CHANNEL = Plonk.CHANNEL;
 
+    @SuppressWarnings("UnusedAssignment")
     public static void init() {
         int id = 0;
         // Client -> Server

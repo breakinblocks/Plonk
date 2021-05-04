@@ -12,11 +12,19 @@ import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-@Mod(modid = Plonk.MOD_ID, name = Plonk.NAME, version = Plonk.VERSION, guiFactory = "com.breakinblocks.plonk.client.gui.GuiFactoryPlonk")
+@SuppressWarnings("DefaultAnnotationParam")
+@Mod(
+        modid = Plonk.MOD_ID,
+        name = Plonk.NAME,
+        version = "",
+        dependencies = "",
+        acceptedMinecraftVersions = "",
+        guiFactory = "com.breakinblocks.plonk.client.gui.GuiFactoryPlonk"
+)
 public class Plonk {
     public static final String MOD_ID = "plonk";
     public static final String NAME = "Plonk";
-    public static final String VERSION = "@VERSION@";
+    public static final String CARRY_ON_MOD_ID = "carryon";
     public static final String ITEM_PHYSIC_MOD_ID = "itemphysic";
 
     public static final Logger LOG = LogManager.getLogger(MOD_ID);
