@@ -26,6 +26,8 @@ import net.minecraftforge.fml.network.simple.SimpleChannel;
 @Mod(Plonk.MOD_ID)
 public class Plonk {
     public static final String MOD_ID = "plonk";
+    public static final String CARRY_ON_MOD_ID = "carryon";
+
     private static final String PROTOCOL_VERSION = "1";
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             new ResourceLocation(MOD_ID, "main"),

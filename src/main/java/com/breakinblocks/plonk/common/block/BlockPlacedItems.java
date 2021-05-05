@@ -3,6 +3,7 @@ package com.breakinblocks.plonk.common.block;
 import com.breakinblocks.plonk.common.registry.RegistryTileEntities;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
 import com.breakinblocks.plonk.common.util.ItemUtils;
+import com.breakinblocks.plonk.common.util.WorldUtils;
 import net.minecraft.block.AbstractGlassBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRenderType;
@@ -100,17 +101,16 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
     @SuppressWarnings("deprecation")
     public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
         // Used for block selection (and also rendering of the selection)
-        TilePlacedItems tile = (TilePlacedItems) worldIn.getTileEntity(pos);
-        if (tile == null)
-            return VoxelShapes.empty();
-        if (picking.get())
-            return tile.getContentsBoxes().getSelectionShape();
-        int slot = -1;
-        Entity entity = context.getEntity();
-        if (entity instanceof PlayerEntity) {
-            slot = getPickedSlot(tile, pos, (PlayerEntity) entity);
-        }
-        return slot >= 0 ? tile.getContentsBoxes().getSelectionShapeById(slot + 1) : tile.getContentsBoxes().getSelectionShape();
+        return WorldUtils.withTile(worldIn, pos, TilePlacedItems.class, tile -> {
+            if (picking.get())
+                return tile.getContentsBoxes().getSelectionShape();
+            int slot = -1;
+            Entity entity = context.getEntity();
+            if (entity instanceof PlayerEntity) {
+                slot = getPickedSlot(tile, pos, (PlayerEntity) entity);
+            }
+            return slot >= 0 ? tile.getContentsBoxes().getSelectionShapeById(slot + 1) : tile.getContentsBoxes().getSelectionShape();
+        }, VoxelShapes::empty);
     }
 
     @Override
@@ -118,8 +118,9 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
     @SuppressWarnings("deprecation")
     public VoxelShape getCollisionShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
         // Used for collision with entities
-        TilePlacedItems tile = (TilePlacedItems) worldIn.getTileEntity(pos);
-        return tile != null ? tile.getContentsBoxes().getCollisionShape() : VoxelShapes.empty();
+        return WorldUtils.withTile(worldIn, pos, TilePlacedItems.class,
+                tile -> tile.getContentsBoxes().getCollisionShape(),
+                VoxelShapes::empty);
     }
 
     @Override
@@ -279,10 +280,10 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
 
     @Override
     public ItemStack getPickBlock(BlockState state, RayTraceResult target, IBlockReader world, BlockPos pos, PlayerEntity player) {
-        TilePlacedItems tile = (TilePlacedItems) world.getTileEntity(pos);
-        if (tile == null) return ItemStack.EMPTY;
-        int slot = getPickedSlot(tile, pos, player);
-        return slot >= 0 ? tile.getStackInSlot(slot) : ItemStack.EMPTY;
+        return WorldUtils.withTile(world, pos, TilePlacedItems.class, tile -> {
+            int slot = getPickedSlot(tile, pos, player);
+            return slot >= 0 ? tile.getStackInSlot(slot) : ItemStack.EMPTY;
+        }, () -> ItemStack.EMPTY);
     }
 
     @Override
