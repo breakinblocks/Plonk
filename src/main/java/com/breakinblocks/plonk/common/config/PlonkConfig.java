@@ -2,6 +2,7 @@ package com.breakinblocks.plonk.common.config;
 
 import com.breakinblocks.plonk.Plonk;
 import com.breakinblocks.plonk.common.util.ItemUtils;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
@@ -21,9 +22,19 @@ public class PlonkConfig {
         SERVER = specPair.getLeft();
     }
 
+    /**
+     * Gets the maximum stack size for placed items.
+     */
     public static int getInventoryStackLimit() {
         int maxStackSize = SERVER.maxStackSize.get();
         return maxStackSize <= 0 ? ItemUtils.getMaxStackSize() : maxStackSize;
+    }
+
+    /**
+     * Checks if the given stack can be placed down.
+     */
+    public static boolean canPlace(ItemStack stack) {
+        return !PlonkConfig.SERVER.unplaceableItems.get().contains(String.valueOf(ItemUtils.getIdentifier(stack)));
     }
 
     public static class Server {
