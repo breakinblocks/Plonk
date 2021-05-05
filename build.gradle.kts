@@ -59,21 +59,6 @@ configure<UserDevExtension> {
                 }
             }
         }
-        create("data") {
-            workingDirectory(file("run"))
-            property("forge.logging.markers", "SCAN,REGISTRIES,REGISTRYDUMP")
-            property("forge.logging.console.level", "debug")
-            args(
-                "--mod", "plonk", "--all",
-                "--existing", file("src/main/resources/"),
-                "--output", file("src/generated/resources/")
-            )
-            mods {
-                create("plonk") {
-                    sources = combinedSources
-                }
-            }
-        }
     }
 }
 
