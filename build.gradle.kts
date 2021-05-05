@@ -24,9 +24,20 @@ configure<JavaPluginConvention> {
     targetCompatibility = JavaVersion.VERSION_1_8
 }
 
+val sourceNames = listOf("main", "generated")
+
+sourceSets {
+    val generated = create("generated")
+    main {
+        compileClasspath += generated.output
+        runtimeClasspath += generated.output
+    }
+}
+
 configure<UserDevExtension> {
     mappings(mappings_channel, mappings_version)
     accessTransformer(file("src/main/resources/META-INF/accesstransformer.cfg"))
+    val combinedSources = sourceNames.map { sourceSets[it] }
     runs {
         create("client") {
             workingDirectory(file("run"))
@@ -34,7 +45,7 @@ configure<UserDevExtension> {
             property("forge.logging.console.level", "debug")
             mods {
                 create("plonk") {
-                    sources = listOf(sourceSets["main"])
+                    sources = combinedSources
                 }
             }
         }
@@ -44,7 +55,7 @@ configure<UserDevExtension> {
             property("forge.logging.console.level", "debug")
             mods {
                 create("plonk") {
-                    sources = listOf(sourceSets["main"])
+                    sources = combinedSources
                 }
             }
         }
@@ -59,7 +70,7 @@ configure<UserDevExtension> {
             )
             mods {
                 create("plonk") {
-                    sources = listOf(sourceSets["main"])
+                    sources = combinedSources
                 }
             }
         }
@@ -101,4 +112,6 @@ tasks.named<Jar>("jar") {
             "Implementation-Vendor" to "Breakin' Blocks"
         )
     }
+    val combinedSources = sourceNames.map { sourceSets[it] }
+    from(combinedSources.map { it.output }.toTypedArray())
 }

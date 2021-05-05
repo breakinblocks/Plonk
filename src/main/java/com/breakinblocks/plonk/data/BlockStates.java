@@ -1,5 +1,6 @@
 package com.breakinblocks.plonk.data;
 
+import com.breakinblocks.plonk.Plonk;
 import com.breakinblocks.plonk.common.registry.RegistryBlocks;
 import net.minecraft.block.Block;
 import net.minecraft.data.DataGenerator;
@@ -10,14 +11,15 @@ import net.minecraftforge.client.model.generators.BlockStateProvider;
 import net.minecraftforge.client.model.generators.ConfiguredModel;
 import net.minecraftforge.client.model.generators.ExistingFileHelper;
 
+import javax.annotation.Nonnull;
 import java.util.function.Function;
 
 import static com.breakinblocks.plonk.data.DataGenUtils.minecraft;
 import static com.breakinblocks.plonk.data.DataGenUtils.plonk;
 
-public class BlockStates extends net.minecraftforge.client.model.generators.BlockStateProvider {
-    public BlockStates(DataGenerator generator, String modid, ExistingFileHelper existingFileHelper) {
-        super(generator, modid, existingFileHelper);
+public class BlockStates extends BlockStateProvider {
+    public BlockStates(DataGenerator generator, ExistingFileHelper existingFileHelper) {
+        super(generator, Plonk.MOD_ID, existingFileHelper);
     }
 
     /**
@@ -45,5 +47,11 @@ public class BlockStates extends net.minecraftforge.client.model.generators.Bloc
                 });
         itemModels().getBuilder("placed_items")
                 .parent(placed_items_model);
+    }
+
+    @Nonnull
+    @Override
+    public String getName() {
+        return Plonk.NAME + " Block States";
     }
 }
