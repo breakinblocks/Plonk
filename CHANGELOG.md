@@ -1,4 +1,4 @@
-## [NEXT] - YYYY-MM-DD
+## [7.0.5] - 2021-05-05
 
 - Add config for unplaceable items
 - Add tag 'plonk:unplaceable' for unplaceable items
