@@ -3,7 +3,6 @@ package com.breakinblocks.plonk.common.item;
 import com.breakinblocks.plonk.common.config.PlonkConfig;
 import com.breakinblocks.plonk.common.registry.RegistryBlocks;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
-import com.breakinblocks.plonk.common.util.ItemUtils;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SoundType;
 import net.minecraft.entity.player.PlayerEntity;
@@ -76,7 +75,7 @@ public class ItemBlockPlacedItems extends BlockItem {
     @Override
     public ActionResultType onItemUse(ItemUseContext context) {
         ItemStack heldStack = getHeldStack(context.getItem());
-        if (heldStack.isEmpty() || PlonkConfig.SERVER.unplaceableItems.get().contains(String.valueOf(ItemUtils.getIdentifier(heldStack))))
+        if (heldStack.isEmpty() || !PlonkConfig.canPlace(heldStack))
             return ActionResultType.FAIL;
 
         World world = context.getWorld();
