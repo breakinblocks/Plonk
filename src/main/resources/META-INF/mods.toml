@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "${forge_version_range_supported}"
+loaderVersion = "${loader_version_range_supported}"
 license = "MIT"
 issueTrackerURL = "https://github.com/breakinblocks/Plonk/issues"
 
