@@ -1,4 +1,4 @@
-## [NEXT] - YYYY-MM-DD
+## [5.0.5] - 2021-05-05
 
 - Add config for unplaceable items
 - Add safer tile entity getting for non-essential methods
