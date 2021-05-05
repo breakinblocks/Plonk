@@ -33,6 +33,7 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
+import net.minecraft.util.math.RayTraceContext;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.shapes.ISelectionContext;
@@ -185,6 +186,18 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
     }
 
     /**
+     * Duplicated because it's clientside only on 1.14.4.
+     *
+     * @see Entity#pick(double, float, boolean)
+     */
+    public RayTraceResult pick(PlayerEntity player, double p_213324_1_, float p_213324_3_, boolean p_213324_4_) {
+        Vec3d vec3d = player.getEyePosition(p_213324_3_);
+        Vec3d vec3d1 = player.getLook(p_213324_3_);
+        Vec3d vec3d2 = vec3d.add(vec3d1.x * p_213324_1_, vec3d1.y * p_213324_1_, vec3d1.z * p_213324_1_);
+        return player.world.rayTraceBlocks(new RayTraceContext(vec3d, vec3d2, RayTraceContext.BlockMode.OUTLINE, p_213324_4_ ? RayTraceContext.FluidMode.ANY : RayTraceContext.FluidMode.NONE, player));
+    }
+
+    /**
      * This can be called server side so needs to be ray-traced again
      *
      * @return -1 if no hit otherwise the closest slot
@@ -201,7 +214,7 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
         RayTraceResult traceResult;
         try {
             picking.set(true);
-            traceResult = player.pick(blockReachDistance, partialTicks, false);
+            traceResult = pick(player, blockReachDistance, partialTicks, false);
         } finally {
             picking.set(false);
         }
