@@ -11,4 +11,8 @@ public class DataGenUtils {
     public static ResourceLocation plonk(String path) {
         return new ResourceLocation(Plonk.MOD_ID, path);
     }
+
+    public static ResourceLocation carryOn(String path) {
+        return new ResourceLocation(Plonk.CARRY_ON_MOD_ID, path);
+    }
 }

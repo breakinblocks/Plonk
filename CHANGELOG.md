@@ -1,6 +1,7 @@
 ## [NEXT] - YYYY-MM-DD
 
 - Add config for unplaceable items
+- Add tag 'plonk:unplaceable' for unplaceable items
 - Add safer tile entity getting for non-essential methods
 
 ## [7.0.4] - 2021-01-19

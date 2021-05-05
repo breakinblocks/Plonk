@@ -7,6 +7,7 @@ import com.breakinblocks.plonk.common.registry.RegistryBlocks;
 import com.breakinblocks.plonk.common.registry.RegistryItems;
 import com.breakinblocks.plonk.common.registry.RegistryPackets;
 import com.breakinblocks.plonk.common.registry.RegistryTileEntities;
+import com.breakinblocks.plonk.common.tag.PlonkTags;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.tileentity.TileEntityType;
@@ -27,6 +28,7 @@ import net.minecraftforge.fml.network.simple.SimpleChannel;
 @Mod(Plonk.MOD_ID)
 public class Plonk {
     public static final String MOD_ID = "plonk";
+    public static final String NAME = "Plonk";
     public static final String CARRY_ON_MOD_ID = "carryon";
 
     private static final String PROTOCOL_VERSION = "1";
@@ -45,6 +47,7 @@ public class Plonk {
         MinecraftForge.EVENT_BUS.register(this);
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, PlonkConfig.serverSpec);
         modEventBus.addListener(PlonkConfig::refresh);
+        PlonkTags.init();
     }
 
     @SubscribeEvent

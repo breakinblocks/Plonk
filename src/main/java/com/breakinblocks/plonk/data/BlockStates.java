@@ -1,5 +1,6 @@
 package com.breakinblocks.plonk.data;
 
+import com.breakinblocks.plonk.Plonk;
 import com.breakinblocks.plonk.common.registry.RegistryBlocks;
 import net.minecraft.block.Block;
 import net.minecraft.data.DataGenerator;
@@ -12,16 +13,17 @@ import net.minecraftforge.client.model.generators.ExistingFileHelper;
 import net.minecraftforge.client.model.generators.ItemModelBuilder;
 import net.minecraftforge.client.model.generators.ItemModelProvider;
 
+import javax.annotation.Nonnull;
 import java.util.function.Function;
 
 import static com.breakinblocks.plonk.data.DataGenUtils.minecraft;
 import static com.breakinblocks.plonk.data.DataGenUtils.plonk;
 
-public class BlockStates extends net.minecraftforge.client.model.generators.BlockStateProvider {
+public class BlockStates extends BlockStateProvider {
     private final ItemModelProviderProxy itemModels;
 
-    public BlockStates(DataGenerator generator, String modid, ExistingFileHelper existingFileHelper) {
-        super(generator, modid, existingFileHelper);
+    public BlockStates(DataGenerator generator, ExistingFileHelper existingFileHelper) {
+        super(generator, Plonk.MOD_ID, existingFileHelper);
         this.itemModels = new ItemModelProviderProxy(generator, modid, existingFileHelper);
     }
 
@@ -50,6 +52,12 @@ public class BlockStates extends net.minecraftforge.client.model.generators.Bloc
                 });
         itemModels().getBuilder("placed_items")
                 .parent(placed_items_model);
+    }
+
+    @Nonnull
+    @Override
+    public String getName() {
+        return Plonk.NAME + " Block States";
     }
 
     private ItemModelProviderProxy itemModels() {
