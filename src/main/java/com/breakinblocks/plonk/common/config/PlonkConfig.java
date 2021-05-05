@@ -5,6 +5,7 @@ import com.breakinblocks.plonk.common.util.ItemUtils;
 import cpw.mods.fml.client.event.ConfigChangedEvent.OnConfigChangedEvent;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.config.Configuration;
 
@@ -22,8 +23,18 @@ public class PlonkConfig {
 
     public static Set<ResourceLocation> unplaceableItems = Collections.emptySet();
 
+    /**
+     * Gets the maximum stack size for placed items.
+     */
     public static int getInventoryStackLimit() {
         return maxStackSize <= 0 ? ItemUtils.getMaxStackSize() : maxStackSize;
+    }
+
+    /**
+     * Checks if the given stack can be placed down.
+     */
+    public static boolean canPlace(ItemStack stack) {
+        return !PlonkConfig.unplaceableItems.contains(ItemUtils.getIdentifier(stack));
     }
 
     private static void sync() {

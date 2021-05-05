@@ -415,7 +415,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
 
     @Override
     public boolean isItemValidForSlot(int slot, ItemStack stack) {
-        return !PlonkConfig.unplaceableItems.contains(ItemUtils.getIdentifier(stack));
+        return PlonkConfig.canPlace(stack);
     }
 
     @Override
