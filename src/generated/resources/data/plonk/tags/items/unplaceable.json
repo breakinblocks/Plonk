@@ -1,0 +1,14 @@
+{
+  "replace": false,
+  "values": [
+    "plonk:placed_items",
+    {
+      "id": "carryon:entity_item",
+      "required": false
+    },
+    {
+      "id": "carryon:tile_item",
+      "required": false
+    }
+  ]
+}

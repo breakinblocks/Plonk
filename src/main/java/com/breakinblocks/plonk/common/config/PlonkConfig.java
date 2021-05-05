@@ -1,6 +1,6 @@
 package com.breakinblocks.plonk.common.config;
 
-import com.breakinblocks.plonk.Plonk;
+import com.breakinblocks.plonk.common.tag.PlonkTags;
 import com.breakinblocks.plonk.common.util.ItemUtils;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
@@ -10,7 +10,6 @@ import net.minecraftforge.common.ForgeConfigSpec.IntValue;
 import net.minecraftforge.fml.config.ModConfig;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -38,6 +37,8 @@ public class PlonkConfig {
      * Checks if the given stack can be placed down.
      */
     public static boolean canPlace(ItemStack stack) {
+        if (PlonkTags.Items.UNPLACEABLE.contains(stack.getItem()))
+            return false;
         return !PlonkConfig.SERVER.unplaceableItemsSet.contains(ItemUtils.getIdentifier(stack));
     }
 
@@ -59,12 +60,10 @@ public class PlonkConfig {
                     .comment("Max stack size per slot (-1 or 0 to use default). Going above 64 needs a mod like StackUp!.")
                     .defineInRange("maxStackSize", -1, -1, Integer.MAX_VALUE);
             unplaceableItems = builder
-                    .comment("Items that cannot be placed down, in the format 'modid:item_id' e.g. minecraft:carrot")
-                    .defineList("unplaceableItems",
-                            Arrays.asList(
-                                    Plonk.CARRY_ON_MOD_ID + ":entity_item",
-                                    Plonk.CARRY_ON_MOD_ID + ":tile_item"
-                            ), o -> o instanceof String && ResourceLocation.tryCreate((String) o) != null);
+                    .comment("Items that cannot be placed down, in the format 'modid:item_id' e.g. minecraft:carrot",
+                            "You can also use the " + PlonkTags.Items.UNPLACEABLE.getName() + " item tag as well.")
+                    .defineList("unplaceableItems", Collections.emptyList(),
+                            o -> o instanceof String && ResourceLocation.tryCreate((String) o) != null);
         }
 
         public void refresh() {
