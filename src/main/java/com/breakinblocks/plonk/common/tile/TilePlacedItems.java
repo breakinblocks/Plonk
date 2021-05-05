@@ -16,6 +16,7 @@ import net.minecraft.nbt.ListNBT;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.state.DirectionProperty;
+import net.minecraft.tileentity.ChestTileEntity;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
@@ -26,6 +27,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -129,11 +131,11 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
             if (first_empty > last_not_empty) return false;
         }
 
-        updateContents();
+        boolean shifted = updateContents();
 
         updateContentsDisplay();
 
-        return true;
+        return shifted;
     }
 
     /**
@@ -164,10 +166,8 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
 
     /**
      * Update the array used for display and rendering and the hit boxes
-     *
-     * @return size of the array
      */
-    private int updateContentsDisplay() {
+    private void updateContentsDisplay() {
         int count = 0;
         for (int i = 0; i < contents.size(); i++) {
             if (!contents.get(i).isEmpty()) {
@@ -177,8 +177,6 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
         contentsDisplay = contents.stream().limit(count).toArray(ItemStack[]::new);
 
         updateContentsBoxes(count);
-
-        return count;
     }
 
     private Box getBox(int count, int renderType) {
@@ -255,6 +253,9 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
         contentsBoxes = builder.build();
     }
 
+    /**
+     * @see ChestTileEntity
+     */
     @Override
     public void read(CompoundNBT tag) {
         super.read(tag);
@@ -303,6 +304,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
 
     @Override
     public void tick() {
+        Objects.requireNonNull(world);
         if (world.isRemote) return;
         if (needsCleaning) {
             if (clean()) {
@@ -420,7 +422,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
 
     @Override
     public boolean isItemValidForSlot(int slot, ItemStack stack) {
-        return true;
+        return !PlonkConfig.SERVER.unplaceableItems.get().contains(String.valueOf(ItemUtils.getIdentifier(stack)));
     }
 
     @Override
@@ -433,7 +435,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
     }
 
     @Override
-    public boolean canInsertItem(int index, ItemStack itemStackIn, Direction direction) {
+    public boolean canInsertItem(int index, ItemStack itemStackIn, @Nullable Direction direction) {
         return false;
     }
 

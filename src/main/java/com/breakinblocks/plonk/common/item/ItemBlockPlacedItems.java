@@ -1,11 +1,17 @@
 package com.breakinblocks.plonk.common.item;
 
+import com.breakinblocks.plonk.common.config.PlonkConfig;
 import com.breakinblocks.plonk.common.registry.RegistryBlocks;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
+import com.breakinblocks.plonk.common.util.ItemUtils;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SoundType;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.*;
+import net.minecraft.item.BlockItem;
+import net.minecraft.item.BlockItemUseContext;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemUseContext;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
@@ -69,7 +75,9 @@ public class ItemBlockPlacedItems extends BlockItem {
 
     @Override
     public ActionResultType onItemUse(ItemUseContext context) {
-        if (getHeldStack(context.getItem()).isEmpty()) return ActionResultType.FAIL;
+        ItemStack heldStack = getHeldStack(context.getItem());
+        if (heldStack.isEmpty() || PlonkConfig.SERVER.unplaceableItems.get().contains(String.valueOf(ItemUtils.getIdentifier(heldStack))))
+            return ActionResultType.FAIL;
 
         World world = context.getWorld();
         BlockPos pos = context.getPos();
@@ -100,8 +108,11 @@ public class ItemBlockPlacedItems extends BlockItem {
 
     @Override
     public boolean placeBlock(BlockItemUseContext context, BlockState newState) {
-        if (getHeldStack(context.getItem()).isEmpty()) return false;
-        if (!super.placeBlock(context, newState)) return false;
+        ItemStack heldStack = getHeldStack(context.getItem());
+        if (heldStack.isEmpty())
+            return false;
+        if (!super.placeBlock(context, newState))
+            return false;
 
         TilePlacedItems tile = (TilePlacedItems) context.getWorld().getTileEntity(context.getPos());
         if (tile == null)

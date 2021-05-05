@@ -5,7 +5,10 @@ import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.tileentity.HopperTileEntity;
+import net.minecraft.util.ResourceLocation;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 
 public class ItemUtils {
@@ -18,16 +21,16 @@ public class ItemUtils {
      * @param stack  Stack to drop
      * @return Resulting item entity if it was spawned
      */
+    @Nullable
     public static ItemEntity dropItemOnEntity(LivingEntity entity, ItemStack stack) {
-        if (stack.isEmpty()) return null;
+        if (stack.isEmpty())
+            return null;
         double x = entity.getPosX();
         double y = entity.getPosY();
         double z = entity.getPosZ();
         ItemEntity entityItem = new ItemEntity(entity.world, x, y, z, stack.copy());
 
-        entity.world.addEntity(entityItem);
-
-        return entityItem;
+        return entity.world.addEntity(entityItem) ? entityItem : null;
     }
 
     /**
@@ -63,10 +66,12 @@ public class ItemUtils {
      *
      * @param inv   Inventory to insert into
      * @param stack Stack to insert
-     * @return
+     * @return The remaining items and slots inserted into
+     * @see HopperTileEntity
      */
     public static InsertStackResult insertStackAdv(IInventory inv, ItemStack stack) {
-        if (stack.isEmpty()) return new InsertStackResult(stack, new int[0]);
+        if (stack.isEmpty())
+            return new InsertStackResult(stack, new int[0]);
         int stackSizeLimit = Math.min(stack.getMaxStackSize(), inv.getInventoryStackLimit());
         int size = inv.getSizeInventory();
 
@@ -75,6 +80,9 @@ public class ItemUtils {
         ItemStack remainder = stack;
 
         for (int slot = 0; slot < size && !remainder.isEmpty(); slot++) {
+            if (!inv.isItemValidForSlot(slot, stack)) {
+                continue;
+            }
             ItemStack current = inv.getStackInSlot(slot);
             if (!current.isEmpty() && !areStacksEqualIgnoringSize(current, remainder)) continue;
             int toTransfer = Math.min(current.getCount() + remainder.getCount(), stackSizeLimit) - current.getCount();
@@ -106,6 +114,17 @@ public class ItemUtils {
      */
     public static int getMaxStackSize() {
         return REFERENCE.getMaxStackSize();
+    }
+
+    /**
+     * Gets the identifier for the given stack.
+     *
+     * @param stack target stack
+     * @return Item's Identifier
+     */
+    @Nullable
+    public static ResourceLocation getIdentifier(ItemStack stack) {
+        return stack.getItem().getRegistryName();
     }
 
     public static class InsertStackResult {
