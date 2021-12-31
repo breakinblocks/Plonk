@@ -21,6 +21,13 @@ base.archivesName.set("plonk-${mc_version}")
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(8))
 
+// Workaround for the source and target compatibility being set by something...
+@Suppress("NULL_FOR_NONNULL_TYPE")
+configure<JavaPluginExtension> {
+    sourceCompatibility = null
+    targetCompatibility = null
+}
+
 configure<UserExtension> {
     version = "${mc_version}-${forge_version}-${mc_version}"
     runDir = "run"
