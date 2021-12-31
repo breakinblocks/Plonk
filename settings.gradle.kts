@@ -3,10 +3,10 @@ pluginManagement {
         eachPlugin {
             when (requested.id.toString()) {
                 "net.kyori.blossom" -> {
-                    useModule("net.kyori:blossom:1.2.0")
+                    useModule("net.kyori:blossom:1.3.0")
                 }
                 "forge" -> {
-                    useModule("com.anatawa12.forge:ForgeGradle:1.2-1.0.6")
+                    useModule("com.anatawa12.forge:ForgeGradle:1.2-1.0.7")
                 }
             }
         }
