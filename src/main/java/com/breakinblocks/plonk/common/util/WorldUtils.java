@@ -19,7 +19,7 @@ public class WorldUtils {
      */
     @Nullable
     public static <TILE extends TileEntity> TILE getTileEntity(IBlockReader world, BlockPos pos, Class<TILE> clazz) {
-        TileEntity tile = world.getTileEntity(pos);
+        TileEntity tile = world.getBlockEntity(pos);
         if (clazz.isInstance(tile)) {
             return clazz.cast(tile);
         }

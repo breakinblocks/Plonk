@@ -38,11 +38,11 @@ public class BlockStates extends BlockStateProvider {
                 .end();
         getVariantBuilder(RegistryBlocks.placed_items)
                 .forAllStates(state -> {
-                    Direction dir = state.get(BlockStateProperties.FACING);
+                    Direction dir = state.getValue(BlockStateProperties.FACING);
                     return ConfiguredModel.builder()
                             .modelFile(placed_items_model)
                             .rotationX(dir == Direction.DOWN ? 180 : dir.getAxis().isHorizontal() ? 270 : 0)
-                            .rotationY(dir == Direction.DOWN ? 180 : dir.getAxis().isHorizontal() ? ((int) dir.getHorizontalAngle()) % 360 : 0)
+                            .rotationY(dir == Direction.DOWN ? 180 : dir.getAxis().isHorizontal() ? ((int) dir.toYRot()) % 360 : 0)
                             .build();
                 });
         itemModels().getBuilder("placed_items")

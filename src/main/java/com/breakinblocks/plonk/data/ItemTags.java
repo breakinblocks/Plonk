@@ -21,9 +21,9 @@ public class ItemTags extends ItemTagsProvider {
     }
 
     @Override
-    protected void registerTags() {
-        TagCollection<Item> collection = net.minecraft.tags.ItemTags.getCollection();
-        getBuilder(PlonkTags.Items.UNPLACEABLE)
+    protected void addTags() {
+        TagCollection<Item> collection = net.minecraft.tags.ItemTags.getAllTags();
+        tag(PlonkTags.Items.UNPLACEABLE)
                 .add(RegistryItems.placed_items)
                 .addOptional(collection, carryOn("entity_item"))
                 .addOptional(collection, carryOn("tile_item"))

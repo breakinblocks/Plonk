@@ -66,7 +66,7 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
 
     public BlockPlacedItems(Block.Properties properties) {
         super(properties);
-        this.setDefaultState(this.stateContainer.getBaseState().with(FACING, Direction.UP));
+        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.UP));
     }
 
     /**
@@ -79,7 +79,7 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
 
     @Override
     @SuppressWarnings("deprecation")
-    public BlockRenderType getRenderType(BlockState state) {
+    public BlockRenderType getRenderShape(BlockState state) {
         //if (true) return BlockRenderType.MODEL;
         return BlockRenderType.ENTITYBLOCK_ANIMATED;
     }
@@ -89,12 +89,12 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
      */
     @Override
     @SuppressWarnings("deprecation")
-    public BlockState updatePostPlacement(BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos) {
-        if (stateIn.get(WATERLOGGED)) {
-            worldIn.getPendingFluidTicks().scheduleTick(currentPos, Fluids.WATER, Fluids.WATER.getTickRate(worldIn));
+    public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos) {
+        if (stateIn.getValue(WATERLOGGED)) {
+            worldIn.getLiquidTicks().scheduleTick(currentPos, Fluids.WATER, Fluids.WATER.getTickDelay(worldIn));
         }
 
-        return super.updatePostPlacement(stateIn, facing, facingState, worldIn, currentPos, facingPos);
+        return super.updateShape(stateIn, facing, facingState, worldIn, currentPos, facingPos);
     }
 
     @Override
@@ -126,7 +126,7 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
     @Override
     @Deprecated
     @SuppressWarnings("deprecation")
-    public VoxelShape getRaytraceShape(BlockState state, IBlockReader worldIn, BlockPos pos) {
+    public VoxelShape getInteractionShape(BlockState state, IBlockReader worldIn, BlockPos pos) {
         // Used for colliding with the camera (third person)
         return VoxelShapes.empty();
     }
@@ -136,9 +136,9 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
      */
     @Override
     public BlockState getStateForPlacement(BlockItemUseContext context) {
-        Direction direction = context.getFace();
-        IFluidState fluidstate = context.getWorld().getFluidState(context.getPos());
-        return this.getDefaultState().with(FACING, direction).with(WATERLOGGED, fluidstate.getFluid() == Fluids.WATER);
+        Direction direction = context.getClickedFace();
+        IFluidState fluidstate = context.getLevel().getFluidState(context.getClickedPos());
+        return this.defaultBlockState().setValue(FACING, direction).setValue(WATERLOGGED, fluidstate.getType() == Fluids.WATER);
     }
 
     /**
@@ -147,7 +147,7 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
     @Override
     @SuppressWarnings("deprecation")
     public IFluidState getFluidState(BlockState state) {
-        return state.get(WATERLOGGED) ? Fluids.WATER.getStillFluidState(false) : super.getFluidState(state);
+        return state.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
     }
 
     /**
@@ -155,7 +155,7 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
      */
     @Override
     @SuppressWarnings("deprecation")
-    public float getAmbientOcclusionLightValue(BlockState state, IBlockReader worldIn, BlockPos pos) {
+    public float getShadeBrightness(BlockState state, IBlockReader worldIn, BlockPos pos) {
         return 1.0F;
     }
 
@@ -164,18 +164,18 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
      */
     @Override
     @SuppressWarnings("deprecation")
-    public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
+    public void onRemove(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
         if (state.getBlock() != newState.getBlock()) {
-            TileEntity tileentity = worldIn.getTileEntity(pos);
+            TileEntity tileentity = worldIn.getBlockEntity(pos);
             if (tileentity instanceof IInventory) {
                 // Need this to prevent dupes: See MinecraftForge#7609
                 if (!worldIn.restoringBlockSnapshots) {
-                    InventoryHelper.dropInventoryItems(worldIn, pos, (IInventory) tileentity);
+                    InventoryHelper.dropContents(worldIn, pos, (IInventory) tileentity);
                 }
-                worldIn.updateComparatorOutputLevel(pos, this);
+                worldIn.updateNeighbourForOutputSignal(pos, this);
             }
 
-            super.onReplaced(state, worldIn, pos, newState, isMoving);
+            super.onRemove(state, worldIn, pos, newState, isMoving);
         }
     }
 
@@ -201,7 +201,7 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
             picking.set(false);
         }
         if (traceResult.getType() == RayTraceResult.Type.BLOCK) {
-            Vec3d hitVec = traceResult.getHitVec().subtract(pos.getX(), pos.getY(), pos.getZ());
+            Vec3d hitVec = traceResult.getLocation().subtract(pos.getX(), pos.getY(), pos.getZ());
             int index = tile.getContentsBoxes().getSelectionIndexFromHitVec(hitVec);
             return index <= 0 ? 0 : index - 1;
         }
@@ -210,46 +210,46 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
 
     @Override
     @SuppressWarnings("deprecation")
-    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
-        if (worldIn.isRemote) return ActionResultType.SUCCESS;
+    public ActionResultType use(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
+        if (worldIn.isClientSide) return ActionResultType.SUCCESS;
 
-        TilePlacedItems tile = (TilePlacedItems) worldIn.getTileEntity(pos);
+        TilePlacedItems tile = (TilePlacedItems) worldIn.getBlockEntity(pos);
         if (tile == null) return ActionResultType.SUCCESS;
 
         int slot = getPickedSlot(tile, pos, player);
         if (slot >= 0) {
-            ItemStack stack = tile.getStackInSlot(slot);
+            ItemStack stack = tile.getItem(slot);
             if (!stack.isEmpty()) {
                 //ItemUtils.dropItemWithinBlock(worldId, x, y, z, stack);
-                if (player.isSneaking()) {
+                if (player.isShiftKeyDown()) {
                     tile.rotateSlot(slot);
                 } else {
                     ItemUtils.dropItemOnEntity(player, stack);
-                    tile.setInventorySlotContents(slot, ItemStack.EMPTY);
+                    tile.setItem(slot, ItemStack.EMPTY);
                 }
-                tile.markDirty();
+                tile.setChanged();
                 tile.clean();
             }
             return ActionResultType.CONSUME;
         }
-        return super.onBlockActivated(state, worldIn, pos, player, handIn, hit);
+        return super.use(state, worldIn, pos, player, handIn, hit);
     }
 
     @Override
-    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
-        super.fillStateContainer(builder);
+    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
+        super.createBlockStateDefinition(builder);
         builder.add(FACING, WATERLOGGED);
     }
 
     @Override
-    public void onBlockPlacedBy(World worldIn, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
-        super.onBlockPlacedBy(worldIn, pos, state, placer, stack);
+    public void setPlacedBy(World worldIn, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
+        super.setPlacedBy(worldIn, pos, state, placer, stack);
         if (placer == null) return;
-        TilePlacedItems tile = (TilePlacedItems) worldIn.getTileEntity(pos);
+        TilePlacedItems tile = (TilePlacedItems) worldIn.getBlockEntity(pos);
         Objects.requireNonNull(tile);
         // Set the rotation of the tile based on the player's yaw and facing
-        Direction facing = worldIn.getBlockState(pos).get(FACING);
-        float yaw = placer.rotationYaw % 360f;
+        Direction facing = worldIn.getBlockState(pos).getValue(FACING);
+        float yaw = placer.yRot % 360f;
         if (yaw < 0) yaw += 360f;
         int rotation = Math.round(yaw / 90f) % 4;
         if (facing == Direction.UP) { // Down
@@ -277,7 +277,7 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
     public ItemStack getPickBlock(BlockState state, RayTraceResult target, IBlockReader world, BlockPos pos, PlayerEntity player) {
         return WorldUtils.withTile(world, pos, TilePlacedItems.class, tile -> {
             int slot = getPickedSlot(tile, pos, player);
-            return slot >= 0 ? tile.getStackInSlot(slot) : ItemStack.EMPTY;
+            return slot >= 0 ? tile.getItem(slot) : ItemStack.EMPTY;
         }, () -> ItemStack.EMPTY);
     }
 

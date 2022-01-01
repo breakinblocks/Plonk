@@ -10,6 +10,6 @@ public class RenderUtils {
     public static Matrix4f getModelTransformMatrix(IBakedModel model, ItemCameraTransforms.TransformType type) {
         MatrixStack stack = new MatrixStack();
         model.handlePerspective(type, stack);
-        return stack.getLast().getMatrix();
+        return stack.last().pose();
     }
 }

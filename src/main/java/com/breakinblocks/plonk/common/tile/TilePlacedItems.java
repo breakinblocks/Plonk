@@ -82,8 +82,8 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
 
     boolean needsCleaning = true;
     private int tileRotation = 0;
-    private NonNullList<ItemStack> contents = NonNullList.withSize(this.getSizeInventory(), ItemStack.EMPTY);
-    private ItemMeta[] contentsMeta = new ItemMeta[this.getSizeInventory()];
+    private NonNullList<ItemStack> contents = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
+    private ItemMeta[] contentsMeta = new ItemMeta[this.getContainerSize()];
     private ItemStack[] contentsDisplay = new ItemStack[0];
     private BoxCollection contentsBoxes = new BoxCollection.Builder()
             .addBox(0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0)
@@ -118,8 +118,8 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
 
         // If empty tile
         if (last_not_empty == -1) {
-            Objects.requireNonNull(this.world);
-            this.world.removeBlock(this.pos, false);
+            Objects.requireNonNull(this.level);
+            this.level.removeBlock(this.worldPosition, false);
             return true;
         }
 
@@ -190,7 +190,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
     }
 
     private void updateContentsBoxes(int count) {
-        Objects.requireNonNull(this.world);
+        Objects.requireNonNull(this.level);
         BoxCollection.Builder builder = new BoxCollection.Builder(false, true);
 
         switch (count) {
@@ -228,7 +228,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
         }
 
         // Apply Facing
-        Direction facing = this.world.getBlockState(this.getPos()).get(FACING);
+        Direction facing = this.level.getBlockState(this.getBlockPos()).getValue(FACING);
 
         switch (facing) {
             case UP: // DOWN
@@ -257,13 +257,13 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
      * @see ChestTileEntity
      */
     @Override
-    public void read(CompoundNBT tag) {
-        super.read(tag);
+    public void load(CompoundNBT tag) {
+        super.load(tag);
         NBTUpgrader.upgrade(tag);
         this.tileRotation = tag.getInt(TAG_TILE_ROTATION);
         ListNBT tagItems = tag.getList(TAG_ITEMS, 10);
-        this.contents = NonNullList.withSize(this.getSizeInventory(), ItemStack.EMPTY);
-        this.contentsMeta = new ItemMeta[this.getSizeInventory()];
+        this.contents = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
+        this.contentsMeta = new ItemMeta[this.getContainerSize()];
         Arrays.fill(this.contentsMeta, ItemMeta.DEFAULT);
 
         for (int i = 0; i < tagItems.size(); i++) {
@@ -273,15 +273,15 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
             int itemRotation = tagItem.getInt(TAG_ITEM_ROTATION);
 
             if (slot < this.contents.size()) {
-                this.contents.set(slot, ItemStack.read(tagItem));
+                this.contents.set(slot, ItemStack.of(tagItem));
                 this.contentsMeta[slot] = new ItemMeta(renderType, itemRotation);
             }
         }
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT tag) {
-        super.write(tag);
+    public CompoundNBT save(CompoundNBT tag) {
+        super.save(tag);
         tag.putInt(TAG_VERSION, NBT_VERSION);
         tag.putInt(TAG_TILE_ROTATION, tileRotation);
         ListNBT tagItems = new ListNBT();
@@ -292,7 +292,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
                 tagItem.putByte(TAG_SLOT, (byte) slot);
                 tagItem.putInt(TAG_RENDER_TYPE, this.contentsMeta[slot].renderType);
                 tagItem.putInt(TAG_ITEM_ROTATION, this.contentsMeta[slot].rotation);
-                this.contents.get(slot).write(tagItem);
+                this.contents.get(slot).save(tagItem);
                 tagItems.add(tagItem);
             }
         }
@@ -304,40 +304,40 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
 
     @Override
     public void tick() {
-        Objects.requireNonNull(world);
-        if (world.isRemote) return;
+        Objects.requireNonNull(level);
+        if (level.isClientSide) return;
         if (needsCleaning) {
             if (clean()) {
-                this.markDirty();
+                this.setChanged();
             }
             needsCleaning = false;
         }
     }
 
     @Override
-    public void markDirty() {
-        Objects.requireNonNull(world);
+    public void setChanged() {
+        Objects.requireNonNull(level);
         // this.world.markBlockForUpdate(this.xCoord, this.yCoord, this.zCoord);
         //world.markBlockRangeForRenderUpdate(pos, pos);
-        world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
+        level.sendBlockUpdated(worldPosition, level.getBlockState(worldPosition), level.getBlockState(worldPosition), 3);
         //world.scheduleBlockUpdate(pos, this.getBlockType(), 0, 0);
-        super.markDirty();
+        super.setChanged();
     }
 
     @Override
     public SUpdateTileEntityPacket getUpdatePacket() {
-        return new SUpdateTileEntityPacket(this.pos, 0, this.getUpdateTag());
+        return new SUpdateTileEntityPacket(this.worldPosition, 0, this.getUpdateTag());
     }
 
     @Override
     public CompoundNBT getUpdateTag() {
-        return this.write(super.getUpdateTag());
+        return this.save(super.getUpdateTag());
     }
 
     @Override
     public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
-        Objects.requireNonNull(this.world);
-        this.handleUpdateTag(pkt.getNbtCompound());
+        Objects.requireNonNull(this.level);
+        this.handleUpdateTag(pkt.getTag());
     }
 
     @Override
@@ -356,7 +356,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
     }
 
     @Override
-    public int getSizeInventory() {
+    public int getContainerSize() {
         return 4;
     }
 
@@ -369,64 +369,64 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
     }
 
     @Override
-    public ItemStack getStackInSlot(int slot) {
+    public ItemStack getItem(int slot) {
         return contents.get(slot);
     }
 
     @Override
-    public ItemStack decrStackSize(int index, int count) {
-        ItemStack itemstack = ItemStackHelper.getAndSplit(this.contents, index, count);
+    public ItemStack removeItem(int index, int count) {
+        ItemStack itemstack = ItemStackHelper.removeItem(this.contents, index, count);
 
         if (!itemstack.isEmpty()) {
             needsCleaning = true;
-            this.markDirty();
+            this.setChanged();
         }
 
         return itemstack;
     }
 
     @Override
-    public ItemStack removeStackFromSlot(int index) {
-        return ItemStackHelper.getAndRemove(this.contents, index);
+    public ItemStack removeItemNoUpdate(int index) {
+        return ItemStackHelper.takeItem(this.contents, index);
     }
 
     @Override
-    public void setInventorySlotContents(int index, ItemStack stack) {
+    public void setItem(int index, ItemStack stack) {
         this.contents.set(index, stack);
 
-        if (stack.getCount() > this.getInventoryStackLimit()) {
-            stack.setCount(this.getInventoryStackLimit());
+        if (stack.getCount() > this.getMaxStackSize()) {
+            stack.setCount(this.getMaxStackSize());
         }
 
         needsCleaning = true;
-        this.markDirty();
+        this.setChanged();
     }
 
     @Override
-    public int getInventoryStackLimit() {
+    public int getMaxStackSize() {
         return PlonkConfig.getInventoryStackLimit();
     }
 
     @Override
-    public boolean isUsableByPlayer(PlayerEntity player) {
+    public boolean stillValid(PlayerEntity player) {
         return false;
     }
 
     @Override
-    public void openInventory(PlayerEntity player) {
+    public void startOpen(PlayerEntity player) {
     }
 
     @Override
-    public void closeInventory(PlayerEntity player) {
+    public void stopOpen(PlayerEntity player) {
     }
 
     @Override
-    public boolean isItemValidForSlot(int slot, ItemStack stack) {
+    public boolean canPlaceItem(int slot, ItemStack stack) {
         return PlonkConfig.canPlace(stack);
     }
 
     @Override
-    public void clear() {
+    public void clearContent() {
     }
 
     @Override
@@ -435,12 +435,12 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
     }
 
     @Override
-    public boolean canInsertItem(int index, ItemStack itemStackIn, @Nullable Direction direction) {
+    public boolean canPlaceItemThroughFace(int index, ItemStack itemStackIn, @Nullable Direction direction) {
         return false;
     }
 
     @Override
-    public boolean canExtractItem(int index, ItemStack stack, Direction direction) {
+    public boolean canTakeItemThroughFace(int index, ItemStack stack, Direction direction) {
         return true;
     }
 
