@@ -17,12 +17,9 @@ plugins {
 
 version = mod_version
 group = "com.breakinblocks.plonk"
-base.archivesBaseName = "plonk-${mc_version}"
+base.archivesName.set("plonk-${mc_version}")
 
-configure<JavaPluginConvention> {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-}
+java.toolchain.languageVersion.set(JavaLanguageVersion.of(8))
 
 val sourceNames = listOf("main", "generated")
 
