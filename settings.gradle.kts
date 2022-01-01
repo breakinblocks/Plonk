@@ -49,5 +49,6 @@ rootProject.name = "plonk"
 
 include("plonk-forge-1.16.5")
 include("plonk-forge-1.15.2")
+include("plonk-forge-1.14.4")
 include("plonk-forge-1.12.2")
 include("plonk-forge-1.7.10")
