@@ -63,7 +63,7 @@ public class PlonkConfig {
                     .comment("Items that cannot be placed down, in the format \"modid:item_id\" e.g. [\"minecraft:carrot\"]",
                             "You can also use the " + PlonkTags.Items.UNPLACEABLE.getName() + " item tag as well.")
                     .defineList("unplaceableItems", Collections.emptyList(),
-                            o -> o instanceof String && ResourceLocation.tryCreate((String) o) != null);
+                            o -> o instanceof String && ResourceLocation.tryParse((String) o) != null);
         }
 
         public void refresh() {

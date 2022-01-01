@@ -15,7 +15,7 @@ import java.lang.reflect.Modifier;
 import static net.minecraftforge.registries.ForgeRegistry.REGISTRIES;
 
 public class RegistryTileEntities {
-    public static final TileEntityType<TilePlacedItems> placed_items = TileEntityType.Builder.create(TilePlacedItems::new, RegistryBlocks.placed_items).build(null);
+    public static final TileEntityType<TilePlacedItems> placed_items = TileEntityType.Builder.of(TilePlacedItems::new, RegistryBlocks.placed_items).build(null);
     private static final Logger LOG = LogManager.getLogger();
 
     public static void init(RegistryEvent.Register<TileEntityType<?>> event) {

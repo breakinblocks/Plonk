@@ -73,7 +73,7 @@ public class Plonk {
 
     public void setupClient(FMLClientSetupEvent event) {
         RegistryTESRs.init();
-        RenderTypeLookup.setRenderLayer(RegistryBlocks.placed_items, RenderType.getCutout());
+        RenderTypeLookup.setRenderLayer(RegistryBlocks.placed_items, RenderType.cutout());
         ClientEvents.registerKeyBindings();
     }
 }

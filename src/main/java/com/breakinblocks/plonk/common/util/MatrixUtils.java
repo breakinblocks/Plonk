@@ -18,7 +18,7 @@ public class MatrixUtils {
         Matrix4f aInv = new Matrix4f(a);
         aInv.invert();
         Matrix4f D = new Matrix4f(aInv);
-        D.mul(b);
+        D.multiply(b);
         return D;
     }
 

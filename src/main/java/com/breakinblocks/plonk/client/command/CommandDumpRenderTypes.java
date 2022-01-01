@@ -46,7 +46,7 @@ public class CommandDumpRenderTypes implements IPlonkCommand {
     private static LinkedHashSet<ItemStackRef> getAllStacks() {
         LinkedHashSet<ItemStackRef> items = new LinkedHashSet<>();
 
-        ForgeRegistries.BLOCKS.forEach(block -> items.addAll(getAllStacks(Item.BLOCK_TO_ITEM.getOrDefault(block, Items.AIR))));
+        ForgeRegistries.BLOCKS.forEach(block -> items.addAll(getAllStacks(Item.BY_BLOCK.getOrDefault(block, Items.AIR))));
         ForgeRegistries.ITEMS.forEach(item -> items.addAll(getAllStacks(item)));
 
         return items;
@@ -54,7 +54,7 @@ public class CommandDumpRenderTypes implements IPlonkCommand {
 
     private static List<ItemStackRef> getAllStacks(Item item) {
         NonNullList<ItemStack> subItems = NonNullList.create();
-        item.fillItemGroup(ItemGroup.SEARCH, subItems);
+        item.fillItemCategory(ItemGroup.TAB_SEARCH, subItems);
         return subItems.stream().map(ItemStackRef::new).collect(Collectors.toList());
     }
 
@@ -74,7 +74,7 @@ public class CommandDumpRenderTypes implements IPlonkCommand {
      * For each transform, it'll describe the (translation, scale, rotation) and (hS, hRot)
      */
     private static Stream<Map.Entry<String, String>> getRenderData(ItemStack stack) {
-        IBakedModel model = itemRenderer.getItemModelWithOverrides(stack, null, null);
+        IBakedModel model = itemRenderer.getModel(stack, null, null);
         TransformType[] types = new TransformType[]{
                 TransformType.FIXED,
                 TransformType.GUI
@@ -142,7 +142,7 @@ public class CommandDumpRenderTypes implements IPlonkCommand {
     @Override
     public LiteralArgumentBuilder<CommandSource> build() {
         return Commands.literal(getName())
-                .requires(source -> source.hasPermissionLevel(getRequiredPermissionLevel()))
+                .requires(source -> source.hasPermission(getRequiredPermissionLevel()))
                 .executes(context -> execute(context.getSource()));
     }
 
@@ -168,7 +168,7 @@ public class CommandDumpRenderTypes implements IPlonkCommand {
         final String renderDataHeaders = renderDataHeadersTemp[0];
 
         if (data.isEmpty()) {
-            sender.sendErrorMessage(new StringTextComponent("No data"));
+            sender.sendFailure(new StringTextComponent("No data"));
             return 0;
         }
 
@@ -180,7 +180,7 @@ public class CommandDumpRenderTypes implements IPlonkCommand {
                 .append("\t").append(k)
         );
         LOG.info(output);
-        sender.sendFeedback(new StringTextComponent(
+        sender.sendSuccess(new StringTextComponent(
                 "Render Type Data dumped (see logs)"
                         + "\nUnique transforms: " + data.keySet().size()
                         + "\nNum Stacks: " + data.size()

@@ -64,7 +64,7 @@ public class Box {
     }
 
     public VoxelShape toShape() {
-        return VoxelShapes.create(
+        return VoxelShapes.box(
                 this.minX,
                 this.minY,
                 this.minZ,

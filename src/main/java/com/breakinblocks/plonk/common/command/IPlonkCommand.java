@@ -18,13 +18,13 @@ public interface IPlonkCommand {
     }
 
     default int sendUsage(CommandSource source, int exitCode) {
-        source.sendFeedback(new StringTextComponent(getUsage(source)), true);
+        source.sendSuccess(new StringTextComponent(getUsage(source)), true);
         return exitCode;
     }
 
     default LiteralArgumentBuilder<CommandSource> build() {
         return Commands.literal(getName())
-                .requires(source -> source.hasPermissionLevel(getRequiredPermissionLevel()))
+                .requires(source -> source.hasPermission(getRequiredPermissionLevel()))
                 .executes(context -> sendUsage(context.getSource(), SINGLE_SUCCESS));
     }
 

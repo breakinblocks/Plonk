@@ -51,11 +51,11 @@ public class EntityUtils {
      */
     public static void setItemStackToSlotSilent(PlayerEntity player, EquipmentSlotType slotIn, ItemStack stack) {
         if (slotIn == EquipmentSlotType.MAINHAND) {
-            player.inventory.mainInventory.set(player.inventory.currentItem, stack);
+            player.inventory.items.set(player.inventory.selected, stack);
         } else if (slotIn == EquipmentSlotType.OFFHAND) {
-            player.inventory.offHandInventory.set(0, stack);
-        } else if (slotIn.getSlotType() == EquipmentSlotType.Group.ARMOR) {
-            player.inventory.armorInventory.set(slotIn.getIndex(), stack);
+            player.inventory.offhand.set(0, stack);
+        } else if (slotIn.getType() == EquipmentSlotType.Group.ARMOR) {
+            player.inventory.armor.set(slotIn.getIndex(), stack);
         }
     }
 }

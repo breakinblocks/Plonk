@@ -21,15 +21,15 @@ public class RegistryBlocks {
      * @see Blocks#GLASS
      */
     public static final BlockPlacedItems placed_items = new BlockPlacedItems(AbstractBlock.Properties
-            .create(RegistryMaterials.placed_items)
-            .hardnessAndResistance(0.3F)
+            .of(RegistryMaterials.placed_items)
+            .strength(0.3F)
             .sound(SoundType.STONE)
-            .notSolid()
+            .noOcclusion()
             // Don't think the following are needed but... eh
-            .setAllowsSpawn((state, world, pos, type) -> false)
-            .setOpaque((state, world, pos) -> false)
-            .setSuffocates((state, world, pos) -> false)
-            .setBlocksVision((state, world, pos) -> false)
+            .isValidSpawn((state, world, pos, type) -> false)
+            .isRedstoneConductor((state, world, pos) -> false)
+            .isSuffocating((state, world, pos) -> false)
+            .isViewBlocking((state, world, pos) -> false)
     );
     private static final Logger LOG = LogManager.getLogger();
 

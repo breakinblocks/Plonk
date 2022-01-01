@@ -25,12 +25,12 @@ public class ItemUtils {
     public static ItemEntity dropItemOnEntity(LivingEntity entity, ItemStack stack) {
         if (stack.isEmpty())
             return null;
-        double x = entity.getPosX();
-        double y = entity.getPosY();
-        double z = entity.getPosZ();
-        ItemEntity entityItem = new ItemEntity(entity.world, x, y, z, stack.copy());
+        double x = entity.getX();
+        double y = entity.getY();
+        double z = entity.getZ();
+        ItemEntity entityItem = new ItemEntity(entity.level, x, y, z, stack.copy());
 
-        return entity.world.addEntity(entityItem) ? entityItem : null;
+        return entity.level.addFreshEntity(entityItem) ? entityItem : null;
     }
 
     /**
@@ -45,8 +45,8 @@ public class ItemUtils {
             return b.isEmpty();
         } else {
             if (b.isEmpty()) return false;
-            if (!a.isItemEqual(b)) return false; // checks item and damage but not nbt
-            return ItemStack.areItemStackTagsEqual(a, b);
+            if (!a.sameItem(b)) return false; // checks item and damage but not nbt
+            return ItemStack.tagMatches(a, b);
         }
     }
 
@@ -72,18 +72,18 @@ public class ItemUtils {
     public static InsertStackResult insertStackAdv(IInventory inv, ItemStack stack) {
         if (stack.isEmpty())
             return new InsertStackResult(stack, new int[0]);
-        int stackSizeLimit = Math.min(stack.getMaxStackSize(), inv.getInventoryStackLimit());
-        int size = inv.getSizeInventory();
+        int stackSizeLimit = Math.min(stack.getMaxStackSize(), inv.getMaxStackSize());
+        int size = inv.getContainerSize();
 
         ArrayList<Integer> slots = new ArrayList<>();
 
         ItemStack remainder = stack;
 
         for (int slot = 0; slot < size && !remainder.isEmpty(); slot++) {
-            if (!inv.isItemValidForSlot(slot, stack)) {
+            if (!inv.canPlaceItem(slot, stack)) {
                 continue;
             }
-            ItemStack current = inv.getStackInSlot(slot);
+            ItemStack current = inv.getItem(slot);
             if (!current.isEmpty() && !areStacksEqualIgnoringSize(current, remainder)) continue;
             int toTransfer = Math.min(current.getCount() + remainder.getCount(), stackSizeLimit) - current.getCount();
             if (toTransfer <= 0) continue;
@@ -96,7 +96,7 @@ public class ItemUtils {
             // Don't modify input stack
             if (remainder == stack) remainder = stack.copy();
             remainder.setCount(remainder.getCount() - toTransfer);
-            inv.setInventorySlotContents(slot, current);
+            inv.setItem(slot, current);
             slots.add(slot);
         }
         int[] slotsArray = new int[slots.size()];
