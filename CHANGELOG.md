@@ -1,3 +1,5 @@
+# Changelog
+
 ## [0.0.8] - 2021-05-05
 
 - Add config for unplaceable items
