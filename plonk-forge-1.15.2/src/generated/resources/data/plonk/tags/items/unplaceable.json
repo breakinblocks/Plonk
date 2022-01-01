@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "plonk:placed_items"
+  ],
+  "optional": [
+    "carryon:entity_item",
+    "carryon:tile_item"
+  ]
+}
