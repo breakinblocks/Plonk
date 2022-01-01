@@ -30,7 +30,7 @@ public class ItemBlockPlacedItems extends BlockItem {
         CompoundNBT tagCompound = stack.getOrCreateTag();
 
         CompoundNBT tagCompoundHeld = tagCompound.getCompound(TAG_HELD);
-        held.write(tagCompoundHeld);
+        held.save(tagCompoundHeld);
         tagCompound.put(TAG_HELD, tagCompoundHeld);
 
         tagCompound.putInt(TAG_RENDER_TYPE, renderType);
@@ -42,7 +42,7 @@ public class ItemBlockPlacedItems extends BlockItem {
         CompoundNBT tagCompound = stack.getTag();
         if (tagCompound == null || !tagCompound.contains(TAG_HELD))
             return ItemStack.EMPTY;
-        return ItemStack.read(tagCompound.getCompound(TAG_HELD));
+        return ItemStack.of(tagCompound.getCompound(TAG_HELD));
     }
 
     public int getHeldRenderType(ItemStack stack) {
@@ -60,35 +60,35 @@ public class ItemBlockPlacedItems extends BlockItem {
      * @return true   if stack was at least partially successfully inserted
      */
     protected boolean tryInsertStack(ItemUseContext context, TilePlacedItems tile) {
-        ItemStack heldItem = getHeldStack(context.getItem());
-        int renderType = getHeldRenderType(context.getItem());
+        ItemStack heldItem = getHeldStack(context.getItemInHand());
+        int renderType = getHeldRenderType(context.getItemInHand());
         ItemStack remainder = tile.insertStack(heldItem, renderType);
-        tile.markDirty();
+        tile.setChanged();
         tile.clean();
         if (remainder != heldItem) {
-            setHeldStack(context.getItem(), remainder, renderType);
+            setHeldStack(context.getItemInHand(), remainder, renderType);
             return true;
         }
         return false;
     }
 
     @Override
-    public ActionResultType onItemUse(ItemUseContext context) {
-        ItemStack heldStack = getHeldStack(context.getItem());
+    public ActionResultType useOn(ItemUseContext context) {
+        ItemStack heldStack = getHeldStack(context.getItemInHand());
         if (heldStack.isEmpty() || !PlonkConfig.canPlace(heldStack))
             return ActionResultType.FAIL;
 
-        World world = context.getWorld();
-        BlockPos pos = context.getPos();
-        Direction facing = context.getFace();
+        World world = context.getLevel();
+        BlockPos pos = context.getClickedPos();
+        Direction facing = context.getClickedFace();
 
         TilePlacedItems tile = null;
         if (world.getBlockState(pos).getBlock() == RegistryBlocks.placed_items) {
-            tile = (TilePlacedItems) world.getTileEntity(pos);
+            tile = (TilePlacedItems) world.getBlockEntity(pos);
         } else {
-            BlockPos pos2 = pos.offset(facing);
+            BlockPos pos2 = pos.relative(facing);
             if (world.getBlockState(pos2).getBlock() == RegistryBlocks.placed_items) {
-                tile = (TilePlacedItems) world.getTileEntity(pos2);
+                tile = (TilePlacedItems) world.getBlockEntity(pos2);
             }
         }
 
@@ -102,18 +102,18 @@ public class ItemBlockPlacedItems extends BlockItem {
         }
 
         // Upon failing to insert anything into existing placed items, try place a new block instead
-        return super.onItemUse(context);
+        return super.useOn(context);
     }
 
     @Override
     public boolean placeBlock(BlockItemUseContext context, BlockState newState) {
-        ItemStack heldStack = getHeldStack(context.getItem());
+        ItemStack heldStack = getHeldStack(context.getItemInHand());
         if (heldStack.isEmpty())
             return false;
         if (!super.placeBlock(context, newState))
             return false;
 
-        TilePlacedItems tile = (TilePlacedItems) context.getWorld().getTileEntity(context.getPos());
+        TilePlacedItems tile = (TilePlacedItems) context.getLevel().getBlockEntity(context.getClickedPos());
         if (tile == null)
             return false;
 

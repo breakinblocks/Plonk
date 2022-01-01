@@ -20,8 +20,8 @@ public class RegistryBlocks {
      * @see Blocks#GLASS
      */
     public static final BlockPlacedItems placed_items = new BlockPlacedItems(Block.Properties
-            .create(RegistryMaterials.placed_items)
-            .hardnessAndResistance(0.3F)
+            .of(RegistryMaterials.placed_items)
+            .strength(0.3F)
             .sound(SoundType.STONE)
     );
     private static final Logger LOG = LogManager.getLogger();

@@ -45,18 +45,18 @@ public class ClientEvents {
     public static void onKeyInput(InputEvent.KeyInputEvent event) {
         Minecraft mc = Minecraft.getInstance();
         ClientPlayerEntity player = mc.player;
-        if (mc.loadingGui == null && (mc.currentScreen == null || mc.currentScreen.passEvents)) {
-            if (KEY_PLACE.isPressed() && player != null) {
-                RayTraceResult hitRaw = mc.objectMouseOver;
+        if (mc.overlay == null && (mc.screen == null || mc.screen.passEvents)) {
+            if (KEY_PLACE.consumeClick() && player != null) {
+                RayTraceResult hitRaw = mc.hitResult;
                 if (hitRaw != null && hitRaw.getType() == RayTraceResult.Type.BLOCK) {
                     BlockRayTraceResult hit = (BlockRayTraceResult) hitRaw;
-                    ItemStack held = player.getHeldItemMainhand();
+                    ItemStack held = player.getMainHandItem();
                     if (!held.isEmpty()) {
                         int renderType = TESRPlacedItems.getRenderTypeFromStack(held);
                         ItemStack toPlace = new ItemStack(RegistryItems.placed_items, 1);
                         RegistryItems.placed_items.setHeldStack(toPlace, held, renderType);
                         EntityUtils.setHeldItemSilent(player, Hand.MAIN_HAND, toPlace);
-                        if (toPlace.onItemUse(new ItemUseContext(player, Hand.MAIN_HAND, hit)) == ActionResultType.SUCCESS) {
+                        if (toPlace.useOn(new ItemUseContext(player, Hand.MAIN_HAND, hit)) == ActionResultType.SUCCESS) {
                             Plonk.CHANNEL.sendToServer(new PacketPlaceItem(hit, renderType));
                             ItemStack newHeld = RegistryItems.placed_items.getHeldStack(toPlace);
                             EntityUtils.setHeldItemSilent(player, Hand.MAIN_HAND, newHeld);
@@ -64,8 +64,8 @@ public class ClientEvents {
                             EntityUtils.setHeldItemSilent(player, Hand.MAIN_HAND, held);
                         }
                     } else if (player.isSneaking()) {
-                        if (!rotatePlacedItemsTile(player.world, hit.getPos())) {
-                            rotatePlacedItemsTile(player.world, hit.getPos().offset(hit.getFace()));
+                        if (!rotatePlacedItemsTile(player.level, hit.getBlockPos())) {
+                            rotatePlacedItemsTile(player.level, hit.getBlockPos().relative(hit.getDirection()));
                         }
                     }
                 }
@@ -74,7 +74,7 @@ public class ClientEvents {
     }
 
     private static boolean rotatePlacedItemsTile(World world, BlockPos pos) {
-        TileEntity te = world.getTileEntity(pos);
+        TileEntity te = world.getBlockEntity(pos);
         if (te instanceof TilePlacedItems) {
             ((TilePlacedItems) te).rotateTile();
             Plonk.CHANNEL.sendToServer(new PacketRotateTile(pos));
@@ -85,6 +85,6 @@ public class ClientEvents {
 
     @SubscribeEvent
     public static void serverStarting(FMLServerStartingEvent event) {
-        new CommandClientPlonk().register(event.getServer().getCommandManager().getDispatcher());
+        new CommandClientPlonk().register(event.getServer().getCommands().getDispatcher());
     }
 }

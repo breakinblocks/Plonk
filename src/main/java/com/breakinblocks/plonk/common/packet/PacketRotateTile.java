@@ -45,10 +45,10 @@ public class PacketRotateTile extends PacketBase {
     @Override
     protected void handle(Supplier<NetworkEvent.Context> ctx) {
         ServerPlayerEntity player = Objects.requireNonNull(ctx.get().getSender());
-        ServerWorld world = player.getServerWorld();
+        ServerWorld world = player.getLevel();
         double reach = Objects.requireNonNull(player.getAttribute(REACH_DISTANCE)).getValue() + 2;
-        if (player.getDistanceSq(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) < reach * reach) {
-            TileEntity te = world.getTileEntity(pos);
+        if (player.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) < reach * reach) {
+            TileEntity te = world.getBlockEntity(pos);
             if (te instanceof TilePlacedItems) {
                 ((TilePlacedItems) te).rotateTile();
             }

@@ -35,14 +35,14 @@ public class PacketPlaceItem extends PacketBase {
 
     @Override
     public PacketBase read(PacketBuffer buf) {
-        hit = buf.readBlockRay();
+        hit = buf.readBlockHitResult();
         renderType = buf.readInt();
         return new PacketPlaceItem(hit, renderType);
     }
 
     @Override
     public void write(PacketBuffer buf) {
-        buf.writeBlockRay(hit);
+        buf.writeBlockHitResult(hit);
         buf.writeInt(renderType);
     }
 
@@ -58,10 +58,10 @@ public class PacketPlaceItem extends PacketBase {
     protected void handle(Supplier<NetworkEvent.Context> ctx) {
         ServerPlayerEntity player = Objects.requireNonNull(ctx.get().getSender());
         ItemStack toPlace = new ItemStack(RegistryItems.placed_items, 1);
-        ItemStack held = player.getHeldItemMainhand();
+        ItemStack held = player.getMainHandItem();
         RegistryItems.placed_items.setHeldStack(toPlace, held, renderType);
         EntityUtils.setHeldItemSilent(player, Hand.MAIN_HAND, toPlace);
-        if (toPlace.onItemUse(new ItemUseContext(player, Hand.MAIN_HAND, hit)) == ActionResultType.SUCCESS) {
+        if (toPlace.useOn(new ItemUseContext(player, Hand.MAIN_HAND, hit)) == ActionResultType.SUCCESS) {
             ItemStack newHeld = RegistryItems.placed_items.getHeldStack(toPlace);
             EntityUtils.setHeldItemSilent(player, Hand.MAIN_HAND, newHeld);
         } else {

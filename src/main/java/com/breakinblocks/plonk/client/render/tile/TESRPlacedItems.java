@@ -34,12 +34,12 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
     private static final ItemRenderer itemRenderer = mc.getItemRenderer();
 
     private static final Tessellator tessellator = Tessellator.getInstance();
-    private static final BufferBuilder bufferbuilder = tessellator.getBuffer();
-    private static final BlockRendererDispatcher blockRendererDispatcher = mc.getBlockRendererDispatcher();
+    private static final BufferBuilder bufferbuilder = tessellator.getBuilder();
+    private static final BlockRendererDispatcher blockRendererDispatcher = mc.getBlockRenderer();
     private static final double EPS = 0.001;
 
     public static int getRenderTypeFromStack(ItemStack itemstack) {
-        IBakedModel model = itemRenderer.getItemModelWithOverrides(itemstack, null, null);
+        IBakedModel model = itemRenderer.getModel(itemstack, null, null);
         Matrix4f matrixFixed = RenderUtils.getModelTransformMatrix(model, ItemCameraTransforms.TransformType.FIXED);
         Matrix4f matrixGui = RenderUtils.getModelTransformMatrix(model, ItemCameraTransforms.TransformType.GUI);
         Matrix4f difference = MatrixUtils.difference(matrixFixed, matrixGui);
@@ -74,10 +74,10 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
     public void render(TilePlacedItems tileEntityIn, double x, double y, double z, float partialTicks, int destroyStage) {
         // See Shulker Box Renderer
         Direction facing = Direction.UP;
-        if (tileEntityIn.hasWorld()) {
+        if (tileEntityIn.hasLevel()) {
             BlockState blockstate = tileEntityIn.getBlockState();
             if (blockstate.getBlock() instanceof BlockPlacedItems) {
-                facing = blockstate.get(FACING);
+                facing = blockstate.getValue(FACING);
             }
         }
 
@@ -122,7 +122,7 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
         if (num > 0) {
             boolean halfSize = num > 1;
             for (int slot = 0; slot < num; slot++) {
-                ItemStack stack = tileEntityIn.getStackInSlot(slot);
+                ItemStack stack = tileEntityIn.getItem(slot);
                 if (stack.isEmpty()) continue;
                 GlStateManager.pushMatrix();
                 switch (num) {
@@ -183,7 +183,7 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
             case RENDER_TYPE_BLOCK: {
                 GlStateManager.translatef(0f, 0.25f, 0f);
 
-                itemRenderer.renderItem(stack, ItemCameraTransforms.TransformType.FIXED);
+                itemRenderer.renderStatic(stack, ItemCameraTransforms.TransformType.FIXED);
             }
             break;
             case RENDER_TYPE_ITEM:
@@ -192,7 +192,7 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
                 GlStateManager.rotatef(90f, 1f, 0f, 0f);
                 if (halfSize)
                     GlStateManager.scalef(0.5F, 0.5F, 0.5F);
-                itemRenderer.renderItem(stack, ItemCameraTransforms.TransformType.FIXED);
+                itemRenderer.renderStatic(stack, ItemCameraTransforms.TransformType.FIXED);
         }
         //RenderHelper.disableStandardItemLighting();
         //GlStateManager.popAttributes();
