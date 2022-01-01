@@ -8,29 +8,29 @@ import com.breakinblocks.plonk.common.packet.PacketRotateTile;
 import com.breakinblocks.plonk.common.registry.RegistryItems;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
 import com.breakinblocks.plonk.common.util.EntityUtils;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.world.World;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraftforge.client.ClientRegistry;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.client.registry.ClientRegistry;
-import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 
-import static net.minecraft.client.util.InputMappings.Type.KEYSYM;
+import static com.mojang.blaze3d.platform.InputConstants.Type.KEYSYM;
 import static net.minecraftforge.client.settings.KeyConflictContext.IN_GAME;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_P;
 
 public class ClientEvents {
-    public static final KeyBinding KEY_PLACE = new KeyBinding("key.plonk.place", IN_GAME, KEYSYM, GLFW_KEY_P, "key.categories.plonk");
+    public static final KeyMapping KEY_PLACE = new KeyMapping("key.plonk.place", IN_GAME, KEYSYM, GLFW_KEY_P, "key.categories.plonk");
 
     static {
         MinecraftForge.EVENT_BUS.register(ClientEvents.class);
@@ -43,24 +43,24 @@ public class ClientEvents {
     @SubscribeEvent
     public static void onKeyInput(InputEvent.KeyInputEvent event) {
         Minecraft mc = Minecraft.getInstance();
-        ClientPlayerEntity player = mc.player;
-        if (mc.overlay == null && (mc.screen == null || mc.screen.passEvents)) {
+        LocalPlayer player = mc.player;
+        if (mc.getOverlay() == null && (mc.screen == null || mc.screen.passEvents)) {
             if (KEY_PLACE.consumeClick() && player != null) {
-                RayTraceResult hitRaw = mc.hitResult;
-                if (hitRaw != null && hitRaw.getType() == RayTraceResult.Type.BLOCK) {
-                    BlockRayTraceResult hit = (BlockRayTraceResult) hitRaw;
+                HitResult hitRaw = mc.hitResult;
+                if (hitRaw != null && hitRaw.getType() == HitResult.Type.BLOCK) {
+                    BlockHitResult hit = (BlockHitResult) hitRaw;
                     ItemStack held = player.getMainHandItem();
                     if (!held.isEmpty()) {
                         int renderType = TESRPlacedItems.getRenderTypeFromStack(held);
                         ItemStack toPlace = new ItemStack(RegistryItems.placed_items, 1);
                         RegistryItems.placed_items.setHeldStack(toPlace, held, renderType);
-                        EntityUtils.setHeldItemSilent(player, Hand.MAIN_HAND, toPlace);
-                        if (toPlace.useOn(new ItemUseContext(player, Hand.MAIN_HAND, hit)).consumesAction()) {
+                        EntityUtils.setHeldItemSilent(player, InteractionHand.MAIN_HAND, toPlace);
+                        if (toPlace.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit)).consumesAction()) {
                             Plonk.CHANNEL.sendToServer(new PacketPlaceItem(hit, renderType));
                             ItemStack newHeld = RegistryItems.placed_items.getHeldStack(toPlace);
-                            EntityUtils.setHeldItemSilent(player, Hand.MAIN_HAND, newHeld);
+                            EntityUtils.setHeldItemSilent(player, InteractionHand.MAIN_HAND, newHeld);
                         } else {
-                            EntityUtils.setHeldItemSilent(player, Hand.MAIN_HAND, held);
+                            EntityUtils.setHeldItemSilent(player, InteractionHand.MAIN_HAND, held);
                         }
                     } else if (player.isShiftKeyDown()) {
                         if (!rotatePlacedItemsTile(player.level, hit.getBlockPos())) {
@@ -72,8 +72,8 @@ public class ClientEvents {
         }
     }
 
-    private static boolean rotatePlacedItemsTile(World world, BlockPos pos) {
-        TileEntity te = world.getBlockEntity(pos);
+    private static boolean rotatePlacedItemsTile(Level world, BlockPos pos) {
+        BlockEntity te = world.getBlockEntity(pos);
         if (te instanceof TilePlacedItems) {
             ((TilePlacedItems) te).rotateTile();
             Plonk.CHANNEL.sendToServer(new PacketRotateTile(pos));
@@ -83,7 +83,7 @@ public class ClientEvents {
     }
 
     @SubscribeEvent
-    public static void serverStarting(FMLServerStartingEvent event) {
+    public static void serverStarting(ServerStartingEvent event) {
         new CommandClientPlonk().register(event.getServer().getCommands().getDispatcher());
     }
 }

@@ -20,7 +20,7 @@ version = mod_version
 group = "com.breakinblocks.plonk"
 base.archivesName.set("plonk-${mc_version}")
 
-java.toolchain.languageVersion.set(JavaLanguageVersion.of(8))
+java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 
 val sourceNames = listOf("main", "generated")
 

@@ -2,8 +2,8 @@ package com.breakinblocks.plonk.common.registry;
 
 import com.breakinblocks.plonk.Plonk;
 import com.breakinblocks.plonk.common.item.ItemBlockPlacedItems;
-import net.minecraft.item.Item;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 import net.minecraftforge.event.RegistryEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

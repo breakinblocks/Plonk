@@ -8,14 +8,14 @@ import com.breakinblocks.plonk.common.registry.RegistryItems;
 import com.breakinblocks.plonk.common.registry.RegistryPackets;
 import com.breakinblocks.plonk.common.registry.RegistryTileEntities;
 import com.breakinblocks.plonk.common.tag.PlonkTags;
-import net.minecraft.block.Block;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.RenderTypeLookup;
-import net.minecraft.item.Item;
-import net.minecraft.tileentity.TileEntityType;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.RegistryEvent.Register;
+import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -24,8 +24,8 @@ import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.network.NetworkRegistry;
-import net.minecraftforge.fml.network.simple.SimpleChannel;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.simple.SimpleChannel;
 
 @Mod(Plonk.MOD_ID)
 public class Plonk {
@@ -53,17 +53,17 @@ public class Plonk {
     }
 
     @SubscribeEvent
-    public void registerBlocks(Register<Block> event) {
+    public void registerBlocks(RegistryEvent.Register<Block> event) {
         RegistryBlocks.init(event);
     }
 
     @SubscribeEvent
-    public void registerItems(Register<Item> event) {
+    public void registerItems(RegistryEvent.Register<Item> event) {
         RegistryItems.init(event);
     }
 
     @SubscribeEvent
-    public void registerTileEntities(Register<TileEntityType<?>> event) {
+    public void registerTileEntities(RegistryEvent.Register<BlockEntityType<?>> event) {
         RegistryTileEntities.init(event);
     }
 
@@ -73,7 +73,7 @@ public class Plonk {
 
     public void setupClient(FMLClientSetupEvent event) {
         RegistryTESRs.init();
-        RenderTypeLookup.setRenderLayer(RegistryBlocks.placed_items, RenderType.cutout());
+        ItemBlockRenderTypes.setRenderLayer(RegistryBlocks.placed_items, RenderType.cutout());
         ClientEvents.registerKeyBindings();
     }
 }

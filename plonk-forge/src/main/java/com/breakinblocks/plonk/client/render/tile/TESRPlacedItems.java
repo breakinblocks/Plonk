@@ -5,50 +5,43 @@ import com.breakinblocks.plonk.common.block.BlockPlacedItems;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems.ItemMeta;
 import com.breakinblocks.plonk.common.util.MatrixUtils;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.block.BlockState;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Matrix4f;
+import com.mojang.math.Vector3f;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BlockRendererDispatcher;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.client.renderer.ItemRenderer;
-import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.block.model.ItemTransforms;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.blockentity.ShulkerBoxRenderer;
 import net.minecraft.client.renderer.entity.ItemFrameRenderer;
-import net.minecraft.client.renderer.model.IBakedModel;
-import net.minecraft.client.renderer.model.ItemCameraTransforms;
+import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.renderer.tileentity.ShulkerBoxTileEntityRenderer;
-import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
-import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
-import net.minecraft.entity.item.ItemFrameEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.state.DirectionProperty;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.vector.Matrix4f;
-import net.minecraft.util.math.vector.Vector3f;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.Direction;
+import net.minecraft.world.entity.decoration.ItemFrame;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
 
 import static com.breakinblocks.plonk.common.tile.TilePlacedItems.RENDER_TYPE_BLOCK;
 import static com.breakinblocks.plonk.common.tile.TilePlacedItems.RENDER_TYPE_ITEM;
 
-public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
+public class TESRPlacedItems implements BlockEntityRenderer<TilePlacedItems> {
 
     public static final DirectionProperty FACING = BlockPlacedItems.FACING;
     private static final Minecraft mc = Minecraft.getInstance();
     private static final ItemRenderer itemRenderer = mc.getItemRenderer();
 
-    private static final Tessellator tessellator = Tessellator.getInstance();
-    private static final BufferBuilder bufferbuilder = tessellator.getBuilder();
-    private static final BlockRendererDispatcher blockRendererDispatcher = mc.getBlockRenderer();
     private static final double EPS = 0.001;
 
-    public TESRPlacedItems(TileEntityRendererDispatcher rendererDispatcherIn) {
-        super(rendererDispatcherIn);
+    public TESRPlacedItems(BlockEntityRendererProvider.Context context) {
     }
 
     public static int getRenderTypeFromStack(ItemStack itemstack) {
-        IBakedModel model = itemRenderer.getModel(itemstack, null, null);
-        Matrix4f matrixFixed = RenderUtils.getModelTransformMatrix(model, ItemCameraTransforms.TransformType.FIXED);
-        Matrix4f matrixGui = RenderUtils.getModelTransformMatrix(model, ItemCameraTransforms.TransformType.GUI);
+        BakedModel model = itemRenderer.getModel(itemstack, null, null, 0);
+        Matrix4f matrixFixed = RenderUtils.getModelTransformMatrix(model, ItemTransforms.TransformType.FIXED);
+        Matrix4f matrixGui = RenderUtils.getModelTransformMatrix(model, ItemTransforms.TransformType.GUI);
         Matrix4f difference = MatrixUtils.difference(matrixFixed, matrixGui);
         MatrixUtils.TransformData transform = new MatrixUtils.TransformData(difference);
 
@@ -65,7 +58,7 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
         double hRot = hRotP + hRotY + hRotR;
         //String message = String.format("hS=%.3f hRot=%.3f\n", hS, hRot) + transform.toString();
         //for (String line : message.split("\r?\n"))
-        //    Minecraft.getInstance().ingameGUI.getChatGUI().printChatMessage(new StringTextComponent(line));
+        //    Minecraft.getInstance().ingameGUI.getChatGUI().printChatMessage(new TextComponent(line));
         // The following is a heuristic
         // Use block rendering: hRot ~= 83.80586
         final double blockRot = 83.80586;
@@ -75,10 +68,10 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
     }
 
     /**
-     * @see ShulkerBoxTileEntityRenderer
+     * @see ShulkerBoxRenderer
      */
     @Override
-    public void render(TilePlacedItems tileEntityIn, float partialTicks, MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int combinedLightIn, int combinedOverlayIn) {
+    public void render(TilePlacedItems tileEntityIn, float partialTicks, PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn) {
         // See Shulker Box Renderer
         Direction facing = Direction.UP;
         if (tileEntityIn.hasLevel()) {
@@ -180,9 +173,9 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
      * @param stack           ItemStack to render
      * @param meta            Metadata for the stack
      * @param halfSize        If items should be rendered at half size (blocks are always rendered half size)
-     * @see ItemFrameRenderer#render(ItemFrameEntity, float, float, MatrixStack, IRenderTypeBuffer, int)
+     * @see ItemFrameRenderer#render(ItemFrame, float, float, PoseStack, MultiBufferSource, int)
      */
-    public void renderStack(float partialTicks, MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int combinedLightIn, ItemStack stack, ItemMeta meta, boolean halfSize) {
+    public void renderStack(float partialTicks, PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, ItemStack stack, ItemMeta meta, boolean halfSize) {
         if (stack.isEmpty()) return;
         matrixStackIn.pushPose();
         //GlStateManager.disableLighting();
@@ -205,7 +198,7 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
             case RENDER_TYPE_BLOCK: {
                 matrixStackIn.translate(0f, 0.25f, 0f);
 
-                itemRenderer.renderStatic(stack, ItemCameraTransforms.TransformType.FIXED, combinedLightIn, OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn);
+                itemRenderer.renderStatic(stack, ItemTransforms.TransformType.FIXED, combinedLightIn, OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, 0);
             }
             break;
             case RENDER_TYPE_ITEM:
@@ -215,7 +208,7 @@ public class TESRPlacedItems extends TileEntityRenderer<TilePlacedItems> {
                 matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(90f));
                 if (halfSize)
                     matrixStackIn.scale(0.5F, 0.5F, 0.5F);
-                itemRenderer.renderStatic(stack, ItemCameraTransforms.TransformType.FIXED, combinedLightIn, OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn);
+                itemRenderer.renderStatic(stack, ItemTransforms.TransformType.FIXED, combinedLightIn, OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, 0);
         }
         //RenderHelper.disableStandardItemLighting();
         //GlStateManager.popAttributes();

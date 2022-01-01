@@ -1,8 +1,8 @@
 package com.breakinblocks.plonk.common.util.bound;
 
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.common.util.Lazy;
 
 import java.util.ArrayList;
@@ -38,7 +38,7 @@ public class BoxCollection {
      * @param hitVec position of the ray trace hit relative to the box collection origin
      * @return selection id
      */
-    public int getSelectionIndexFromHitVec(Vector3d hitVec) {
+    public int getSelectionIndexFromHitVec(Vec3 hitVec) {
         return boxes.source.get().stream()
                 .filter(e -> e.selection)
                 .map(e -> new SelectionEntry(e, e.box.distanceSq(hitVec)))
@@ -103,9 +103,9 @@ public class BoxCollection {
             this.all = Lazy.of(() -> this.source.get().stream().map(e -> e.box).collect(Collectors.toCollection(ArrayList::new)));
             this.collision = Lazy.of(() -> this.source.get().stream().filter(e -> e.collision).map(e -> e.box).collect(Collectors.toCollection(ArrayList::new)));
             this.selection = Lazy.of(() -> this.source.get().stream().filter(e -> e.selection).map(e -> e.box).collect(Collectors.toCollection(ArrayList::new)));
-            this.shape = Lazy.of(() -> this.all.get().stream().map(Box::toShape).reduce(VoxelShapes::or).orElseGet(VoxelShapes::empty));
-            this.collisionShape = Lazy.of(() -> this.collision.get().stream().map(Box::toShape).reduce(VoxelShapes::or).orElseGet(VoxelShapes::empty));
-            this.selectionShape = Lazy.of(() -> this.selection.get().stream().map(Box::toShape).reduce(VoxelShapes::or).orElseGet(VoxelShapes::empty));
+            this.shape = Lazy.of(() -> this.all.get().stream().map(Box::toShape).reduce(Shapes::or).orElseGet(Shapes::empty));
+            this.collisionShape = Lazy.of(() -> this.collision.get().stream().map(Box::toShape).reduce(Shapes::or).orElseGet(Shapes::empty));
+            this.selectionShape = Lazy.of(() -> this.selection.get().stream().map(Box::toShape).reduce(Shapes::or).orElseGet(Shapes::empty));
         }
     }
 

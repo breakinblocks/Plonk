@@ -3,7 +3,7 @@ package com.breakinblocks.plonk.client.command;
 import com.breakinblocks.plonk.common.command.IPlonkCommand;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import net.minecraft.command.CommandSource;
+import net.minecraft.commands.CommandSourceStack;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -26,7 +26,7 @@ public class CommandClientPlonk implements IPlonkCommand {
     }
 
     @Override
-    public String getUsage(CommandSource source) {
+    public String getUsage(CommandSourceStack source) {
         return "/cplonk <subcommand> - Client Plonk Commands";
     }
 
@@ -36,8 +36,8 @@ public class CommandClientPlonk implements IPlonkCommand {
     }
 
     @Override
-    public void register(CommandDispatcher<CommandSource> dispatcher) {
-        LiteralArgumentBuilder<CommandSource> literal = build();
+    public void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+        LiteralArgumentBuilder<CommandSourceStack> literal = build();
         for (IPlonkCommand subcommand : this.subcommands) {
             literal = literal.then(subcommand.build());
         }

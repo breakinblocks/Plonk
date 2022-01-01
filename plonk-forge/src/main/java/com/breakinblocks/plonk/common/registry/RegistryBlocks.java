@@ -2,11 +2,11 @@ package com.breakinblocks.plonk.common.registry;
 
 import com.breakinblocks.plonk.Plonk;
 import com.breakinblocks.plonk.common.block.BlockPlacedItems;
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.SoundType;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraftforge.event.RegistryEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,7 +20,7 @@ public class RegistryBlocks {
     /**
      * @see Blocks#GLASS
      */
-    public static final BlockPlacedItems placed_items = new BlockPlacedItems(AbstractBlock.Properties
+    public static final BlockPlacedItems placed_items = new BlockPlacedItems(BlockBehaviour.Properties
             .of(RegistryMaterials.placed_items)
             .strength(0.3F)
             .sound(SoundType.STONE)

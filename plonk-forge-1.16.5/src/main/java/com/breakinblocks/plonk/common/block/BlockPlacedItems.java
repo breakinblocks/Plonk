@@ -85,7 +85,7 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
     }
 
     /**
-     * @see ChestBlock#updatePostPlacement(BlockState, Direction, BlockState, IWorld, BlockPos, BlockPos)
+     * @see ChestBlock#updateShape(BlockState, Direction, BlockState, IWorld, BlockPos, BlockPos)
      */
     @Override
     @SuppressWarnings("deprecation")
@@ -151,7 +151,7 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
     }
 
     /**
-     * @see AbstractGlassBlock#getAmbientOcclusionLightValue(BlockState, IBlockReader, BlockPos)
+     * @see AbstractGlassBlock#getShadeBrightness(BlockState, IBlockReader, BlockPos)
      */
     @Override
     @SuppressWarnings("deprecation")
@@ -160,7 +160,7 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
     }
 
     /**
-     * @see ChestBlock#onReplaced(BlockState, World, BlockPos, BlockState, boolean)
+     * @see ChestBlock#onRemove(BlockState, World, BlockPos, BlockState, boolean)
      */
     @Override
     @SuppressWarnings("deprecation")
@@ -184,7 +184,7 @@ public class BlockPlacedItems extends Block implements IWaterLoggable {
      *
      * @return -1 if no hit otherwise the closest slot
      * @see Entity#pick(double, float, boolean)
-     * @see PlayerController#getBlockReachDistance()
+     * @see PlayerController#getPickRange()
      */
     protected int getPickedSlot(TilePlacedItems tile, BlockPos pos, PlayerEntity player) {
         if (picking.get()) return -1;

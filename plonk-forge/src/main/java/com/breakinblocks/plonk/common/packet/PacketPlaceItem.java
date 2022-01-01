@@ -2,45 +2,45 @@ package com.breakinblocks.plonk.common.packet;
 
 import com.breakinblocks.plonk.common.registry.RegistryItems;
 import com.breakinblocks.plonk.common.util.EntityUtils;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.network.play.ServerPlayNetHandler;
-import net.minecraft.network.play.client.CPlayerTryUseItemOnBlockPacket;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraftforge.fml.network.NetworkDirection;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraftforge.network.NetworkDirection;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
- * @see CPlayerTryUseItemOnBlockPacket
+ * @see ServerboundUseItemOnPacket
  */
 public class PacketPlaceItem extends PacketBase {
-    private BlockRayTraceResult hit;
+    private BlockHitResult hit;
     private int renderType;
 
     public PacketPlaceItem() {
     }
 
-    public PacketPlaceItem(BlockRayTraceResult hit, int renderType) {
+    public PacketPlaceItem(BlockHitResult hit, int renderType) {
         this.hit = hit;
         this.renderType = renderType;
     }
 
     @Override
-    public PacketBase read(PacketBuffer buf) {
+    public PacketBase read(FriendlyByteBuf buf) {
         hit = buf.readBlockHitResult();
         renderType = buf.readInt();
         return new PacketPlaceItem(hit, renderType);
     }
 
     @Override
-    public void write(PacketBuffer buf) {
+    public void write(FriendlyByteBuf buf) {
         buf.writeBlockHitResult(hit);
         buf.writeInt(renderType);
     }
@@ -51,20 +51,20 @@ public class PacketPlaceItem extends PacketBase {
     }
 
     /**
-     * @see ServerPlayNetHandler#processTryUseItemOnBlock(CPlayerTryUseItemOnBlockPacket)
+     * @see ServerGamePacketListenerImpl#handleUseItemOn(ServerboundUseItemOnPacket)
      */
     @Override
     protected void handle(Supplier<NetworkEvent.Context> ctx) {
-        ServerPlayerEntity player = Objects.requireNonNull(ctx.get().getSender());
+        ServerPlayer player = Objects.requireNonNull(ctx.get().getSender());
         ItemStack toPlace = new ItemStack(RegistryItems.placed_items, 1);
         ItemStack held = player.getMainHandItem();
         RegistryItems.placed_items.setHeldStack(toPlace, held, renderType);
-        EntityUtils.setHeldItemSilent(player, Hand.MAIN_HAND, toPlace);
-        if (toPlace.useOn(new ItemUseContext(player, Hand.MAIN_HAND, hit)).consumesAction()) {
+        EntityUtils.setHeldItemSilent(player, InteractionHand.MAIN_HAND, toPlace);
+        if (toPlace.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit)).consumesAction()) {
             ItemStack newHeld = RegistryItems.placed_items.getHeldStack(toPlace);
-            EntityUtils.setHeldItemSilent(player, Hand.MAIN_HAND, newHeld);
+            EntityUtils.setHeldItemSilent(player, InteractionHand.MAIN_HAND, newHeld);
         } else {
-            EntityUtils.setHeldItemSilent(player, Hand.MAIN_HAND, held);
+            EntityUtils.setHeldItemSilent(player, InteractionHand.MAIN_HAND, held);
         }
     }
 }

@@ -1,8 +1,8 @@
 package com.breakinblocks.plonk.data;
 
 import com.breakinblocks.plonk.Plonk;
-import net.minecraft.data.BlockTagsProvider;
 import net.minecraft.data.DataGenerator;
+import net.minecraft.data.tags.BlockTagsProvider;
 import net.minecraftforge.common.data.ExistingFileHelper;
 
 import javax.annotation.Nullable;

@@ -2,10 +2,10 @@ package com.breakinblocks.plonk.data;
 
 import com.breakinblocks.plonk.Plonk;
 import com.breakinblocks.plonk.common.registry.RegistryBlocks;
-import net.minecraft.block.Block;
+import net.minecraft.core.Direction;
 import net.minecraft.data.DataGenerator;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.util.Direction;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraftforge.client.model.generators.BlockModelBuilder;
 import net.minecraftforge.client.model.generators.BlockStateProvider;
 import net.minecraftforge.client.model.generators.ConfiguredModel;

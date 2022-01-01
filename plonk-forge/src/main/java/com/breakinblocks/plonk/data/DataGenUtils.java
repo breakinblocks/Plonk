@@ -1,7 +1,7 @@
 package com.breakinblocks.plonk.data;
 
 import com.breakinblocks.plonk.Plonk;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 
 public class DataGenUtils {
     public static ResourceLocation minecraft(String path) {

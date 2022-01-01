@@ -4,7 +4,7 @@ import com.breakinblocks.plonk.Plonk;
 import com.breakinblocks.plonk.common.packet.PacketBase;
 import com.breakinblocks.plonk.common.packet.PacketPlaceItem;
 import com.breakinblocks.plonk.common.packet.PacketRotateTile;
-import net.minecraftforge.fml.network.simple.SimpleChannel;
+import net.minecraftforge.network.simple.SimpleChannel;
 
 public class RegistryPackets {
     private static final SimpleChannel CHANNEL = Plonk.CHANNEL;

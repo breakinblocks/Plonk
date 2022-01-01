@@ -1,9 +1,9 @@
 package com.breakinblocks.plonk.common.util.bound;
 
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
  * Class for manipulating a box within the bounds of a block
@@ -43,7 +43,7 @@ public class Box {
      *
      * @param aabb Minecraft AABB
      */
-    public Box(AxisAlignedBB aabb) {
+    public Box(AABB aabb) {
         this(aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ);
     }
 
@@ -52,8 +52,8 @@ public class Box {
      *
      * @return Minecraft AABB
      */
-    public AxisAlignedBB toAABB() {
-        return new AxisAlignedBB(
+    public AABB toAABB() {
+        return new AABB(
                 this.minX,
                 this.minY,
                 this.minZ,
@@ -64,7 +64,7 @@ public class Box {
     }
 
     public VoxelShape toShape() {
-        return VoxelShapes.box(
+        return Shapes.box(
                 this.minX,
                 this.minY,
                 this.minZ,
@@ -275,7 +275,7 @@ public class Box {
     /**
      * @see Box#contains(double, double, double)
      */
-    public boolean contains(Vector3d vec) {
+    public boolean contains(Vec3 vec) {
         return contains(vec.x, vec.y, vec.z);
     }
 
@@ -291,7 +291,7 @@ public class Box {
     /**
      * @see Box#distanceSq(double, double, double)
      */
-    public double distanceSq(Vector3d vec) {
+    public double distanceSq(Vec3 vec) {
         return distanceSq(vec.x, vec.y, vec.z);
     }
 

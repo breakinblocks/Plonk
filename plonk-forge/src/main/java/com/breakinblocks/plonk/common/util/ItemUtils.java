@@ -1,12 +1,12 @@
 package com.breakinblocks.plonk.common.util;
 
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.item.ItemEntity;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.tileentity.HopperTileEntity;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.entity.HopperBlockEntity;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -57,7 +57,7 @@ public class ItemUtils {
      * @param stack Stack to insert
      * @return Remaining items if partially inserted, null if fully inserted, original stack if no insertion.
      */
-    public static ItemStack insertStack(IInventory inv, ItemStack stack) {
+    public static ItemStack insertStack(Container inv, ItemStack stack) {
         return insertStackAdv(inv, stack).remainder;
     }
 
@@ -67,9 +67,9 @@ public class ItemUtils {
      * @param inv   Inventory to insert into
      * @param stack Stack to insert
      * @return The remaining items and slots inserted into
-     * @see HopperTileEntity
+     * @see HopperBlockEntity
      */
-    public static InsertStackResult insertStackAdv(IInventory inv, ItemStack stack) {
+    public static InsertStackResult insertStackAdv(Container inv, ItemStack stack) {
         if (stack.isEmpty())
             return new InsertStackResult(stack, new int[0]);
         int stackSizeLimit = Math.min(stack.getMaxStackSize(), inv.getMaxStackSize());

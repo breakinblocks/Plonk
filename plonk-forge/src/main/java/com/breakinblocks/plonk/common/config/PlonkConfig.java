@@ -2,12 +2,14 @@ package com.breakinblocks.plonk.common.config;
 
 import com.breakinblocks.plonk.common.tag.PlonkTags;
 import com.breakinblocks.plonk.common.util.ItemUtils;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
 import net.minecraftforge.common.ForgeConfigSpec.IntValue;
+import net.minecraftforge.fml.config.IConfigSpec;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Collections;
@@ -42,9 +44,9 @@ public class PlonkConfig {
         return !PlonkConfig.SERVER.unplaceableItemsSet.contains(ItemUtils.getIdentifier(stack));
     }
 
-    public static void refresh(ModConfig.ModConfigEvent event) {
+    public static void refresh(ModConfigEvent event) {
         ModConfig modConfig = event.getConfig();
-        ForgeConfigSpec spec = modConfig.getSpec();
+        IConfigSpec<?> spec = modConfig.getSpec();
         if (spec == serverSpec) {
             SERVER.refresh();
         }

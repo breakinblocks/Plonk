@@ -7,22 +7,26 @@ import com.breakinblocks.plonk.common.util.ItemUtils;
 import com.breakinblocks.plonk.common.util.bound.Box;
 import com.breakinblocks.plonk.common.util.bound.BoxCollection;
 import com.google.common.collect.ImmutableMap;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.ISidedInventory;
-import net.minecraft.inventory.ItemStackHelper;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SUpdateTileEntityPacket;
-import net.minecraft.state.DirectionProperty;
-import net.minecraft.tileentity.ChestTileEntity;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.WorldlyContainer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.phys.AABB;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.apache.logging.log4j.LogManager;
@@ -32,9 +36,9 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Objects;
 
-public class TilePlacedItems extends TileEntity implements ISidedInventory, ITickableTileEntity {
+public class TilePlacedItems extends BlockEntity implements WorldlyContainer {
 
-    public static final int NBT_VERSION = 1;
+    public static final int Tag_VERSION = 1;
 
     public static final DirectionProperty FACING = BlockPlacedItems.FACING;
     public static final float HEIGHT_PLATE = 1.0f / 32f;
@@ -90,9 +94,17 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
             .addBox(0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0)
             .build();
 
-    public TilePlacedItems() {
-        super(RegistryTileEntities.placed_items);
+    protected TilePlacedItems(BlockEntityType<?> type, BlockPos pos, BlockState state) {
+        super(type, pos, state);
         Arrays.fill(this.contentsMeta, ItemMeta.DEFAULT);
+    }
+
+    public TilePlacedItems(BlockPos pos, BlockState state) {
+        this(RegistryTileEntities.placed_items, pos, state);
+    }
+
+    public static void serverTick(Level level, BlockPos pPos, BlockState pState, TilePlacedItems pBlockEntity) {
+        pBlockEntity.tick();
     }
 
     /**
@@ -255,20 +267,20 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
     }
 
     /**
-     * @see ChestTileEntity
+     * @see ChestBlockEntity
      */
     @Override
-    public void load(BlockState state, CompoundNBT tag) {
-        super.load(state, tag);
-        NBTUpgrader.upgrade(tag);
+    public void load(CompoundTag tag) {
+        super.load(tag);
+        TagUpgrader.upgrade(tag);
         this.tileRotation = tag.getInt(TAG_TILE_ROTATION);
-        ListNBT tagItems = tag.getList(TAG_ITEMS, 10);
+        ListTag tagItems = tag.getList(TAG_ITEMS, 10);
         this.contents = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
         this.contentsMeta = new ItemMeta[this.getContainerSize()];
         Arrays.fill(this.contentsMeta, ItemMeta.DEFAULT);
 
         for (int i = 0; i < tagItems.size(); i++) {
-            CompoundNBT tagItem = tagItems.getCompound(i);
+            CompoundTag tagItem = tagItems.getCompound(i);
             int slot = tagItem.getByte(TAG_SLOT) & 255;
             int renderType = tagItem.getInt(TAG_RENDER_TYPE);
             int itemRotation = tagItem.getInt(TAG_ITEM_ROTATION);
@@ -281,15 +293,15 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
     }
 
     @Override
-    public CompoundNBT save(CompoundNBT tag) {
+    public CompoundTag save(CompoundTag tag) {
         super.save(tag);
-        tag.putInt(TAG_VERSION, NBT_VERSION);
+        tag.putInt(TAG_VERSION, Tag_VERSION);
         tag.putInt(TAG_TILE_ROTATION, tileRotation);
-        ListNBT tagItems = new ListNBT();
+        ListTag tagItems = new ListTag();
 
         for (int slot = 0; slot < this.contents.size(); slot++) {
             if (!this.contents.get(slot).isEmpty()) {
-                CompoundNBT tagItem = new CompoundNBT();
+                CompoundTag tagItem = new CompoundTag();
                 tagItem.putByte(TAG_SLOT, (byte) slot);
                 tagItem.putInt(TAG_RENDER_TYPE, this.contentsMeta[slot].renderType);
                 tagItem.putInt(TAG_ITEM_ROTATION, this.contentsMeta[slot].rotation);
@@ -303,7 +315,6 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
         return tag;
     }
 
-    @Override
     public void tick() {
         Objects.requireNonNull(level);
         if (level.isClientSide) return;
@@ -326,34 +337,33 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
     }
 
     @Override
-    public SUpdateTileEntityPacket getUpdatePacket() {
-        return new SUpdateTileEntityPacket(this.worldPosition, 0, this.getUpdateTag());
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     @Override
-    public CompoundNBT getUpdateTag() {
+    public CompoundTag getUpdateTag() {
         return this.save(super.getUpdateTag());
     }
 
     @Override
-    public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
-        Objects.requireNonNull(this.level);
-        this.handleUpdateTag(this.level.getBlockState(pkt.getPos()), pkt.getTag());
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
+        this.handleUpdateTag(Objects.requireNonNull(pkt.getTag()));
     }
 
     @Override
-    public void handleUpdateTag(BlockState state, CompoundNBT tag) {
-        super.handleUpdateTag(state, tag);
+    public void handleUpdateTag(CompoundTag tag) {
+        super.handleUpdateTag(tag);
         updateContentsDisplay();
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public AxisAlignedBB getRenderBoundingBox() {
+    public AABB getRenderBoundingBox() {
         // TODO: This doesn't work properly for custom item renders... since they can go outside the normal bounds
         // TODO: Maybe find out a way to get the render bounding boxes for each of the items??? Bit worse fps for now...
         // return this.contentsBoxes.getRenderBoundingBox(this);
-        return TileEntity.INFINITE_EXTENT_AABB;
+        return BlockEntity.INFINITE_EXTENT_AABB;
     }
 
     @Override
@@ -376,7 +386,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
 
     @Override
     public ItemStack removeItem(int index, int count) {
-        ItemStack itemstack = ItemStackHelper.removeItem(this.contents, index, count);
+        ItemStack itemstack = ContainerHelper.removeItem(this.contents, index, count);
 
         if (!itemstack.isEmpty()) {
             needsCleaning = true;
@@ -388,7 +398,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
 
     @Override
     public ItemStack removeItemNoUpdate(int index) {
-        return ItemStackHelper.takeItem(this.contents, index);
+        return ContainerHelper.takeItem(this.contents, index);
     }
 
     @Override
@@ -409,16 +419,16 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
     }
 
     @Override
-    public boolean stillValid(PlayerEntity player) {
+    public boolean stillValid(Player player) {
         return false;
     }
 
     @Override
-    public void startOpen(PlayerEntity player) {
+    public void startOpen(Player player) {
     }
 
     @Override
-    public void stopOpen(PlayerEntity player) {
+    public void stopOpen(Player player) {
     }
 
     @Override
@@ -524,27 +534,27 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
         }
     }
 
-    private static class NBTUpgrader {
+    private static class TagUpgrader {
         public static final ImmutableMap<Integer, Upgrade> UPGRADES = ImmutableMap.<Integer, Upgrade>builder()
-                .put(0, NBTUpgrader::upgradeFrom0To1)
+                .put(0, TagUpgrader::upgradeFrom0To1)
                 .build();
 
-        public static void upgrade(CompoundNBT tag) {
+        public static void upgrade(CompoundTag tag) {
             int tileVersion = tag.getInt(TAG_VERSION); // Defaults to 0 if it doesn't exist
-            while (tileVersion < NBT_VERSION && UPGRADES.containsKey(tileVersion)) {
+            while (tileVersion < Tag_VERSION && UPGRADES.containsKey(tileVersion)) {
                 UPGRADES.get(tileVersion).apply(tag);
                 tileVersion = tag.getInt(TAG_VERSION);
             }
-            if (tileVersion < NBT_VERSION) {
+            if (tileVersion < Tag_VERSION) {
                 // Couldn't be upgraded which shouldn't happen
                 throw new RuntimeException("Failed to upgrade an existing tile!");
-            } else if (tileVersion > NBT_VERSION) {
+            } else if (tileVersion > Tag_VERSION) {
                 // Mod being downgraded
-                LOG.warn("Placed Items tile version " + tileVersion + " > " + NBT_VERSION + " (current). Potential loss of data.");
+                LOG.warn("Placed Items tile version " + tileVersion + " > " + Tag_VERSION + " (current). Potential loss of data.");
             }
         }
 
-        public static void upgradeFrom0To1(CompoundNBT tag) {
+        public static void upgradeFrom0To1(CompoundTag tag) {
             final String TAG_IS_BLOCK = "IsBlock";
             final String TAG_VERSION = "Version";
             final String TAG_TILE_ROTATION = "TileRotation";
@@ -553,9 +563,9 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
             final String TAG_ITEM_ROTATION = "ItemRotation";
             tag.putInt(TAG_VERSION, 1);
             tag.putInt(TAG_TILE_ROTATION, 0);
-            ListNBT tagItems = tag.getList(TAG_ITEMS, 10);
+            ListTag tagItems = tag.getList(TAG_ITEMS, 10);
             for (int i = 0; i < tagItems.size(); i++) {
-                CompoundNBT tagItem = tagItems.getCompound(i);
+                CompoundTag tagItem = tagItems.getCompound(i);
                 if (tagItem.contains(TAG_IS_BLOCK)) {
                     boolean isBlock = tagItem.getBoolean(TAG_IS_BLOCK);
                     tagItem.putInt(TAG_RENDER_TYPE, isBlock ? 1 : 0);
@@ -565,7 +575,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
         }
 
         private interface Upgrade {
-            void apply(CompoundNBT tag);
+            void apply(CompoundTag tag);
         }
     }
 }

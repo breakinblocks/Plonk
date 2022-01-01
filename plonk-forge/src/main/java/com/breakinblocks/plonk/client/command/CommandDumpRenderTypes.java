@@ -7,20 +7,20 @@ import com.breakinblocks.plonk.common.util.MatrixUtils;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.math.Matrix4f;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.ItemRenderer;
-import net.minecraft.client.renderer.model.IBakedModel;
-import net.minecraft.client.renderer.model.ItemCameraTransforms.TransformType;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.math.vector.Matrix4f;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.client.renderer.block.model.ItemTransforms;
+import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -54,7 +54,7 @@ public class CommandDumpRenderTypes implements IPlonkCommand {
 
     private static List<ItemStackRef> getAllStacks(Item item) {
         NonNullList<ItemStack> subItems = NonNullList.create();
-        item.fillItemCategory(ItemGroup.TAB_SEARCH, subItems);
+        item.fillItemCategory(CreativeModeTab.TAB_SEARCH, subItems);
         return subItems.stream().map(ItemStackRef::new).collect(Collectors.toList());
     }
 
@@ -74,10 +74,10 @@ public class CommandDumpRenderTypes implements IPlonkCommand {
      * For each transform, it'll describe the (translation, scale, rotation) and (hS, hRot)
      */
     private static Stream<Map.Entry<String, String>> getRenderData(ItemStack stack) {
-        IBakedModel model = itemRenderer.getModel(stack, null, null);
-        TransformType[] types = new TransformType[]{
-                TransformType.FIXED,
-                TransformType.GUI
+        BakedModel model = itemRenderer.getModel(stack, null, null, 0);
+        ItemTransforms.TransformType[] types = new ItemTransforms.TransformType[]{
+                ItemTransforms.TransformType.FIXED,
+                ItemTransforms.TransformType.GUI
         };
         Map<String, Matrix4f> baseTransforms = Arrays.stream(types).collect(Collectors.toMap(
                 type -> type.name().toLowerCase(Locale.ROOT),
@@ -135,18 +135,18 @@ public class CommandDumpRenderTypes implements IPlonkCommand {
     }
 
     @Override
-    public String getUsage(CommandSource sender) {
+    public String getUsage(CommandSourceStack sender) {
         return "/cplonk dumprt - Dumps render type information";
     }
 
     @Override
-    public LiteralArgumentBuilder<CommandSource> build() {
+    public LiteralArgumentBuilder<CommandSourceStack> build() {
         return Commands.literal(getName())
                 .requires(source -> source.hasPermission(getRequiredPermissionLevel()))
                 .executes(context -> execute(context.getSource()));
     }
 
-    private int execute(CommandSource sender) {
+    private int execute(CommandSourceStack sender) {
         // renderData -> *itemDesc
         Multimap<String, String> data = LinkedListMultimap.create();
 
@@ -168,7 +168,7 @@ public class CommandDumpRenderTypes implements IPlonkCommand {
         final String renderDataHeaders = renderDataHeadersTemp[0];
 
         if (data.isEmpty()) {
-            sender.sendFailure(new StringTextComponent("No data"));
+            sender.sendFailure(new TextComponent("No data"));
             return 0;
         }
 
@@ -180,7 +180,7 @@ public class CommandDumpRenderTypes implements IPlonkCommand {
                 .append("\t").append(k)
         );
         LOG.info(output);
-        sender.sendSuccess(new StringTextComponent(
+        sender.sendSuccess(new TextComponent(
                 "Render Type Data dumped (see logs)"
                         + "\nUnique transforms: " + data.keySet().size()
                         + "\nNum Stacks: " + data.size()
@@ -212,7 +212,7 @@ public class CommandDumpRenderTypes implements IPlonkCommand {
         @Override
         public int hashCode() {
             int result = stack.getItem().hashCode();
-            CompoundNBT tag = stack.getTag();
+            CompoundTag tag = stack.getTag();
             result = 31 * result + (tag == null ? 7 : tag.hashCode());
             return result;
         }

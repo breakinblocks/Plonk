@@ -1,61 +1,47 @@
 package com.breakinblocks.plonk.common.util;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 
 public class EntityUtils {
     /**
-     * Gets the position of the entity's eyes
-     *
-     * @param entity       target
-     * @param partialTicks fractional tick
-     * @return position of eye
-     * @see Entity#getEyePosition(float)
-     * @deprecated
-     */
-    public static Vector3d getEyePosition(Entity entity, float partialTicks) {
-        return entity.getEyePosition(partialTicks);
-    }
-
-    /**
-     * Silent version of {@link LivingEntity#setHeldItem(Hand, ItemStack)} for players only
+     * Silent version of {@link LivingEntity#setItemInHand(InteractionHand, ItemStack)} for players only
      *
      * @param player target
      * @param hand   hand to set
      * @param stack  stack to set
-     * @see LivingEntity#setHeldItem(Hand, ItemStack)
+     * @see LivingEntity#setItemInHand(InteractionHand, ItemStack)
      */
-    public static void setHeldItemSilent(PlayerEntity player, Hand hand, ItemStack stack) {
-        if (hand == Hand.MAIN_HAND) {
-            setItemStackToSlotSilent(player, EquipmentSlotType.MAINHAND, stack);
+    public static void setHeldItemSilent(Player player, InteractionHand hand, ItemStack stack) {
+        if (hand == InteractionHand.MAIN_HAND) {
+            setItemStackToSlotSilent(player, EquipmentSlot.MAINHAND, stack);
         } else {
-            if (hand != Hand.OFF_HAND) {
+            if (hand != InteractionHand.OFF_HAND) {
                 throw new IllegalArgumentException("Invalid hand " + hand);
             }
-            setItemStackToSlotSilent(player, EquipmentSlotType.OFFHAND, stack);
+            setItemStackToSlotSilent(player, EquipmentSlot.OFFHAND, stack);
         }
     }
 
     /**
-     * Silent version of {@link PlayerEntity#setItemStackToSlot(EquipmentSlotType, ItemStack)}
+     * Silent version of {@link Player#setItemSlot(EquipmentSlot, ItemStack)}
      *
      * @param player target
      * @param slotIn equipment slot to set
      * @param stack  stack to set
-     * @see PlayerEntity#setItemStackToSlot(EquipmentSlotType, ItemStack)
+     * @see Player#setItemSlot(EquipmentSlot, ItemStack)
      */
-    public static void setItemStackToSlotSilent(PlayerEntity player, EquipmentSlotType slotIn, ItemStack stack) {
-        if (slotIn == EquipmentSlotType.MAINHAND) {
-            player.inventory.items.set(player.inventory.selected, stack);
-        } else if (slotIn == EquipmentSlotType.OFFHAND) {
-            player.inventory.offhand.set(0, stack);
-        } else if (slotIn.getType() == EquipmentSlotType.Group.ARMOR) {
-            player.inventory.armor.set(slotIn.getIndex(), stack);
+    public static void setItemStackToSlotSilent(Player player, EquipmentSlot slotIn, ItemStack stack) {
+        player.verifyEquippedItem(stack);
+        if (slotIn == EquipmentSlot.MAINHAND) {
+            player.getInventory().items.set(player.getInventory().selected, stack);
+        } else if (slotIn == EquipmentSlot.OFFHAND) {
+            player.getInventory().offhand.set(0, stack);
+        } else if (slotIn.getType() == EquipmentSlot.Type.ARMOR) {
+            player.getInventory().armor.set(slotIn.getIndex(), stack);
         }
     }
 }

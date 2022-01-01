@@ -2,6 +2,6 @@
 @MethodsReturnNonnullByDefault
 package com.breakinblocks.plonk.common.util.bound;
 
-import mcp.MethodsReturnNonnullByDefault;
+import net.minecraft.MethodsReturnNonnullByDefault;
 
 import javax.annotation.ParametersAreNonnullByDefault;

@@ -3,9 +3,9 @@ package com.breakinblocks.plonk.data;
 import com.breakinblocks.plonk.Plonk;
 import com.breakinblocks.plonk.common.registry.RegistryItems;
 import com.breakinblocks.plonk.common.tag.PlonkTags;
-import net.minecraft.data.BlockTagsProvider;
 import net.minecraft.data.DataGenerator;
-import net.minecraft.data.ItemTagsProvider;
+import net.minecraft.data.tags.BlockTagsProvider;
+import net.minecraft.data.tags.ItemTagsProvider;
 import net.minecraftforge.common.data.ExistingFileHelper;
 
 import javax.annotation.Nullable;

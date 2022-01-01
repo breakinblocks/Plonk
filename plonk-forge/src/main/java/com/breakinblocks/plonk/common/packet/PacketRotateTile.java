@@ -1,13 +1,13 @@
 package com.breakinblocks.plonk.common.packet;
 
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.server.ServerWorld;
-import net.minecraftforge.fml.network.NetworkDirection;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.network.NetworkDirection;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -27,13 +27,13 @@ public class PacketRotateTile extends PacketBase {
 
 
     @Override
-    public PacketBase read(PacketBuffer buf) {
+    public PacketBase read(FriendlyByteBuf buf) {
         pos = buf.readBlockPos();
         return new PacketRotateTile(pos);
     }
 
     @Override
-    public void write(PacketBuffer buf) {
+    public void write(FriendlyByteBuf buf) {
         buf.writeBlockPos(pos);
     }
 
@@ -44,11 +44,11 @@ public class PacketRotateTile extends PacketBase {
 
     @Override
     protected void handle(Supplier<NetworkEvent.Context> ctx) {
-        ServerPlayerEntity player = Objects.requireNonNull(ctx.get().getSender());
-        ServerWorld world = player.getLevel();
+        ServerPlayer player = Objects.requireNonNull(ctx.get().getSender());
+        ServerLevel world = player.getLevel();
         double reach = player.getAttributeValue(REACH_DISTANCE.get()) + 2;
         if (player.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) < reach * reach) {
-            TileEntity te = world.getBlockEntity(pos);
+            BlockEntity te = world.getBlockEntity(pos);
             if (te instanceof TilePlacedItems) {
                 ((TilePlacedItems) te).rotateTile();
             }

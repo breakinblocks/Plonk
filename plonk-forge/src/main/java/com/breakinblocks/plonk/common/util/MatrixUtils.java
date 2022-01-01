@@ -1,7 +1,7 @@
 package com.breakinblocks.plonk.common.util;
 
-import net.minecraft.util.math.vector.Matrix3f;
-import net.minecraft.util.math.vector.Matrix4f;
+import com.mojang.math.Matrix3f;
+import com.mojang.math.Matrix4f;
 
 public class MatrixUtils {
     /**

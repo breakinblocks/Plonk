@@ -1,19 +1,19 @@
 package com.breakinblocks.plonk.common.packet;
 
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkDirection;
-import net.minecraftforge.fml.network.NetworkEvent.Context;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkDirection;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.Optional;
 import java.util.function.Supplier;
 
 public abstract class PacketBase {
 
-    public abstract PacketBase read(PacketBuffer buf);
+    public abstract PacketBase read(FriendlyByteBuf buf);
 
-    public abstract void write(PacketBuffer buf);
+    public abstract void write(FriendlyByteBuf buf);
 
-    public void onMessage(Supplier<Context> ctx) {
+    public void onMessage(Supplier<NetworkEvent.Context> ctx) {
         if (isAsync()) {
             this.handle(ctx);
         } else {
@@ -24,7 +24,7 @@ public abstract class PacketBase {
     /**
      * Check if the handler can be called asynchronously
      * Defaults to false
-     * For mixed async and synchronous: return true and use {@link Context#enqueueWork(Runnable)}
+     * For mixed async and synchronous: return true and use {@link NetworkEvent.Context#enqueueWork(Runnable)}
      *
      * @return true if the handler can be called asynchronously
      */
@@ -34,5 +34,5 @@ public abstract class PacketBase {
 
     public abstract Optional<NetworkDirection> getNetworkDirection();
 
-    protected abstract void handle(Supplier<Context> ctx);
+    protected abstract void handle(Supplier<NetworkEvent.Context> ctx);
 }
