@@ -13,7 +13,6 @@ val mappings_version: String by project
 
 plugins {
     id("net.minecraftforge.gradle")
-    id("org.parchmentmc.librarian.forgegradle")
 }
 
 version = mod_version
