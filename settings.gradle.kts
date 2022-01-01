@@ -23,3 +23,5 @@ pluginManagement {
 }
 
 rootProject.name = "plonk"
+
+include("plonk-forge-1.14.4")
