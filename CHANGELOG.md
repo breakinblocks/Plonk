@@ -1,5 +1,9 @@
 # Changelog
 
+## [NEXT] - YYYY-MM-DD
+
+- Ported to Minecraft 1.18.1 for Forge.
+
 ## [9.0.8] - 2021-05-05
 
 - Add config for unplaceable items
