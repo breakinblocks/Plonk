@@ -12,7 +12,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -103,8 +102,12 @@ public class TilePlacedItems extends BlockEntity implements WorldlyContainer {
         this(RegistryTileEntities.placed_items, pos, state);
     }
 
+    public static void clientTick(Level level, BlockPos pPos, BlockState pState, TilePlacedItems pBlockEntity) {
+        pBlockEntity.clientTick();
+    }
+
     public static void serverTick(Level level, BlockPos pPos, BlockState pState, TilePlacedItems pBlockEntity) {
-        pBlockEntity.tick();
+        pBlockEntity.serverTick();
     }
 
     /**
@@ -290,11 +293,13 @@ public class TilePlacedItems extends BlockEntity implements WorldlyContainer {
                 this.contentsMeta[slot] = new ItemMeta(renderType, itemRotation);
             }
         }
+
+        this.needsCleaning = true;
     }
 
     @Override
-    public CompoundTag save(CompoundTag tag) {
-        super.save(tag);
+    public void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
         tag.putInt(TAG_VERSION, Tag_VERSION);
         tag.putInt(TAG_TILE_ROTATION, tileRotation);
         ListTag tagItems = new ListTag();
@@ -311,13 +316,18 @@ public class TilePlacedItems extends BlockEntity implements WorldlyContainer {
         }
 
         tag.put(TAG_ITEMS, tagItems);
-
-        return tag;
     }
 
-    public void tick() {
+    public void clientTick() {
         Objects.requireNonNull(level);
-        if (level.isClientSide) return;
+        if (needsCleaning) {
+            updateContentsDisplay();
+            needsCleaning = false;
+        }
+    }
+
+    public void serverTick() {
+        Objects.requireNonNull(level);
         if (needsCleaning) {
             if (clean()) {
                 this.setChanged();
@@ -343,18 +353,7 @@ public class TilePlacedItems extends BlockEntity implements WorldlyContainer {
 
     @Override
     public CompoundTag getUpdateTag() {
-        return this.save(super.getUpdateTag());
-    }
-
-    @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
-        this.handleUpdateTag(Objects.requireNonNull(pkt.getTag()));
-    }
-
-    @Override
-    public void handleUpdateTag(CompoundTag tag) {
-        super.handleUpdateTag(tag);
-        updateContentsDisplay();
+        return this.saveWithoutMetadata();
     }
 
     @Override

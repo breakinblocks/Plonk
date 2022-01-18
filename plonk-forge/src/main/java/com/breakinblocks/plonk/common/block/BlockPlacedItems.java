@@ -76,7 +76,11 @@ public class BlockPlacedItems extends BaseEntityBlock implements SimpleWaterlogg
 
     @Nullable
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level pLevel, BlockState pState, BlockEntityType<T> pBlockEntityType) {
-        return !pLevel.isClientSide ? null : createTickerHelper(pBlockEntityType, RegistryTileEntities.placed_items, TilePlacedItems::serverTick);
+        if (pLevel.isClientSide) {
+            return createTickerHelper(pBlockEntityType, RegistryTileEntities.placed_items, TilePlacedItems::clientTick);
+        } else {
+            return createTickerHelper(pBlockEntityType, RegistryTileEntities.placed_items, TilePlacedItems::serverTick);
+        }
     }
 
     @Override

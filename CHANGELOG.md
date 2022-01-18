@@ -1,5 +1,10 @@
 # Changelog
 
+## [NEXT] - 2022-01-18
+
+- Fixed placed items not saving properly.
+- Fixed placed items causing chunks to not load on the clientside.
+
 ## [10.0.0] - 2022-01-18
 
 - Ported to Minecraft 1.18.1 for Forge.
