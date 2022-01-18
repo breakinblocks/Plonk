@@ -1,6 +1,6 @@
 # Changelog
 
-## [NEXT] - 2022-01-18
+## [10.0.1] - 2022-01-18
 
 - Fixed placed items not saving properly.
 - Fixed placed items causing chunks to not load on the clientside.
