@@ -17,7 +17,10 @@ import net.minecraftforge.client.IItemRenderer;
 import net.minecraftforge.client.MinecraftForgeClient;
 import org.lwjgl.opengl.GL11;
 
-import static com.breakinblocks.plonk.common.tile.TilePlacedItems.*;
+import static com.breakinblocks.plonk.common.tile.TilePlacedItems.BLOCK_PADDING_PERCENTAGE;
+import static com.breakinblocks.plonk.common.tile.TilePlacedItems.ItemMeta;
+import static com.breakinblocks.plonk.common.tile.TilePlacedItems.RENDER_TYPE_BLOCK;
+import static com.breakinblocks.plonk.common.tile.TilePlacedItems.RENDER_TYPE_ITEM;
 import static net.minecraftforge.client.IItemRenderer.ItemRenderType.ENTITY;
 import static net.minecraftforge.client.IItemRenderer.ItemRendererHelper.BLOCK_3D;
 
