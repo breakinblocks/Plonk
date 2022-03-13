@@ -39,7 +39,7 @@ public class PlonkConfig {
      * Checks if the given stack can be placed down.
      */
     public static boolean canPlace(ItemStack stack) {
-        if (PlonkTags.Items.UNPLACEABLE.contains(stack.getItem()))
+        if (stack.m_204117_(PlonkTags.Items.UNPLACEABLE))
             return false;
         return !PlonkConfig.SERVER.unplaceableItemsSet.contains(ItemUtils.getIdentifier(stack));
     }
@@ -63,7 +63,7 @@ public class PlonkConfig {
                     .defineInRange("maxStackSize", -1, -1, Integer.MAX_VALUE);
             unplaceableItems = builder
                     .comment("Items that cannot be placed down, in the format \"modid:item_id\" e.g. [\"minecraft:carrot\"]",
-                            "You can also use the " + PlonkTags.Items.UNPLACEABLE.getName() + " item tag as well.")
+                            "You can also use the " + PlonkTags.Items.UNPLACEABLE.f_203868_() + " item tag as well.")
                     .defineList("unplaceableItems", Collections.emptyList(),
                             o -> o instanceof String && ResourceLocation.tryParse((String) o) != null);
         }

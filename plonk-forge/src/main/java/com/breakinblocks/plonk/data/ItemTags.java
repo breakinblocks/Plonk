@@ -19,7 +19,7 @@ public class ItemTags extends ItemTagsProvider {
 
     @Override
     protected void addTags() {
-        tag(PlonkTags.Items.UNPLACEABLE)
+        m_206424_(PlonkTags.Items.UNPLACEABLE)
                 .add(RegistryItems.placed_items)
                 .addOptional(carryOn("entity_item"))
                 .addOptional(carryOn("tile_item"))

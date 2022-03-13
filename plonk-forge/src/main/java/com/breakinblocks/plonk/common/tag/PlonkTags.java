@@ -3,8 +3,8 @@ package com.breakinblocks.plonk.common.tag;
 import com.breakinblocks.plonk.Plonk;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
-import net.minecraftforge.common.Tags;
 
 public class PlonkTags {
     public static void init() {
@@ -13,14 +13,14 @@ public class PlonkTags {
 
     public static class Items {
 
-        public static final Tags.IOptionalNamedTag<Item> UNPLACEABLE = tag("unplaceable");
+        public static final TagKey<Item> UNPLACEABLE = tag("unplaceable");
 
         public static void init() {
         }
 
         @SuppressWarnings("SameParameterValue")
-        private static Tags.IOptionalNamedTag<Item> tag(String name) {
-            return ItemTags.createOptional(new ResourceLocation(Plonk.MOD_ID, name));
+        private static TagKey<Item> tag(String name) {
+            return ItemTags.create(new ResourceLocation(Plonk.MOD_ID, name));
         }
     }
 }

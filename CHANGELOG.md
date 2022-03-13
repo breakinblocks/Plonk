@@ -2,7 +2,7 @@
 
 ## [NEXT] - YYYY-MM-DD
 
-- Placeholder
+- Ported to Minecraft 1.18.2 for Forge.
 
 ## [10.0.1] - 2022-01-18
 
