@@ -1,6 +1,6 @@
 # Changelog
 
-## [NEXT] - YYYY-MM-DD
+## [10.0.2] - 2022-03-13
 
 - Ported to Minecraft 1.18.2 for Forge.
 
