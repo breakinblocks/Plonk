@@ -1,5 +1,9 @@
 # Changelog
 
+## [NEXT] - YYYY-MM-DD
+
+- Placeholder
+
 ## [10.0.1] - 2022-01-18
 
 - Fixed placed items not saving properly.
