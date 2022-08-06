@@ -2,6 +2,7 @@ package com.breakinblocks.plonk.client;
 
 import com.breakinblocks.plonk.Plonk;
 import com.breakinblocks.plonk.client.command.CommandClientPlonk;
+import com.breakinblocks.plonk.client.registry.RegistryTESRs;
 import com.breakinblocks.plonk.client.render.tile.TESRPlacedItems;
 import com.breakinblocks.plonk.common.packet.PacketPlaceItem;
 import com.breakinblocks.plonk.common.packet.PacketRotateTile;
@@ -23,7 +24,8 @@ import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.server.ServerStartingEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 
 import static com.mojang.blaze3d.platform.InputConstants.Type.KEYSYM;
 import static net.minecraftforge.client.settings.KeyConflictContext.IN_GAME;
@@ -32,16 +34,22 @@ import static org.lwjgl.glfw.GLFW.GLFW_KEY_P;
 public class ClientEvents {
     public static final KeyMapping KEY_PLACE = new KeyMapping("key.plonk.place", IN_GAME, KEYSYM, GLFW_KEY_P, "key.categories.plonk");
 
-    static {
-        MinecraftForge.EVENT_BUS.register(ClientEvents.class);
+    public static void init(IEventBus modEventBus) {
+        modEventBus.addListener(ClientEvents::setupClient);
+        modEventBus.addListener(ClientEvents::onRegisterKeyMappings);
+
+        MinecraftForge.EVENT_BUS.addListener(ClientEvents::onKeyInput);
+        MinecraftForge.EVENT_BUS.addListener(ClientEvents::serverStarting);
     }
 
-    @SubscribeEvent
+    public static void setupClient(FMLClientSetupEvent event) {
+        RegistryTESRs.init();
+    }
+
     public static void onRegisterKeyMappings(RegisterKeyMappingsEvent event) {
         event.register(ClientEvents.KEY_PLACE);
     }
 
-    @SubscribeEvent
     public static void onKeyInput(InputEvent.Key event) {
         Minecraft mc = Minecraft.getInstance();
         LocalPlayer player = mc.player;
@@ -83,7 +91,6 @@ public class ClientEvents {
         return false;
     }
 
-    @SubscribeEvent
     public static void serverStarting(ServerStartingEvent event) {
         new CommandClientPlonk().register(event.getServer().getCommands().getDispatcher());
     }

@@ -1,6 +1,6 @@
 package com.breakinblocks.plonk;
 
-import com.breakinblocks.plonk.client.registry.RegistryTESRs;
+import com.breakinblocks.plonk.client.ClientEvents;
 import com.breakinblocks.plonk.common.config.PlonkConfig;
 import com.breakinblocks.plonk.common.registry.RegistryBlocks;
 import com.breakinblocks.plonk.common.registry.RegistryItems;
@@ -8,15 +8,13 @@ import com.breakinblocks.plonk.common.registry.RegistryPackets;
 import com.breakinblocks.plonk.common.registry.RegistryTileEntities;
 import com.breakinblocks.plonk.common.tag.PlonkTags;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -38,16 +36,19 @@ public class Plonk {
 
     public Plonk() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+
+        modEventBus.addListener(this::onRegister);
         modEventBus.addListener(this::setup);
-        modEventBus.addListener(this::setupClient);
-        modEventBus.register(this);
-        MinecraftForge.EVENT_BUS.register(this);
-        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, PlonkConfig.serverSpec);
         modEventBus.addListener(PlonkConfig::refresh);
+
+        if (FMLEnvironment.dist.isClient()) {
+            ClientEvents.init(modEventBus);
+        }
+
+        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, PlonkConfig.serverSpec);
         PlonkTags.init();
     }
 
-    @SubscribeEvent
     public void onRegister(RegisterEvent event) {
         event.register(ForgeRegistries.Keys.BLOCKS, RegistryBlocks::init);
         event.register(ForgeRegistries.Keys.ITEMS, RegistryItems::init);
@@ -56,9 +57,5 @@ public class Plonk {
 
     public void setup(FMLCommonSetupEvent event) {
         RegistryPackets.init();
-    }
-
-    public void setupClient(FMLClientSetupEvent event) {
-        RegistryTESRs.init();
     }
 }
