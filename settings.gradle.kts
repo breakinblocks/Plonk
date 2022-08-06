@@ -3,13 +3,13 @@ pluginManagement {
         eachPlugin {
             when (requested.id.toString()) {
                 "net.kyori.blossom" -> {
-                    useModule("net.kyori:blossom:1.3.0")
+                    useModule("net.kyori:blossom:1.3.1")
                 }
                 "net.minecraftforge.gradle" -> {
-                    useModule("net.minecraftforge.gradle:ForgeGradle:5.1.31")
+                    useModule("net.minecraftforge.gradle:ForgeGradle:5.1.53")
                 }
                 "forge" -> {
-                    useModule("com.anatawa12.forge:ForgeGradle:1.2-1.0.7")
+                    useModule("com.anatawa12.forge:ForgeGradle:1.2-1.0.9")
                 }
                 "org.parchmentmc.librarian.forgegradle" -> {
                     useModule("org.parchmentmc.librarian.forgegradle:org.parchmentmc.librarian.forgegradle.gradle.plugin:1.2.0")

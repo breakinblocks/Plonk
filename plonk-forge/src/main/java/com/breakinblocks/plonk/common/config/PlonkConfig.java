@@ -39,7 +39,7 @@ public class PlonkConfig {
      * Checks if the given stack can be placed down.
      */
     public static boolean canPlace(ItemStack stack) {
-        if (stack.m_204117_(PlonkTags.Items.UNPLACEABLE))
+        if (stack.is(PlonkTags.Items.UNPLACEABLE))
             return false;
         return !PlonkConfig.SERVER.unplaceableItemsSet.contains(ItemUtils.getIdentifier(stack));
     }
