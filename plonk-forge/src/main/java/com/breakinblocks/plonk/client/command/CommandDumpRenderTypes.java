@@ -16,7 +16,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -168,7 +168,7 @@ public class CommandDumpRenderTypes implements IPlonkCommand {
         final String renderDataHeaders = renderDataHeadersTemp[0];
 
         if (data.isEmpty()) {
-            sender.sendFailure(new TextComponent("No data"));
+            sender.sendFailure(Component.literal("No data"));
             return 0;
         }
 
@@ -180,7 +180,7 @@ public class CommandDumpRenderTypes implements IPlonkCommand {
                 .append("\t").append(k)
         );
         LOG.info(output);
-        sender.sendSuccess(new TextComponent(
+        sender.sendSuccess(Component.literal(
                 "Render Type Data dumped (see logs)"
                         + "\nUnique transforms: " + data.keySet().size()
                         + "\nNum Stacks: " + data.size()

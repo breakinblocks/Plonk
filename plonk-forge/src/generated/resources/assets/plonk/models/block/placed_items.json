@@ -1,11 +1,22 @@
 {
   "parent": "minecraft:block/block",
-  "textures": {
-    "all": "plonk:block/placed_items",
-    "particle": "#all"
-  },
   "elements": [
     {
+      "faces": {
+        "down": {
+          "cullface": "down",
+          "texture": "#all",
+          "uv": [
+            0.0,
+            16.0,
+            16.0,
+            0.0
+          ]
+        },
+        "up": {
+          "texture": "#all"
+        }
+      },
       "from": [
         0,
         -0.01,
@@ -15,22 +26,12 @@
         16,
         0.01,
         16
-      ],
-      "faces": {
-        "down": {
-          "texture": "#all",
-          "uv": [
-            0.0,
-            16.0,
-            16.0,
-            0.0
-          ],
-          "cullface": "down"
-        },
-        "up": {
-          "texture": "#all"
-        }
-      }
+      ]
     }
-  ]
+  ],
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "all": "plonk:block/placed_items",
+    "particle": "#all"
+  }
 }

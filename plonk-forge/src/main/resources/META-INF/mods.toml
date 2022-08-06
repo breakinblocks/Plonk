@@ -6,6 +6,7 @@ issueTrackerURL = "https://github.com/breakinblocks/Plonk/issues"
 [[mods]]
 modId = "plonk"
 version = "${mod_version}"
+displayTest = "MATCH_VERSION"
 displayName = "Plonk"
 displayURL = "https://github.com/breakinblocks/Plonk"
 logoFile = "pack.png"

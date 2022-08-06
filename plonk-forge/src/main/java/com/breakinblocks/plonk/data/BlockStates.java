@@ -28,6 +28,7 @@ public class BlockStates extends BlockStateProvider {
     @Override
     protected void registerStatesAndModels() {
         final BlockModelBuilder placed_items_model = models().withExistingParent("placed_items", minecraft("block/block"))
+                .renderType("cutout")
                 .texture("all", plonk("block/placed_items"))
                 .texture("particle", "#all")
                 .element()

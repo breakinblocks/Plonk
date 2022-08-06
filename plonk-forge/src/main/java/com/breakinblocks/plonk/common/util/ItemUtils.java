@@ -7,6 +7,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -124,7 +125,7 @@ public class ItemUtils {
      */
     @Nullable
     public static ResourceLocation getIdentifier(ItemStack stack) {
-        return stack.getItem().getRegistryName();
+        return ForgeRegistries.ITEMS.getKey(stack.getItem());
     }
 
     public static class InsertStackResult {

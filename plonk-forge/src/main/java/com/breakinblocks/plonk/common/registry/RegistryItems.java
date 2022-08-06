@@ -4,7 +4,7 @@ import com.breakinblocks.plonk.Plonk;
 import com.breakinblocks.plonk.common.item.ItemBlockPlacedItems;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
-import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.registries.RegisterEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -17,7 +17,7 @@ public class RegistryItems {
     public static final ItemBlockPlacedItems placed_items = new ItemBlockPlacedItems(new Item.Properties());
     private static final Logger LOG = LogManager.getLogger();
 
-    public static void init(RegistryEvent.Register<Item> event) {
+    public static void init(RegisterEvent.RegisterHelper<Item> helper) {
         for (Field f : RegistryItems.class.getDeclaredFields()) {
             try {
                 if (Modifier.isStatic(f.getModifiers())) {
@@ -25,8 +25,7 @@ public class RegistryItems {
                         ResourceLocation rl = new ResourceLocation(Plonk.MOD_ID, f.getName());
                         LOG.info(REGISTRIES, "Registering Item: " + rl);
                         Item item = (Item) f.get(null);
-                        item.setRegistryName(rl);
-                        event.getRegistry().register(item);
+                        helper.register(rl, item);
                     }
                 }
             } catch (IllegalAccessException e) {

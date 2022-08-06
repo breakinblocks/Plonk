@@ -4,7 +4,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 
@@ -18,7 +18,7 @@ public interface IPlonkCommand {
     }
 
     default int sendUsage(CommandSourceStack source, int exitCode) {
-        source.sendSuccess(new TextComponent(getUsage(source)), true);
+        source.sendSuccess(Component.literal(getUsage(source)), true);
         return exitCode;
     }
 

@@ -7,7 +7,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.registries.RegisterEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -33,7 +33,7 @@ public class RegistryBlocks {
     );
     private static final Logger LOG = LogManager.getLogger();
 
-    public static void init(RegistryEvent.Register<Block> event) {
+    public static void init(RegisterEvent.RegisterHelper<Block> helper) {
         for (Field f : RegistryBlocks.class.getDeclaredFields()) {
             try {
                 if (Modifier.isStatic(f.getModifiers())) {
@@ -41,8 +41,7 @@ public class RegistryBlocks {
                         ResourceLocation rl = new ResourceLocation(Plonk.MOD_ID, f.getName());
                         LOG.info(REGISTRIES, "Registering Block: " + rl);
                         Block block = (Block) f.get(null);
-                        block.setRegistryName(rl);
-                        event.getRegistry().register(block);
+                        helper.register(rl, block);
                     }
                 }
             } catch (IllegalAccessException e) {

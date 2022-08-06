@@ -19,8 +19,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraftforge.client.ClientRegistry;
 import net.minecraftforge.client.event.InputEvent;
+import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -36,12 +36,13 @@ public class ClientEvents {
         MinecraftForge.EVENT_BUS.register(ClientEvents.class);
     }
 
-    public static void registerKeyBindings() {
-        ClientRegistry.registerKeyBinding(ClientEvents.KEY_PLACE);
+    @SubscribeEvent
+    public static void onRegisterKeyMappings(RegisterKeyMappingsEvent event) {
+        event.register(ClientEvents.KEY_PLACE);
     }
 
     @SubscribeEvent
-    public static void onKeyInput(InputEvent.KeyInputEvent event) {
+    public static void onKeyInput(InputEvent.Key event) {
         Minecraft mc = Minecraft.getInstance();
         LocalPlayer player = mc.player;
         if (mc.getOverlay() == null && (mc.screen == null || mc.screen.passEvents)) {

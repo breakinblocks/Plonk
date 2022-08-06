@@ -47,8 +47,8 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.EntityCollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.client.IBlockRenderProperties;
-import net.minecraftforge.client.event.DrawSelectionEvent;
+import net.minecraftforge.client.event.RenderHighlightEvent;
+import net.minecraftforge.client.extensions.common.IClientBlockExtensions;
 import net.minecraftforge.common.ForgeMod;
 
 import javax.annotation.Nullable;
@@ -64,7 +64,7 @@ public class BlockPlacedItems extends BaseEntityBlock implements SimpleWaterlogg
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
     /**
      * This is such a hack. Find a better way to do this eventually please???
-     * The issue with handling the {@link DrawSelectionEvent.HighlightBlock} event is that
+     * The issue with handling the {@link RenderHighlightEvent.Block} event is that
      * it would break with other mods that add a custom block highlight...
      */
     private final ThreadLocal<Boolean> picking = ThreadLocal.withInitial(() -> false);
@@ -293,8 +293,8 @@ public class BlockPlacedItems extends BaseEntityBlock implements SimpleWaterlogg
     }
 
     @Override
-    public void initializeClient(Consumer<IBlockRenderProperties> consumer) {
-        consumer.accept(new IBlockRenderProperties() {
+    public void initializeClient(Consumer<IClientBlockExtensions> consumer) {
+        consumer.accept(new IClientBlockExtensions() {
             @Override
             public boolean addHitEffects(BlockState state, Level Level, HitResult target, ParticleEngine manager) {
                 return true;

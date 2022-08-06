@@ -8,7 +8,7 @@ import net.minecraft.client.resources.model.BakedModel;
 public class RenderUtils {
     public static Matrix4f getModelTransformMatrix(BakedModel model, ItemTransforms.TransformType type) {
         PoseStack stack = new PoseStack();
-        model.handlePerspective(type, stack);
+        model.applyTransform(type, stack, false);
         return stack.last().pose();
     }
 }
