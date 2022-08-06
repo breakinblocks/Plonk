@@ -62,8 +62,8 @@ public class PlonkConfig {
                     .comment("Max stack size per slot (-1 or 0 to use default). Going above 64 needs a mod like StackUp!.")
                     .defineInRange("maxStackSize", -1, -1, Integer.MAX_VALUE);
             unplaceableItems = builder
-                    .comment("Items that cannot be placed down, in the format \"modid:item_id\" e.g. [\"minecraft:carrot\"]",
-                            "You can also use the " + PlonkTags.Items.UNPLACEABLE.f_203868_() + " item tag as well.")
+                    .comment("Items that cannot be placed down, in the format \"mod_id:item_id\" e.g. [\"minecraft:carrot\"]",
+                            "You can also use the " + PlonkTags.Items.UNPLACEABLE.location() + " item tag as well.")
                     .defineList("unplaceableItems", Collections.emptyList(),
                             o -> o instanceof String && ResourceLocation.tryParse((String) o) != null);
         }

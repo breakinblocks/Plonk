@@ -48,7 +48,7 @@ public class PlonkConfig {
                         Plonk.CARRY_ON_MOD_ID + ":entity_item",
                         Plonk.CARRY_ON_MOD_ID + ":tile_item"
                 },
-                "Items that cannot be placed down, in the format 'modid:item_id' e.g. minecraft:carrot"
+                "Items that cannot be placed down, in the format 'mod_id:item_id' e.g. minecraft:carrot"
         )).map(ResourceLocation::new).collect(Collectors.toCollection(LinkedHashSet::new));
 
         if (config.hasChanged()) {
