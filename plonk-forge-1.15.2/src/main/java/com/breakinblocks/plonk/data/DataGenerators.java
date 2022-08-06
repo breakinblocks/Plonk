@@ -9,10 +9,10 @@ import net.minecraftforge.fml.event.lifecycle.GatherDataEvent;
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
 public class DataGenerators {
     @SubscribeEvent
-    public static void gatherData(GatherDataEvent evt) {
-        DataGenerator dataGenerator = evt.getGenerator();
-        ExistingFileHelper existingFileHelper = evt.getExistingFileHelper();
-        if (evt.includeServer()) {
+    public static void gatherData(GatherDataEvent event) {
+        DataGenerator dataGenerator = event.getGenerator();
+        ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
+        if (event.includeServer()) {
             dataGenerator.addProvider(new BlockStates(dataGenerator, existingFileHelper));
             BlockTags blockTagsProvider = new BlockTags(dataGenerator, existingFileHelper);
             dataGenerator.addProvider(blockTagsProvider);
