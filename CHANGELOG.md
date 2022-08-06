@@ -1,5 +1,9 @@
 # Changelog
 
+## [10.0.3] - 2022-08-07
+
+- Ported to Minecraft 1.19.2 for Forge.
+
 ## [10.0.2] - 2022-03-13
 
 - Ported to Minecraft 1.18.2 for Forge.
