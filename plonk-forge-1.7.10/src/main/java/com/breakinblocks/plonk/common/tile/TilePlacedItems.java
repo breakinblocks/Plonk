@@ -182,10 +182,12 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
     private int getBlockMetadataSafe() {
         int meta = this.blockMetadata;
 
-        if (meta == -1 && this.worldObj != null) {
-            meta = this.getBlockMetadata();
-        } else {
-            meta = 0;
+        if (meta == -1) {
+            if (this.worldObj != null) {
+                return this.getBlockMetadata();
+            } else {
+                return 0;
+            }
         }
 
         return meta;
