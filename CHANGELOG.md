@@ -1,6 +1,6 @@
 # Changelog
 
-## Next - YYYY-MM-DD
+## [10.0.4] - 2023-04-08
 
 - Fix crash from using bad block-state.
 
