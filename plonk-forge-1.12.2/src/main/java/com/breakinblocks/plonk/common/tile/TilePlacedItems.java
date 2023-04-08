@@ -3,11 +3,13 @@ package com.breakinblocks.plonk.common.tile;
 import com.breakinblocks.plonk.Plonk;
 import com.breakinblocks.plonk.common.block.BlockPlacedItems;
 import com.breakinblocks.plonk.common.config.PlonkConfig;
+import com.breakinblocks.plonk.common.registry.RegistryBlocks;
 import com.breakinblocks.plonk.common.util.ItemUtils;
 import com.breakinblocks.plonk.common.util.bound.Box;
 import com.breakinblocks.plonk.common.util.bound.BoxCollection;
 import com.google.common.collect.ImmutableMap;
 import net.minecraft.block.properties.PropertyDirection;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.inventory.ItemStackHelper;
@@ -182,6 +184,20 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
         }
     }
 
+    private IBlockState getBlockStateSafe() {
+        if (this.world == null) {
+            return RegistryBlocks.placed_items.getDefaultState();
+        }
+
+        IBlockState blockState = this.world.getBlockState(this.getPos());
+
+        if (blockState.getBlock() != RegistryBlocks.placed_items) {
+            return RegistryBlocks.placed_items.getDefaultState();
+        }
+
+        return blockState;
+    }
+
     private void updateContentsBoxes(int count) {
         BoxCollection.Builder builder = new BoxCollection.Builder(false, true);
 
@@ -220,7 +236,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
         }
 
         // Apply Facing
-        EnumFacing facing = this.getWorld().getBlockState(this.getPos()).getValue(FACING);
+        EnumFacing facing = this.getBlockStateSafe().getValue(FACING);
 
         switch (facing) {
             case UP: // DOWN
@@ -296,8 +312,12 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
     }
 
     @Override
+    @SuppressWarnings("ConstantConditions")
     public void update() {
+        if (world == null) return;
+
         if (world.isRemote) return;
+
         if (needsCleaning) {
             if (clean()) {
                 this.markDirty();

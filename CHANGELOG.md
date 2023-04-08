@@ -1,5 +1,9 @@
 # Changelog
 
+## Next - YYYY-MM-DD
+
+- Fix crash from using bad block-state.
+
 ## [10.0.3] - 2022-08-07
 
 - Ported to Minecraft 1.19.2 for Forge.

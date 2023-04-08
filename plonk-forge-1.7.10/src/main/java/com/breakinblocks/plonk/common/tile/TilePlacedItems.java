@@ -179,6 +179,18 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
         }
     }
 
+    private int getBlockMetadataSafe() {
+        int meta = this.blockMetadata;
+
+        if (meta == -1 && this.worldObj != null) {
+            meta = this.getBlockMetadata();
+        } else {
+            meta = 0;
+        }
+
+        return meta;
+    }
+
     private void updateContentsBoxes(int count) {
         BoxCollection.Builder builder = new BoxCollection.Builder(false, true);
 
@@ -217,7 +229,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
         }
 
         // Apply Facing
-        int meta = this.hasWorldObj() ? this.getBlockMetadata() : 0;
+        int meta = this.getBlockMetadataSafe();
 
         switch (meta) {
             case 0: // DOWN
@@ -292,7 +304,10 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory {
 
     @Override
     public void updateEntity() {
+        if (worldObj == null) return;
+
         if (worldObj.isRemote) return;
+
         if (needsCleaning) {
             if (clean()) {
                 this.markDirty();

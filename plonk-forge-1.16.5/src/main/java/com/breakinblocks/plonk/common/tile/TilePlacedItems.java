@@ -2,6 +2,7 @@ package com.breakinblocks.plonk.common.tile;
 
 import com.breakinblocks.plonk.common.block.BlockPlacedItems;
 import com.breakinblocks.plonk.common.config.PlonkConfig;
+import com.breakinblocks.plonk.common.registry.RegistryBlocks;
 import com.breakinblocks.plonk.common.registry.RegistryTileEntities;
 import com.breakinblocks.plonk.common.util.ItemUtils;
 import com.breakinblocks.plonk.common.util.bound.Box;
@@ -190,8 +191,25 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
         }
     }
 
+    private BlockState getBlockStateSafe() {
+        BlockState blockState = this.getBlockState();
+
+        if (blockState.getBlock() != RegistryBlocks.placed_items) {
+            if (this.level == null) {
+                return RegistryBlocks.placed_items.defaultBlockState();
+            }
+
+            blockState = this.level.getBlockState(this.worldPosition);
+        }
+
+        if (blockState.getBlock() != RegistryBlocks.placed_items) {
+            return RegistryBlocks.placed_items.defaultBlockState();
+        }
+
+        return blockState;
+    }
+
     private void updateContentsBoxes(int count) {
-        Objects.requireNonNull(this.level);
         BoxCollection.Builder builder = new BoxCollection.Builder(false, true);
 
         switch (count) {
@@ -229,7 +247,7 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
         }
 
         // Apply Facing
-        Direction facing = this.level.getBlockState(this.getBlockPos()).getValue(FACING);
+        Direction facing = this.getBlockStateSafe().getValue(FACING);
 
         switch (facing) {
             case UP: // DOWN
@@ -305,8 +323,10 @@ public class TilePlacedItems extends TileEntity implements ISidedInventory, ITic
 
     @Override
     public void tick() {
-        Objects.requireNonNull(level);
+        if (level == null) return;
+
         if (level.isClientSide) return;
+
         if (needsCleaning) {
             if (clean()) {
                 this.setChanged();
