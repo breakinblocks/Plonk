@@ -47,7 +47,7 @@
 - Fix tile rotation not being read
 - Adjust rendering to no longer change lighting state
 
-# [9.0.3] - 2020-11-22
+## [9.0.3] - 2020-11-22
 
 - Updated to 1.16.4
 
