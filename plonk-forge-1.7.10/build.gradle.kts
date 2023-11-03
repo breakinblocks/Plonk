@@ -1,6 +1,7 @@
 @file:Suppress("PropertyName")
 
 import com.google.common.collect.ImmutableMap
+import net.minecraftforge.gradle.delayed.DelayedFile
 import net.minecraftforge.gradle.tasks.CreateStartTask
 import net.minecraftforge.gradle.tasks.user.SourceCopyTask
 import net.minecraftforge.gradle.user.UserExtension
@@ -82,24 +83,15 @@ tasks.runClient {
 // Make the CreateStartTask compile using java 8, not sure why it's not defaulting to the project one...
 // Since replacing tasks is deprecated, disabling and copying over the values to a finalizer task is the best we can do.
 tasks.filterIsInstance(CreateStartTask::class.java).forEach {
-    if (it is CreateStartFixedTask) {
-        return@forEach
-    }
     it.enabled = false
     val makeStartFixed = tasks.create(it.name + "Fixed", CreateStartFixedTask::class.java)
+    makeStartFixed.createStartTask = it
     it.finalizedBy(makeStartFixed)
-    for ((resource, outName) in it.resources) {
-        makeStartFixed.addResource(resource, outName)
-    }
-    for ((token, replacement) in it.replacements) {
-        makeStartFixed.addReplacement(token, replacement)
-    }
-    makeStartFixed.setStartOut(it.startOut) // Ahhhhh the getter resolves the delayed file...
-    // We're gonna need a wrapper instead.
 }
 
-abstract class CreateStartFixedTask : CreateStartTask() {
+abstract class CreateStartFixedTask : DefaultTask() {
     companion object {
+        lateinit var startOutField: Field
         lateinit var compileField: Field
         lateinit var classpathField: Field
         lateinit var resolveStringMethod: Method
@@ -109,34 +101,64 @@ abstract class CreateStartFixedTask : CreateStartTask() {
 
             for (field in baseClass.declaredFields) {
                 when (field.name) {
-                    "compile" -> compileField = field
-                    "classpath" -> classpathField = field
+                    "startOut" -> startOutField = makeAccessible(field)
+                    "compile" -> compileField = makeAccessible(field)
+                    "classpath" -> classpathField = makeAccessible(field)
                 }
             }
 
             for (method in baseClass.declaredMethods) {
                 when (method.name) {
-                    "resolveString" -> resolveStringMethod = method
+                    "resolveString" -> resolveStringMethod = makeAccessible(method)
                 }
             }
         }
+
+        private fun makeAccessible(field: Field): Field {
+            field.isAccessible = true
+            return field
+        }
+
+        private fun makeAccessible(method: Method): Method {
+            method.isAccessible = true
+            return method
+        }
     }
+
+    @Internal
+    var createStartTask: CreateStartTask? = null
+
+    val resources: HashMap<String, String>
+        @Input
+        get() {
+            return createStartTask!!.resources
+        }
+
+    val startOut: DelayedFile
+        @OutputDirectory
+        get() {
+            return startOutField.get(createStartTask) as DelayedFile
+        }
 
     @TaskAction
     @Throws(IOException::class)
-    override fun doStuff() {
+    fun doStuff() {
         // resolve the replacements
-        for ((key, value) in replacements) {
-            replacements[key] = resolveStringMethod.invoke(this, value) as String
+        for ((key, value) in createStartTask!!.replacements) {
+            createStartTask!!.replacements[key] = resolveStringMethod.invoke(createStartTask, value) as String
         }
 
         // set the output of the files
-        val resourceDir = if (compileField.getBoolean(this)) File(temporaryDir, "extracted") else startOut
+        val resourceDir =
+            if (compileField.getBoolean(createStartTask)) File(
+                temporaryDir,
+                "extracted"
+            ) else createStartTask!!.startOut
 
         // replace and extract
-        for (resEntry in resources.entries) {
+        for (resEntry in createStartTask!!.resources.entries) {
             var out = resEntry.value
-            for ((key, value) in replacements) {
+            for ((key, value) in createStartTask!!.replacements) {
                 out = out.replace(key!!, (value as String))
             }
 
@@ -147,8 +169,8 @@ abstract class CreateStartFixedTask : CreateStartTask() {
         }
 
         // now compile, if im compiling.
-        if (compileField.getBoolean(this)) {
-            val compiled = startOut
+        if (compileField.getBoolean(createStartTask)) {
+            val compiled = createStartTask!!.startOut
             compiled.mkdirs()
             this.ant.invokeMethod(
                 "javac", ImmutableMap.builder<Any, Any>()
@@ -156,7 +178,10 @@ abstract class CreateStartFixedTask : CreateStartTask() {
                     .put("destDir", compiled.canonicalPath)
                     .put("failonerror", true)
                     .put("includeantruntime", false)
-                    .put("classpath", project.configurations.getByName(classpathField.get(this) as String).asPath)
+                    .put(
+                        "classpath",
+                        project.configurations.getByName(classpathField.get(createStartTask) as String).asPath
+                    )
                     .put("encoding", StandardCharsets.UTF_8)
                     // The only real change is to make these 1.8 instead of 1.6.
                     .put("source", "1.8")
