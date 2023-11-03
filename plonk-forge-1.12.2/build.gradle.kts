@@ -22,6 +22,19 @@ base.archivesName.set("plonk-${mc_version}")
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(8))
 
+sourceSets {
+    main {
+        blossom {
+            javaSources {
+//                replaceToken("version = \"\"", "version = \"${mod_version}\"")
+//                replaceToken("dependencies = \"\"", "dependencies = \"required-after:forge@${forge_version_range_supported};\"")
+//                replaceToken("acceptedMinecraftVersions = \"\"", "acceptedMinecraftVersions = \"${mc_version_range_supported}\"")
+//                replaceTokenIn("/Plonk.java")
+            }
+        }
+    }
+}
+
 configure<UserDevExtension> {
     mappings(mappings_channel, mappings_version)
     runs {
@@ -51,13 +64,6 @@ configure<UserDevExtension> {
 
 dependencies {
     add("minecraft", "net.minecraftforge:forge:${mc_version}-${forge_version}")
-}
-
-configure<BlossomExtension> {
-    replaceToken("version = \"\"", "version = \"${mod_version}\"")
-    replaceToken("dependencies = \"\"", "dependencies = \"required-after:forge@${forge_version_range_supported};\"")
-    replaceToken("acceptedMinecraftVersions = \"\"", "acceptedMinecraftVersions = \"${mc_version_range_supported}\"")
-    replaceTokenIn("/Plonk.java")
 }
 
 tasks.named<ProcessResources>("processResources") {
