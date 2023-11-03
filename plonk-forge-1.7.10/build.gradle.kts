@@ -35,6 +35,14 @@ configure<JavaPluginExtension> {
     targetCompatibility = null
 }
 
+tasks.withType<JavaCompile> {
+    if (sourceCompatibility == "1.6" || targetCompatibility == "1.6") {
+        val version = java.toolchain.languageVersion.get().toString()
+        sourceCompatibility = version
+        targetCompatibility = version
+    }
+}
+
 sourceSets {
     main {
         blossom {
@@ -81,7 +89,7 @@ tasks.runClient {
 }
 
 // Make the CreateStartTask compile using java 8, not sure why it's not defaulting to the project one...
-// Since replacing tasks is deprecated, disabling and copying over the values to a finalizer task is the best we can do.
+// Since replacing tasks is deprecated, disabling and using a finalizer task is the best we can do.
 tasks.filterIsInstance(CreateStartTask::class.java).forEach {
     it.enabled = false
     val makeStartFixed = tasks.create(it.name + "Fixed", CreateStartFixedTask::class.java)
