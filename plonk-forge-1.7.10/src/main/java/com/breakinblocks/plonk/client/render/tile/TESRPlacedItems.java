@@ -1,6 +1,6 @@
 package com.breakinblocks.plonk.client.render.tile;
 
-import com.breakinblocks.plonk.Plonk;
+import com.breakinblocks.plonk.PlonkConstants;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
 import cpw.mods.fml.common.Loader;
 import net.minecraft.block.Block;
@@ -25,7 +25,7 @@ import static net.minecraftforge.client.IItemRenderer.ItemRenderType.ENTITY;
 import static net.minecraftforge.client.IItemRenderer.ItemRendererHelper.BLOCK_3D;
 
 public class TESRPlacedItems extends TileEntitySpecialRenderer {
-    private static final boolean ITEM_PHYSIC = Loader.isModLoaded(Plonk.ITEM_PHYSIC_MOD_ID);
+    private static final boolean ITEM_PHYSIC = Loader.isModLoaded(PlonkConstants.ITEM_PHYSIC_MOD_ID);
 
     public TESRPlacedItems() {
     }

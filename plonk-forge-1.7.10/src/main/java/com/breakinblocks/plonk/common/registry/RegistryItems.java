@@ -1,6 +1,7 @@
 package com.breakinblocks.plonk.common.registry;
 
 import com.breakinblocks.plonk.Plonk;
+import com.breakinblocks.plonk.PlonkConstants;
 import com.breakinblocks.plonk.common.item.ItemBlockPlacedItems;
 import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.item.Item;
@@ -20,7 +21,7 @@ public class RegistryItems {
                         Plonk.LOG.info("Registering Item: " + name);
                         Item item = (Item) f.get(null);
                         item.setUnlocalizedName(name);
-                        item.setTextureName(Plonk.MOD_ID + ":" + name);
+                        item.setTextureName(PlonkConstants.MOD_ID + ":" + name);
                         GameRegistry.registerItem(item, name);
                     }
                 }

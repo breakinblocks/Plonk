@@ -36,21 +36,18 @@ configure<JavaPluginExtension> {
 }
 
 tasks.withType<JavaCompile> {
-    if (sourceCompatibility == "1.6" || targetCompatibility == "1.6") {
-        val version = java.toolchain.languageVersion.get().toString()
-        sourceCompatibility = version
-        targetCompatibility = version
-    }
+    val languageVersionString = java.toolchain.languageVersion.get().toString()
+    sourceCompatibility = languageVersionString
+    targetCompatibility = languageVersionString
 }
 
 sourceSets {
     main {
         blossom {
             javaSources {
-//                replaceToken("version = \"\"", "version = \"${mod_version}\"")
-//                replaceToken("dependencies = \"\"", "dependencies = \"required-after:Forge@${forge_version_range_supported};\"")
-//                replaceToken("acceptedMinecraftVersions = \"\"", "acceptedMinecraftVersions = \"${mc_version_range_supported}\"")
-//                replaceTokenIn("/Plonk.java")
+                property("version", mod_version)
+                property("dependencies", "required-after:Forge@${forge_version_range_supported};")
+                property("acceptedMinecraftVersions", mc_version_range_supported)
             }
         }
     }
@@ -67,6 +64,12 @@ dependencies {
 
 // Use Blossom instead of FG source replacement
 tasks.filterIsInstance(SourceCopyTask::class.java).forEach { it.enabled = false }
+
+// Undo modifications the main java compile task (by ForgeGradle) that redirected the sources to the copy task output.
+// This has the benefit of errors linking to the actual source files!
+tasks.named<JavaCompile>(sourceSets.main.get().compileJavaTaskName) {
+    this.source = sourceSets.main.get().java
+}
 
 tasks.processResources {
     inputs.property("mod_version", mod_version)

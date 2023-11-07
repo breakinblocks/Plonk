@@ -1,6 +1,6 @@
 package com.breakinblocks.plonk.client.gui;
 
-import com.breakinblocks.plonk.Plonk;
+import com.breakinblocks.plonk.PlonkConstants;
 import com.breakinblocks.plonk.common.config.PlonkConfig;
 import cpw.mods.fml.client.config.GuiConfig;
 import net.minecraft.client.gui.GuiScreen;
@@ -12,10 +12,10 @@ public class GuiPlonkConfig extends GuiConfig {
         super(
                 parentScreen,
                 new ConfigElement<>(PlonkConfig.config.getCategory(Configuration.CATEGORY_GENERAL)).getChildElements(),
-                Plonk.MOD_ID,
+                PlonkConstants.MOD_ID,
                 false,
                 false,
-                Plonk.NAME
+                PlonkConstants.MOD_NAME
         );
     }
 }
