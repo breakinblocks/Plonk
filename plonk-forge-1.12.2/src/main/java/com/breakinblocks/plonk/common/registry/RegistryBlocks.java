@@ -1,6 +1,7 @@
 package com.breakinblocks.plonk.common.registry;
 
 import com.breakinblocks.plonk.Plonk;
+import com.breakinblocks.plonk.PlonkConstants;
 import com.breakinblocks.plonk.common.block.BlockPlacedItems;
 import net.minecraft.block.Block;
 import net.minecraftforge.event.RegistryEvent;
@@ -20,7 +21,7 @@ public class RegistryBlocks {
                         Plonk.LOG.info("Registering Block: " + name);
                         Block block = (Block) f.get(null);
                         block.setTranslationKey(name);
-                        block.setRegistryName(Plonk.MOD_ID, name);
+                        block.setRegistryName(PlonkConstants.MOD_ID, name);
                         event.getRegistry().register(block);
                     }
                 }

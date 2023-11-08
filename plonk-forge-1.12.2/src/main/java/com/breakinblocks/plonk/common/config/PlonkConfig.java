@@ -1,6 +1,6 @@
 package com.breakinblocks.plonk.common.config;
 
-import com.breakinblocks.plonk.Plonk;
+import com.breakinblocks.plonk.PlonkConstants;
 import com.breakinblocks.plonk.common.util.ItemUtils;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
@@ -45,8 +45,8 @@ public class PlonkConfig {
 
         unplaceableItems = Arrays.stream(config.getStringList(
                 "unplaceableItems", Configuration.CATEGORY_GENERAL, new String[]{
-                        Plonk.CARRY_ON_MOD_ID + ":entity_item",
-                        Plonk.CARRY_ON_MOD_ID + ":tile_item"
+                        PlonkConstants.CARRY_ON_MOD_ID + ":entity_item",
+                        PlonkConstants.CARRY_ON_MOD_ID + ":tile_item"
                 },
                 "Items that cannot be placed down, in the format 'mod_id:item_id' e.g. minecraft:carrot"
         )).map(ResourceLocation::new).collect(Collectors.toCollection(LinkedHashSet::new));
@@ -66,7 +66,7 @@ public class PlonkConfig {
     public static class Listener {
         @SubscribeEvent
         public void reloadConfig(OnConfigChangedEvent event) {
-            if (!event.getModID().equals(Plonk.MOD_ID)) return;
+            if (!event.getModID().equals(PlonkConstants.MOD_ID)) return;
             sync();
         }
     }

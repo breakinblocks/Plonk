@@ -1,6 +1,7 @@
 package com.breakinblocks.plonk.common.registry;
 
 import com.breakinblocks.plonk.Plonk;
+import com.breakinblocks.plonk.PlonkConstants;
 import com.breakinblocks.plonk.common.item.ItemBlockPlacedItems;
 import net.minecraft.item.Item;
 import net.minecraftforge.event.RegistryEvent;
@@ -20,7 +21,7 @@ public class RegistryItems {
                         Plonk.LOG.info("Registering Item: " + name);
                         Item item = (Item) f.get(null);
                         item.setTranslationKey(name);
-                        item.setRegistryName(Plonk.MOD_ID, name);
+                        item.setRegistryName(PlonkConstants.MOD_ID, name);
                         event.getRegistry().register(item);
                     }
                 }

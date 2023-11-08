@@ -1,6 +1,7 @@
 package com.breakinblocks.plonk.common.registry;
 
 import com.breakinblocks.plonk.Plonk;
+import com.breakinblocks.plonk.PlonkConstants;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
@@ -21,7 +22,7 @@ public class RegistryTileEntities {
                         Class<?> clazz = (Class<?>) f.get(null);
                         if (TileEntity.class.isAssignableFrom(clazz)) {
                             Class<? extends TileEntity> tileClass = clazz.asSubclass(TileEntity.class);
-                            ResourceLocation r = new ResourceLocation(Plonk.MOD_ID, f.getName());
+                            ResourceLocation r = new ResourceLocation(PlonkConstants.MOD_ID, f.getName());
                             Plonk.LOG.info("Registering TileEntity: " + r);
                             GameRegistry.registerTileEntity(tileClass, r);
                         }

@@ -26,10 +26,9 @@ sourceSets {
     main {
         blossom {
             javaSources {
-//                replaceToken("version = \"\"", "version = \"${mod_version}\"")
-//                replaceToken("dependencies = \"\"", "dependencies = \"required-after:forge@${forge_version_range_supported};\"")
-//                replaceToken("acceptedMinecraftVersions = \"\"", "acceptedMinecraftVersions = \"${mc_version_range_supported}\"")
-//                replaceTokenIn("/Plonk.java")
+                property("version", mod_version)
+                property("dependencies", "required-after:Forge@${forge_version_range_supported};")
+                property("acceptedMinecraftVersions", mc_version_range_supported)
             }
         }
     }
