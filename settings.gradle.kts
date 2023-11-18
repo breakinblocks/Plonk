@@ -5,14 +5,17 @@ pluginManagement {
                 "net.kyori.blossom" -> {
                     useModule("net.kyori:blossom:2.1.0")
                 }
+
                 "net.minecraftforge.gradle" -> {
                     // https://files.minecraftforge.net/net/minecraftforge/gradle/ForgeGradle/
                     useModule("net.minecraftforge.gradle:ForgeGradle:6.0.14")
                 }
+
                 "forge" -> {
                     // https://github.com/anatawa12/ForgeGradle-1.2
                     useModule("com.anatawa12.forge:ForgeGradle:1.2-1.1.1")
                 }
+
                 "org.parchmentmc.librarian.forgegradle" -> {
                     useModule("org.parchmentmc.librarian.forgegradle:org.parchmentmc.librarian.forgegradle.gradle.plugin:1.2.0")
                 }
