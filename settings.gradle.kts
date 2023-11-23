@@ -3,12 +3,13 @@ pluginManagement {
         eachPlugin {
             when (requested.id.toString()) {
                 "net.kyori.blossom" -> {
+                    // https://github.com/KyoriPowered/blossom
                     useModule("net.kyori:blossom:2.1.0")
                 }
 
                 "net.minecraftforge.gradle" -> {
                     // https://files.minecraftforge.net/net/minecraftforge/gradle/ForgeGradle/
-                    useModule("net.minecraftforge.gradle:ForgeGradle:6.0.14")
+                    useModule("net.minecraftforge.gradle:ForgeGradle:6.0.16")
                 }
 
                 "forge" -> {
@@ -17,7 +18,8 @@ pluginManagement {
                 }
 
                 "org.parchmentmc.librarian.forgegradle" -> {
-                    useModule("org.parchmentmc.librarian.forgegradle:org.parchmentmc.librarian.forgegradle.gradle.plugin:1.2.0")
+                    // https://ldtteam.jfrog.io/ui/native/parchmentmc-public/org/parchmentmc/librarian/
+                    useModule("org.parchmentmc:librarian:1.2.0")
                 }
             }
         }
@@ -27,23 +29,20 @@ pluginManagement {
             name = "MinecraftForge"
             url = uri("https://maven.minecraftforge.net")
             content {
-                includeGroup("de.oceanlabs.mcp")
-                includeGroup("net.minecraft")
-                includeGroup("net.minecraftforge")
-                includeGroup("net.minecraftforge.gradle")
+                includeGroupAndSubgroups("de.oceanlabs.mcp")
+                includeGroupAndSubgroups("net.minecraft")
+                includeGroupAndSubgroups("net.minecraftforge")
             }
         }
         maven {
             url = uri("https://maven.parchmentmc.org")
             content {
-                includeGroup("org.parchmentmc")
-                includeGroup("org.parchmentmc.feather")
-                includeGroup("org.parchmentmc.librarian.forgegradle")
+                includeGroupAndSubgroups("org.parchmentmc")
             }
         }
         gradlePluginPortal {
             content {
-                includeGroup("net.kyori")
+                includeGroupAndSubgroups("net.kyori")
             }
         }
         mavenCentral()
@@ -52,10 +51,16 @@ pluginManagement {
 
 rootProject.name = "plonk"
 
-include("plonk-forge")
-include("plonk-forge-1.18.2")
-include("plonk-forge-1.16.5")
-include("plonk-forge-1.15.2")
-include("plonk-forge-1.14.4")
-include("plonk-forge-1.12.2")
-include("plonk-forge-1.7.10")
+include("projects:minecraft:latest:forge")
+
+include("projects:minecraft:v1.18.2:forge")
+
+include("projects:minecraft:v1.16.5:forge")
+
+include("projects:minecraft:v1.15.2:forge")
+
+include("projects:minecraft:v1.14.4:forge")
+
+include("projects:minecraft:v1.12.2:forge")
+
+include("projects:minecraft:v1.7.10:forge")
