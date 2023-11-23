@@ -12,8 +12,8 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 
 val mod_version: String by project
-val mc_version: String by project
-val mc_version_range_supported: String by project
+val minecraft_version: String by project
+val minecraft_version_range_supported: String by project
 val forge_version: String by project
 val forge_version_range_supported: String by project
 
@@ -24,7 +24,7 @@ plugins {
 
 version = mod_version
 group = "com.breakinblocks.plonk"
-base.archivesName.set("plonk-${mc_version}")
+base.archivesName.set("plonk-${minecraft_version}")
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(8))
 
@@ -45,16 +45,20 @@ sourceSets {
     main {
         blossom {
             javaSources {
-                property("version", mod_version)
-                property("dependencies", "required-after:Forge@${forge_version_range_supported};")
-                property("acceptedMinecraftVersions", mc_version_range_supported)
+                property("mod_version", mod_version)
+                property("mod_dependencies", "required-after:Forge@${forge_version_range_supported};")
+                property("mod_accepted_minecraft_versions", minecraft_version_range_supported)
+            }
+            resources {
+                property("mod_version", mod_version)
+                property("minecraft_version", minecraft_version)
             }
         }
     }
 }
 
 configure<UserExtension> {
-    version = "${mc_version}-${forge_version}-${mc_version}"
+    version = "${minecraft_version}-${forge_version}-${minecraft_version}"
     runDir = "run"
 }
 
@@ -69,22 +73,6 @@ tasks.filterIsInstance(SourceCopyTask::class.java).forEach { it.enabled = false 
 // This has the benefit of errors linking to the actual source files!
 tasks.named<JavaCompile>(sourceSets.main.get().compileJavaTaskName) {
     this.source = sourceSets.main.get().java
-}
-
-tasks.processResources {
-    inputs.property("mod_version", mod_version)
-    inputs.property("mc_version", mc_version)
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
-    from(sourceSets["main"].resources.srcDirs) {
-        include("mcmod.info")
-        expand(
-            "mod_version" to mod_version,
-            "mc_version" to mc_version
-        )
-    }
-    from(sourceSets["main"].resources.srcDirs) {
-        exclude("mcmod.info")
-    }
 }
 
 tasks.runClient {

@@ -3,22 +3,23 @@
 import net.minecraftforge.gradle.userdev.UserDevExtension
 
 val mod_version: String by project
-val mc_version: String by project
-val mc_version_range_supported: String by project
-val loader_version_range_supported: String by project
+val minecraft_version: String by project
+val minecraft_version_range_supported: String by project
+val forge_loader_version_range_supported: String by project
 val forge_version: String by project
 val forge_version_range_supported: String by project
 val mappings_channel: String by project
 val mappings_version: String by project
 
 plugins {
+    id("net.kyori.blossom")
     id("net.minecraftforge.gradle")
     id("org.parchmentmc.librarian.forgegradle")
 }
 
 version = mod_version
 group = "com.breakinblocks.plonk"
-base.archivesName.set("plonk-${mc_version}")
+base.archivesName.set("plonk-${minecraft_version}")
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 
@@ -29,6 +30,14 @@ sourceSets {
     main {
         compileClasspath += generated.output
         runtimeClasspath += generated.output
+        blossom {
+            resources {
+                property("mod_version", mod_version)
+                property("minecraft_version_range_supported", minecraft_version_range_supported)
+                property("forge_loader_version_range_supported", forge_loader_version_range_supported)
+                property("forge_version_range_supported", forge_version_range_supported)
+            }
+        }
     }
 }
 
@@ -76,27 +85,7 @@ configure<UserDevExtension> {
 }
 
 dependencies {
-    add("minecraft", "net.minecraftforge:forge:${mc_version}-${forge_version}")
-}
-
-tasks.named<ProcessResources>("processResources") {
-    inputs.property("mod_version", mod_version)
-    inputs.property("mc_version_range_supported", mc_version_range_supported)
-    inputs.property("loader_version_range_supported", loader_version_range_supported)
-    inputs.property("forge_version_range_supported", forge_version_range_supported)
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
-    from(sourceSets["main"].resources.srcDirs) {
-        include("META-INF/mods.toml")
-        expand(
-            "mod_version" to mod_version,
-            "mc_version_range_supported" to mc_version_range_supported,
-            "loader_version_range_supported" to loader_version_range_supported,
-            "forge_version_range_supported" to forge_version_range_supported
-        )
-    }
-    from(sourceSets["main"].resources.srcDirs) {
-        exclude("META-INF/mods.toml")
-    }
+    add("minecraft", "net.minecraftforge:forge:${minecraft_version}-${forge_version}")
 }
 
 tasks.named<Jar>("jar") {
@@ -105,8 +94,8 @@ tasks.named<Jar>("jar") {
             "Specification-Title" to "Plonk",
             "Specification-Vendor" to "Breakin' Blocks",
             "Specification-Version" to "1",
-            "Implementation-Title" to project.name,
-            "Implementation-Version" to project.version,
+            "Implementation-Title" to "Plonk",
+            "Implementation-Version" to mod_version,
             "Implementation-Vendor" to "Breakin' Blocks"
         )
     }

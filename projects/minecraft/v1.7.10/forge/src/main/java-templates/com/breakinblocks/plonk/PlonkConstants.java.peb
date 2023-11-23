@@ -3,9 +3,9 @@ package com.breakinblocks.plonk;
 public class PlonkConstants {
     public static final String MOD_ID = "plonk";
     public static final String MOD_NAME = "Plonk";
-    public static final String MOD_VERSION = "{{ version }}";
-    public static final String MOD_DEPENDENCIES = "{{ dependencies }}";
-    public static final String MOD_ACCEPTED_MINECRAFT_VERSIONS = "{{ acceptedMinecraftVersions }}";
+    public static final String MOD_VERSION = "{{ mod_version }}";
+    public static final String MOD_DEPENDENCIES = "{{ mod_dependencies }}";
+    public static final String MOD_ACCEPTED_MINECRAFT_VERSIONS = "{{ mod_accepted_minecraft_versions }}";
     public static final String MOD_GUI_FACTORY = "com.breakinblocks.plonk.client.gui.GuiFactoryPlonk";
     public static final String CARRY_ON_MOD_ID = "carryon";
     public static final String ITEM_PHYSIC_MOD_ID = "itemphysic";

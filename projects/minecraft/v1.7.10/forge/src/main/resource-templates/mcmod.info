@@ -3,8 +3,8 @@
     "modid": "plonk",
     "name": "Plonk",
     "description": "Place items down",
-    "version": "${mod_version}",
-    "mcversion": "${mc_version}",
+    "version": "{{ mod_version }}",
+    "mcversion": "{{ minecraft_version }}",
     "url": "",
     "updateUrl": "",
     "authorList": [

@@ -1,11 +1,10 @@
 @file:Suppress("PropertyName")
 
-import net.kyori.blossom.BlossomExtension
 import net.minecraftforge.gradle.userdev.UserDevExtension
 
 val mod_version: String by project
-val mc_version: String by project
-val mc_version_range_supported: String by project
+val minecraft_version: String by project
+val minecraft_version_range_supported: String by project
 val forge_version: String by project
 val forge_version_range_supported: String by project
 val mappings_channel: String by project
@@ -18,7 +17,7 @@ plugins {
 
 version = mod_version
 group = "com.breakinblocks.plonk"
-base.archivesName.set("plonk-${mc_version}")
+base.archivesName.set("plonk-${minecraft_version}")
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(8))
 
@@ -26,9 +25,13 @@ sourceSets {
     main {
         blossom {
             javaSources {
-                property("version", mod_version)
-                property("dependencies", "required-after:Forge@${forge_version_range_supported};")
-                property("acceptedMinecraftVersions", mc_version_range_supported)
+                property("mod_version", mod_version)
+                property("mod_dependencies", "required-after:Forge@${forge_version_range_supported};")
+                property("mod_accepted_minecraft_versions", minecraft_version_range_supported)
+            }
+            resources {
+                property("mod_version", mod_version)
+                property("minecraft_version", minecraft_version)
             }
         }
     }
@@ -62,21 +65,5 @@ configure<UserDevExtension> {
 }
 
 dependencies {
-    add("minecraft", "net.minecraftforge:forge:${mc_version}-${forge_version}")
-}
-
-tasks.named<ProcessResources>("processResources") {
-    inputs.property("mod_version", mod_version)
-    inputs.property("mc_version", mc_version)
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
-    from(sourceSets["main"].resources.srcDirs) {
-        include("mcmod.info")
-        expand(
-            "mod_version" to mod_version,
-            "mc_version" to mc_version
-        )
-    }
-    from(sourceSets["main"].resources.srcDirs) {
-        exclude("mcmod.info")
-    }
+    add("minecraft", "net.minecraftforge:forge:${minecraft_version}-${forge_version}")
 }
