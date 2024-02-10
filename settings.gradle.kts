@@ -53,6 +53,10 @@ rootProject.name = "plonk"
 
 include("projects:minecraft:latest:forge")
 
+include("projects:minecraft:v1.19.4:forge")
+
+include("projects:minecraft:v1.19.2:forge")
+
 include("projects:minecraft:v1.18.2:forge")
 
 include("projects:minecraft:v1.16.5:forge")
