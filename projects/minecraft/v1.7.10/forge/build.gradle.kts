@@ -22,12 +22,6 @@ plugins {
     id("forge")
 }
 
-version = mod_version
-group = "com.breakinblocks.plonk"
-base.archivesName.set("plonk-${minecraft_version}")
-
-java.toolchain.languageVersion.set(JavaLanguageVersion.of(8))
-
 // Workaround for the source and target compatibility being set by something...
 @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
 configure<JavaPluginExtension> {

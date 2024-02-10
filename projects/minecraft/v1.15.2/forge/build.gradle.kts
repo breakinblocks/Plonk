@@ -16,12 +16,6 @@ plugins {
     id("net.minecraftforge.gradle")
 }
 
-version = mod_version
-group = "com.breakinblocks.plonk"
-base.archivesName.set("plonk-${minecraft_version}")
-
-java.toolchain.languageVersion.set(JavaLanguageVersion.of(8))
-
 val sourceNames = listOf("main", "generated")
 
 sourceSets {
