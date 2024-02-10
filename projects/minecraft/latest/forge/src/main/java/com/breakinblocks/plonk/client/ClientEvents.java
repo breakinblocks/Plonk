@@ -53,7 +53,7 @@ public class ClientEvents {
     public static void onKeyInput(InputEvent.Key event) {
         Minecraft mc = Minecraft.getInstance();
         LocalPlayer player = mc.player;
-        if (mc.getOverlay() == null && (mc.screen == null || mc.screen.passEvents)) {
+        if (mc.getOverlay() == null && mc.screen == null) {
             if (KEY_PLACE.consumeClick() && player != null) {
                 HitResult hitRaw = mc.hitResult;
                 if (hitRaw != null && hitRaw.getType() == HitResult.Type.BLOCK) {
@@ -72,8 +72,8 @@ public class ClientEvents {
                             EntityUtils.setHeldItemSilent(player, InteractionHand.MAIN_HAND, held);
                         }
                     } else if (player.isShiftKeyDown()) {
-                        if (!rotatePlacedItemsTile(player.level, hit.getBlockPos())) {
-                            rotatePlacedItemsTile(player.level, hit.getBlockPos().relative(hit.getDirection()));
+                        if (!rotatePlacedItemsTile(player.level(), hit.getBlockPos())) {
+                            rotatePlacedItemsTile(player.level(), hit.getBlockPos().relative(hit.getDirection()));
                         }
                     }
                 }

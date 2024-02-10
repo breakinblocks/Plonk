@@ -12,6 +12,7 @@ import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTabs;
@@ -43,7 +44,8 @@ public class CommandDumpRenderTypes implements IPlonkCommand {
     private static LinkedHashSet<ItemStackRef> getAllStacks() {
         LinkedHashSet<ItemStackRef> items = new LinkedHashSet<>();
 
-        CreativeModeTabs.SEARCH.getDisplayItems().stream().map(ItemStackRef::new).forEach(items::add);
+        Objects.requireNonNull(BuiltInRegistries.CREATIVE_MODE_TAB.get(CreativeModeTabs.SEARCH))
+                .getDisplayItems().stream().map(ItemStackRef::new).forEach(items::add);
 
         return items;
     }
@@ -170,7 +172,7 @@ public class CommandDumpRenderTypes implements IPlonkCommand {
                 .append("\t").append(k)
         );
         LOG.info(output);
-        sender.sendSuccess(Component.literal(
+        sender.sendSuccess(() -> Component.literal(
                 "Render Type Data dumped (see logs)"
                         + "\nUnique transforms: " + data.keySet().size()
                         + "\nNum Stacks: " + data.size()

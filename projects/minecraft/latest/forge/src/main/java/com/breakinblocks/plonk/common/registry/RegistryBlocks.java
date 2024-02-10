@@ -21,7 +21,7 @@ public class RegistryBlocks {
      * @see Blocks#GLASS
      */
     public static final BlockPlacedItems placed_items = new BlockPlacedItems(BlockBehaviour.Properties
-            .of(RegistryMaterials.placed_items)
+            .of()
             .strength(0.3F)
             .sound(SoundType.STONE)
             .noOcclusion()

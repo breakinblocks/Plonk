@@ -190,11 +190,11 @@ public class BlockPlacedItems extends BaseEntityBlock implements SimpleWaterlogg
      *
      * @return -1 if no hit otherwise the closest slot
      * @see Entity#pick(double, float, boolean)
-     * @see ForgeMod#REACH_DISTANCE
+     * @see ForgeMod#BLOCK_REACH
      */
     protected int getPickedSlot(TilePlacedItems tile, BlockPos pos, Player player) {
         if (picking.get()) return -1;
-        double blockReachDistance = Objects.requireNonNull(player.getAttribute(ForgeMod.REACH_DISTANCE.get())).getValue();
+        double blockReachDistance = Objects.requireNonNull(player.getAttribute(ForgeMod.BLOCK_REACH.get())).getValue();
         float partialTicks = 0.0f;
 
         // Might have issues if player is moving fast or turning their vision fast

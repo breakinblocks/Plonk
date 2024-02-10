@@ -13,7 +13,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import static net.minecraftforge.common.ForgeMod.REACH_DISTANCE;
+import static net.minecraftforge.common.ForgeMod.BLOCK_REACH;
 
 public class PacketRotateTile extends PacketBase {
     private BlockPos pos;
@@ -45,8 +45,8 @@ public class PacketRotateTile extends PacketBase {
     @Override
     protected void handle(Supplier<NetworkEvent.Context> ctx) {
         ServerPlayer player = Objects.requireNonNull(ctx.get().getSender());
-        ServerLevel world = player.getLevel();
-        double reach = player.getAttributeValue(REACH_DISTANCE.get()) + 2;
+        ServerLevel world = player.serverLevel();
+        double reach = player.getAttributeValue(BLOCK_REACH.get()) + 2;
         if (player.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) < reach * reach) {
             BlockEntity te = world.getBlockEntity(pos);
             if (te instanceof TilePlacedItems) {

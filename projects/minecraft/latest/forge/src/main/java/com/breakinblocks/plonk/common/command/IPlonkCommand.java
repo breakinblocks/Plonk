@@ -18,7 +18,7 @@ public interface IPlonkCommand {
     }
 
     default int sendUsage(CommandSourceStack source, int exitCode) {
-        source.sendSuccess(Component.literal(getUsage(source)), true);
+        source.sendSuccess(() -> Component.literal(getUsage(source)), true);
         return exitCode;
     }
 

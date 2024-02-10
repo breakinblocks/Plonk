@@ -29,26 +29,9 @@ public class ItemUtils {
         double x = entity.getX();
         double y = entity.getY();
         double z = entity.getZ();
-        ItemEntity entityItem = new ItemEntity(entity.level, x, y, z, stack.copy());
+        ItemEntity entityItem = new ItemEntity(entity.level(), x, y, z, stack.copy());
 
-        return entity.level.addFreshEntity(entityItem) ? entityItem : null;
-    }
-
-    /**
-     * Compares two item stacks for equality, ignoring the stack size.
-     *
-     * @param a First item
-     * @param b Second item
-     * @return True if the item, damage and nbt are the same
-     */
-    public static boolean areStacksEqualIgnoringSize(ItemStack a, ItemStack b) {
-        if (a.isEmpty()) {
-            return b.isEmpty();
-        } else {
-            if (b.isEmpty()) return false;
-            if (!a.sameItem(b)) return false; // checks item and damage but not nbt
-            return ItemStack.tagMatches(a, b);
-        }
+        return entity.level().addFreshEntity(entityItem) ? entityItem : null;
     }
 
     /**
@@ -85,7 +68,7 @@ public class ItemUtils {
                 continue;
             }
             ItemStack current = inv.getItem(slot);
-            if (!current.isEmpty() && !areStacksEqualIgnoringSize(current, remainder)) continue;
+            if (!current.isEmpty() && !ItemStack.isSameItemSameTags(current, remainder)) continue;
             int toTransfer = Math.min(current.getCount() + remainder.getCount(), stackSizeLimit) - current.getCount();
             if (toTransfer <= 0) continue;
             if (current.isEmpty()) {
