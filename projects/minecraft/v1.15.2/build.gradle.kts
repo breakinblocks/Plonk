@@ -9,10 +9,6 @@ subprojects {
         archivesName.set("plonk-${minecraft_version}")
     }
 
-    tasks.named<Jar>("jar") {
-        archiveClassifier.set(this@subprojects.name)
-    }
-
     tasks.withType<JavaCompile> {
         options.encoding = "UTF-8"
     }
@@ -20,5 +16,15 @@ subprojects {
     configure<JavaPluginExtension> {
         toolchain.languageVersion.set(JavaLanguageVersion.of(8))
         withSourcesJar()
+    }
+
+    afterEvaluate {
+        tasks.withType<Jar> {
+            if (!archiveClassifier.isPresent || archiveClassifier.get().isEmpty()) {
+                archiveClassifier.set(this@subprojects.name)
+            } else {
+                archiveClassifier.set(this@subprojects.name + "-" + archiveClassifier.get())
+            }
+        }
     }
 }
