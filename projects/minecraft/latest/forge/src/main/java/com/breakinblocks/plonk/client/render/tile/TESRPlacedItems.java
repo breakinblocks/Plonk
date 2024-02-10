@@ -6,11 +6,9 @@ import com.breakinblocks.plonk.common.tile.TilePlacedItems;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems.ItemMeta;
 import com.breakinblocks.plonk.common.util.MatrixUtils;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Matrix4f;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.blockentity.ShulkerBoxRenderer;
@@ -20,9 +18,14 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.decoration.ItemFrame;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import org.joml.Matrix4f;
+
+import javax.annotation.Nullable;
 
 import static com.breakinblocks.plonk.common.tile.TilePlacedItems.RENDER_TYPE_BLOCK;
 import static com.breakinblocks.plonk.common.tile.TilePlacedItems.RENDER_TYPE_ITEM;
@@ -40,8 +43,8 @@ public class TESRPlacedItems implements BlockEntityRenderer<TilePlacedItems> {
 
     public static int getRenderTypeFromStack(ItemStack itemstack) {
         BakedModel model = itemRenderer.getModel(itemstack, null, null, 0);
-        Matrix4f matrixFixed = RenderUtils.getModelTransformMatrix(model, ItemTransforms.TransformType.FIXED);
-        Matrix4f matrixGui = RenderUtils.getModelTransformMatrix(model, ItemTransforms.TransformType.GUI);
+        Matrix4f matrixFixed = RenderUtils.getModelTransformMatrix(model, ItemDisplayContext.FIXED);
+        Matrix4f matrixGui = RenderUtils.getModelTransformMatrix(model, ItemDisplayContext.GUI);
         Matrix4f difference = MatrixUtils.difference(matrixFixed, matrixGui);
         MatrixUtils.TransformData transform = new MatrixUtils.TransformData(difference);
 
@@ -93,42 +96,44 @@ public class TESRPlacedItems implements BlockEntityRenderer<TilePlacedItems> {
             case DOWN: // UP
                 //GL11.glRotated(180, 1.0, 0.0, 0.0);
                 //GL11.glRotated(180, 0.0, 1.0, 0.0);
-                matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(180));
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180));
+                matrixStackIn.mulPose(Axis.XP.rotationDegrees(180));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(180));
                 break;
             case SOUTH: // NORTH
                 //GL11.glRotated(90, 1.0, 0.0, 0.0);
-                matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(90));
+                matrixStackIn.mulPose(Axis.XP.rotationDegrees(90));
                 break;
             case NORTH: // SOUTH
                 //GL11.glRotated(90, 1.0, 0.0, 0.0);
                 //GL11.glRotated(180, 0.0, 0.0, 1.0);
-                matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(90));
-                matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(180));
+                matrixStackIn.mulPose(Axis.XP.rotationDegrees(90));
+                matrixStackIn.mulPose(Axis.ZP.rotationDegrees(180));
                 break;
             case EAST: // WEST
                 //GL11.glRotated(90, 1.0, 0.0, 0.0);
                 //GL11.glRotated(-90, 0.0, 0.0, 1.0);
-                matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(90));
-                matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(-90));
+                matrixStackIn.mulPose(Axis.XP.rotationDegrees(90));
+                matrixStackIn.mulPose(Axis.ZP.rotationDegrees(-90));
                 break;
             case WEST: // EAST
                 //GL11.glRotated(90, 1.0, 0.0, 0.0);
                 //GL11.glRotated(90, 0.0, 0.0, 1.0);
-                matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(90));
-                matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(90));
+                matrixStackIn.mulPose(Axis.XP.rotationDegrees(90));
+                matrixStackIn.mulPose(Axis.ZP.rotationDegrees(90));
                 break;
         }
 
         matrixStackIn.translate(0.0, -0.5, 0.0);
 
         //Rotate about axis
-        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees((float) -tileEntityIn.getTileRotationAngle()));
+        matrixStackIn.mulPose(Axis.YP.rotationDegrees((float) -tileEntityIn.getTileRotationAngle()));
 
         ItemStack[] contents = tileEntityIn.getContentsDisplay();
         ItemMeta[] contentsMeta = tileEntityIn.getContentsMeta();
         int num = contents.length;
 
+        Level level = tileEntityIn.getLevel();
+        int seed = (int) tileEntityIn.getBlockPos().asLong();
         if (num > 0) {
             boolean halfSize = num > 1;
             for (int slot = 0; slot < num; slot++) {
@@ -154,7 +159,7 @@ public class TESRPlacedItems implements BlockEntityRenderer<TilePlacedItems> {
                         break;
                 }
                 //renderStack(world, stack, partialTicks, halfSize, world.rand.nextBoolean());
-                renderStack(partialTicks, matrixStackIn, bufferIn, combinedLightIn, stack, contentsMeta[slot], halfSize);
+                renderStack(partialTicks, matrixStackIn, bufferIn, combinedLightIn, level, seed + slot, stack, contentsMeta[slot], halfSize);
                 matrixStackIn.popPose();
             }
         }
@@ -170,19 +175,21 @@ public class TESRPlacedItems implements BlockEntityRenderer<TilePlacedItems> {
      * @param matrixStackIn   transformation matrix stack
      * @param bufferIn        render type buffer
      * @param combinedLightIn Block and Sky light combined
+     * @param level           Level the stack is being rendered in
+     * @param seed            Random seed for rendering
      * @param stack           ItemStack to render
      * @param meta            Metadata for the stack
      * @param halfSize        If items should be rendered at half size (blocks are always rendered half size)
      * @see ItemFrameRenderer#render(ItemFrame, float, float, PoseStack, MultiBufferSource, int)
      */
-    public void renderStack(float partialTicks, PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, ItemStack stack, ItemMeta meta, boolean halfSize) {
+    public void renderStack(float partialTicks, PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, @Nullable Level level, int seed, ItemStack stack, ItemMeta meta, boolean halfSize) {
         if (stack.isEmpty()) return;
         matrixStackIn.pushPose();
         //GlStateManager.disableLighting();
 
         // Rotate item
         //GL11.glRotated(-meta.getRotationAngle(), 0.0, 1.0, 0.0);
-        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees((float) -meta.getRotationAngle()));
+        matrixStackIn.mulPose(Axis.YP.rotationDegrees((float) -meta.getRotationAngle()));
 
         // GROUND
         //matrixStackIn.translate(0f, -0.125f, 0f);
@@ -190,7 +197,7 @@ public class TESRPlacedItems implements BlockEntityRenderer<TilePlacedItems> {
 
         // FIXED
         //GlStateManager.rotate(180f, 0f, 1f, 0f);
-        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180f));
+        matrixStackIn.mulPose(Axis.YP.rotationDegrees(180f));
 
         //GlStateManager.pushLightingAttributes();
         //RenderHelper.enableStandardItemLighting();
@@ -198,17 +205,17 @@ public class TESRPlacedItems implements BlockEntityRenderer<TilePlacedItems> {
             case RENDER_TYPE_BLOCK: {
                 matrixStackIn.translate(0f, 0.25f, 0f);
 
-                itemRenderer.renderStatic(stack, ItemTransforms.TransformType.FIXED, combinedLightIn, OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, 0);
+                itemRenderer.renderStatic(stack, ItemDisplayContext.FIXED, combinedLightIn, OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, level, seed);
             }
             break;
             case RENDER_TYPE_ITEM:
             default:
                 matrixStackIn.translate(0f, 2f / 48, 0f);
                 //GlStateManager.rotate(90f, 1f, 0f, 0f);
-                matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(90f));
+                matrixStackIn.mulPose(Axis.XP.rotationDegrees(90f));
                 if (halfSize)
                     matrixStackIn.scale(0.5F, 0.5F, 0.5F);
-                itemRenderer.renderStatic(stack, ItemTransforms.TransformType.FIXED, combinedLightIn, OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, 0);
+                itemRenderer.renderStatic(stack, ItemDisplayContext.FIXED, combinedLightIn, OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, level, seed);
         }
         //RenderHelper.disableStandardItemLighting();
         //GlStateManager.popAttributes();

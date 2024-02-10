@@ -1,7 +1,7 @@
 package com.breakinblocks.plonk.common.util;
 
-import com.mojang.math.Matrix3f;
-import com.mojang.math.Matrix4f;
+import org.joml.Matrix3f;
+import org.joml.Matrix4f;
 
 public class MatrixUtils {
     /**
@@ -18,7 +18,7 @@ public class MatrixUtils {
         Matrix4f aInv = new Matrix4f(a);
         aInv.invert();
         Matrix4f D = new Matrix4f(aInv);
-        D.multiply(b);
+        D.mul(b);
         return D;
     }
 
@@ -31,16 +31,16 @@ public class MatrixUtils {
         public TransformData(Matrix4f mat) {
             // https://math.stackexchange.com/a/1463487
             mat = new Matrix4f(mat);
-            tx = mat.m30;
-            ty = mat.m31;
-            tz = mat.m32;
-            sx = length3f(mat.m00, mat.m10, mat.m20);
-            sy = length3f(mat.m01, mat.m11, mat.m21);
-            sz = length3f(mat.m02, mat.m12, mat.m22);
+            tx = mat.m30();
+            ty = mat.m31();
+            tz = mat.m32();
+            sx = length3f(mat.m00(), mat.m10(), mat.m20());
+            sy = length3f(mat.m01(), mat.m11(), mat.m21());
+            sz = length3f(mat.m02(), mat.m12(), mat.m22());
             rot = newMat3(
-                    mat.m00 / sx, mat.m01 / sy, mat.m02 / sz,
-                    mat.m10 / sx, mat.m11 / sy, mat.m12 / sz,
-                    mat.m20 / sx, mat.m21 / sy, mat.m22 / sz
+                    mat.m00() / sx, mat.m01() / sy, mat.m02() / sz,
+                    mat.m10() / sx, mat.m11() / sy, mat.m12() / sz,
+                    mat.m20() / sx, mat.m21() / sy, mat.m22() / sz
             );
             // https://en.wikipedia.org/wiki/Rotation_formalisms_in_three_dimensions#Conversion_formulae_between_formalisms
             //pitch = Math.toDegrees(Math.atan2(rot.m20, rot.m21));

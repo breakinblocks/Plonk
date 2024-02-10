@@ -3,7 +3,7 @@ package com.breakinblocks.plonk.data;
 import com.breakinblocks.plonk.Plonk;
 import com.breakinblocks.plonk.common.registry.RegistryBlocks;
 import net.minecraft.core.Direction;
-import net.minecraft.data.DataGenerator;
+import net.minecraft.data.PackOutput;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraftforge.client.model.generators.BlockModelBuilder;
@@ -18,8 +18,8 @@ import static com.breakinblocks.plonk.data.DataGenUtils.minecraft;
 import static com.breakinblocks.plonk.data.DataGenUtils.plonk;
 
 public class BlockStates extends BlockStateProvider {
-    public BlockStates(DataGenerator generator, ExistingFileHelper existingFileHelper) {
-        super(generator, Plonk.MOD_ID, existingFileHelper);
+    public BlockStates(PackOutput output, ExistingFileHelper existingFileHelper) {
+        super(output, Plonk.MOD_ID, existingFileHelper);
     }
 
     /**

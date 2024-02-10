@@ -7,29 +7,26 @@ import com.breakinblocks.plonk.common.util.MatrixUtils;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.math.Matrix4f;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.joml.Matrix4f;
 
 import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -46,16 +43,9 @@ public class CommandDumpRenderTypes implements IPlonkCommand {
     private static LinkedHashSet<ItemStackRef> getAllStacks() {
         LinkedHashSet<ItemStackRef> items = new LinkedHashSet<>();
 
-        ForgeRegistries.BLOCKS.forEach(block -> items.addAll(getAllStacks(Item.BY_BLOCK.getOrDefault(block, Items.AIR))));
-        ForgeRegistries.ITEMS.forEach(item -> items.addAll(getAllStacks(item)));
+        CreativeModeTabs.SEARCH.getDisplayItems().stream().map(ItemStackRef::new).forEach(items::add);
 
         return items;
-    }
-
-    private static List<ItemStackRef> getAllStacks(Item item) {
-        NonNullList<ItemStack> subItems = NonNullList.create();
-        item.fillItemCategory(CreativeModeTab.TAB_SEARCH, subItems);
-        return subItems.stream().map(ItemStackRef::new).collect(Collectors.toList());
     }
 
     /**
@@ -75,9 +65,9 @@ public class CommandDumpRenderTypes implements IPlonkCommand {
      */
     private static Stream<Map.Entry<String, String>> getRenderData(ItemStack stack) {
         BakedModel model = itemRenderer.getModel(stack, null, null, 0);
-        ItemTransforms.TransformType[] types = new ItemTransforms.TransformType[]{
-                ItemTransforms.TransformType.FIXED,
-                ItemTransforms.TransformType.GUI
+        ItemDisplayContext[] types = new ItemDisplayContext[]{
+                ItemDisplayContext.FIXED,
+                ItemDisplayContext.GUI
         };
         Map<String, Matrix4f> baseTransforms = Arrays.stream(types).collect(Collectors.toMap(
                 type -> type.name().toLowerCase(Locale.ROOT),
