@@ -1,5 +1,9 @@
 # Changelog
 
+## NEXT
+
+- Ported to Minecraft 1.19.4 for Forge.
+
 ## [10.0.4] - 2023-04-08
 
 - Fix crash from using bad block-state.
