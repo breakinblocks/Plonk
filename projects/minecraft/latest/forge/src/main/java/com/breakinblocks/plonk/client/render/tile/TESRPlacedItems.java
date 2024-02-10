@@ -63,8 +63,8 @@ public class TESRPlacedItems implements BlockEntityRenderer<TilePlacedItems> {
         //for (String line : message.split("\r?\n"))
         //    Minecraft.getInstance().ingameGUI.getChatGUI().printChatMessage(new TextComponent(line));
         // The following is a heuristic
-        // Use block rendering: hRot ~= 83.80586
-        final double blockRot = 83.80586;
+        // Use block rendering: hRot ~= 75
+        final double blockRot = 75;
         if (blockRot - EPS <= hRot && hRot <= blockRot + EPS)
             return RENDER_TYPE_BLOCK;
         return RENDER_TYPE_ITEM;

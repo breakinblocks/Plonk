@@ -158,7 +158,7 @@ public class CommandDumpRenderTypes implements IPlonkCommand {
         final String renderDataHeaders = renderDataHeadersTemp[0];
 
         if (data.isEmpty()) {
-            sender.sendFailure(Component.literal("No data"));
+            sender.sendFailure(Component.literal("No data (open the creative search tab once)"));
             return 0;
         }
 
