@@ -1,6 +1,6 @@
 # Changelog
 
-## NEXT
+## [10.0.5] - 2024-02-10
 
 - Ported to Minecraft 1.19.4 for Forge.
 - Ported to Minecraft 1.20.1 for Forge.
