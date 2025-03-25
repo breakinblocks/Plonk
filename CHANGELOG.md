@@ -1,5 +1,9 @@
 # Changelog
 
+## [10.0.6] - 2025-03-25
+
+- Ported to Minecraft 1.21.1 for NeoForge.
+
 ## [10.0.5] - 2024-02-10
 
 - Ported to Minecraft 1.19.4 for Forge.
