@@ -2,10 +2,15 @@ package com.breakinblocks.plonk.common.item;
 
 import com.breakinblocks.plonk.common.config.PlonkConfig;
 import com.breakinblocks.plonk.common.registry.RegistryBlocks;
+import com.breakinblocks.plonk.common.registry.RegistryDataComponents;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -19,37 +24,56 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class ItemBlockPlacedItems extends BlockItem {
-    private static final String TAG_HELD = "Held";
-    private static final String TAG_RENDER_TYPE = TilePlacedItems.TAG_RENDER_TYPE;
+    public record Data(ItemStack held, int renderType) {
+        public static final Data DEFAULT = new Data(ItemStack.EMPTY, 0);
+        public static final StreamCodec<RegistryFriendlyByteBuf, Data> STREAM_CODEC = StreamCodec.composite(
+                ItemStack.OPTIONAL_STREAM_CODEC,
+                Data::held,
+                ByteBufCodecs.VAR_INT,
+                Data::renderType,
+                Data::new
+        );
+        public static final Codec<Data> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                ItemStack.OPTIONAL_CODEC.fieldOf("Held").forGetter(Data::held),
+                Codec.INT.optionalFieldOf(TilePlacedItems.TAG_RENDER_TYPE, 0).forGetter(Data::renderType)
+        ).apply(instance, Data::new));
+
+        public Data withHeld(ItemStack held) {
+            return new Data(held, renderType);
+        }
+
+        public Data withRenderType(int renderType) {
+            return new Data(held, renderType);
+        }
+    }
 
     public ItemBlockPlacedItems(Item.Properties builder) {
         super(RegistryBlocks.placed_items, builder);
     }
 
+    /**
+     * Do not modify the {@link ItemStack} that is passed in.
+     */
     public void setHeldStack(ItemStack stack, ItemStack held, int renderType) {
-        CompoundTag tagCompound = stack.getOrCreateTag();
-
-        CompoundTag tagCompoundHeld = tagCompound.getCompound(TAG_HELD);
-        held.save(tagCompoundHeld);
-        tagCompound.put(TAG_HELD, tagCompoundHeld);
-
-        tagCompound.putInt(TAG_RENDER_TYPE, renderType);
-
-        stack.setTag(tagCompound);
+        Data data = stack.getComponents().getOrDefault(RegistryDataComponents.ITEM_BLOCK_PLACED_ITEMS_DATA, Data.DEFAULT);
+        data = data.withHeld(held);
+        data = data.withRenderType(renderType);
+        stack.set(RegistryDataComponents.ITEM_BLOCK_PLACED_ITEMS_DATA, data);
     }
 
+    /**
+     * Do not modify the {@link ItemStack} that is returned unless you're immediately clearing it.
+     */
     public ItemStack getHeldStack(ItemStack stack) {
-        CompoundTag tagCompound = stack.getTag();
-        if (tagCompound == null || !tagCompound.contains(TAG_HELD))
+        Data data = stack.getComponents().getOrDefault(RegistryDataComponents.ITEM_BLOCK_PLACED_ITEMS_DATA, Data.DEFAULT);
+        if (data.held == null)
             return ItemStack.EMPTY;
-        return ItemStack.of(tagCompound.getCompound(TAG_HELD));
+        return data.held;
     }
 
     public int getHeldRenderType(ItemStack stack) {
-        CompoundTag tagCompound = stack.getTag();
-        if (tagCompound == null || !tagCompound.contains(TAG_RENDER_TYPE))
-            return 0;
-        return tagCompound.getInt(TAG_RENDER_TYPE);
+        Data data = stack.getComponents().getOrDefault(RegistryDataComponents.ITEM_BLOCK_PLACED_ITEMS_DATA, Data.DEFAULT);
+        return data.renderType;
     }
 
     /**

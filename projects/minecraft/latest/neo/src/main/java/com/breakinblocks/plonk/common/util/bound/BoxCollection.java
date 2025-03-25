@@ -3,7 +3,7 @@ package com.breakinblocks.plonk.common.util.bound;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.common.util.Lazy;
+import net.neoforged.neoforge.common.util.Lazy;
 
 import java.util.ArrayList;
 import java.util.Map;

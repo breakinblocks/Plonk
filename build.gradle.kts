@@ -2,7 +2,7 @@
 
 val mod_version: String by project
 
-subprojects {
+allprojects {
     group = "com.breakinblocks.plonk"
     version = mod_version
 }

@@ -1,12 +1,11 @@
 modLoader = "javafml"
-loaderVersion = "{{ forge_loader_version_range_supported }}"
+loaderVersion = "{{ neo_loader_version_range_supported }}"
 license = "MIT"
 issueTrackerURL = "https://github.com/breakinblocks/Plonk/issues"
 
 [[mods]]
 modId = "plonk"
 version = "{{ mod_version }}"
-displayTest = "MATCH_VERSION"
 displayName = "Plonk"
 displayURL = "https://github.com/breakinblocks/Plonk"
 logoFile = "pack.png"
@@ -15,15 +14,15 @@ authors = "Plonk contributors"
 description = "Place items in the world like item frames but on any surface"
 
 [[dependencies.plonk]]
-modId = "forge"
-mandatory = true
-versionRange = "{{ forge_version_range_supported }}"
+modId = "neoforge"
+type="required"
+versionRange = "{{ neo_version_range_supported }}"
 ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies.plonk]]
 modId = "minecraft"
-mandatory = true
+type="required"
 versionRange = "{{ minecraft_version_range_supported }}"
 ordering = "AFTER"
 side = "BOTH"

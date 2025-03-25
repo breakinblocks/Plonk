@@ -4,16 +4,17 @@ import com.breakinblocks.plonk.common.registry.RegistryTileEntities;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
 import com.breakinblocks.plonk.common.util.ItemUtils;
 import com.breakinblocks.plonk.common.util.WorldUtils;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.client.particle.ParticleEngine;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.Containers;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -21,7 +22,6 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.block.AbstractGlassBlock;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.ChestBlock;
@@ -29,6 +29,7 @@ import net.minecraft.world.level.block.DirectionalBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.TransparentBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -47,9 +48,8 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.EntityCollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.client.event.RenderHighlightEvent;
-import net.minecraftforge.client.extensions.common.IClientBlockExtensions;
-import net.minecraftforge.common.ForgeMod;
+import net.neoforged.neoforge.client.event.RenderHighlightEvent;
+import net.neoforged.neoforge.client.extensions.common.IClientBlockExtensions;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
@@ -60,6 +60,7 @@ import java.util.function.Consumer;
  */
 public class BlockPlacedItems extends BaseEntityBlock implements SimpleWaterloggedBlock {
 
+    public static final MapCodec<BlockPlacedItems> CODEC = simpleCodec(BlockPlacedItems::new);
     public static final DirectionProperty FACING = DirectionalBlock.FACING;
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
     /**
@@ -74,6 +75,11 @@ public class BlockPlacedItems extends BaseEntityBlock implements SimpleWaterlogg
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.UP));
     }
 
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
+    }
+
     @Nullable
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level pLevel, BlockState pState, BlockEntityType<T> pBlockEntityType) {
         if (pLevel.isClientSide) {
@@ -84,7 +90,6 @@ public class BlockPlacedItems extends BaseEntityBlock implements SimpleWaterlogg
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public RenderShape getRenderShape(BlockState state) {
         //if (true) return RenderShape.MODEL;
         return RenderShape.ENTITYBLOCK_ANIMATED;
@@ -94,7 +99,6 @@ public class BlockPlacedItems extends BaseEntityBlock implements SimpleWaterlogg
      * @see ChestBlock#updateShape(BlockState, Direction, BlockState, LevelAccessor, BlockPos, BlockPos)
      */
     @Override
-    @SuppressWarnings("deprecation")
     public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, LevelAccessor worldIn, BlockPos currentPos, BlockPos facingPos) {
         if (stateIn.getValue(WATERLOGGED)) {
             worldIn.scheduleTick(currentPos, Fluids.WATER, Fluids.WATER.getTickDelay(worldIn));
@@ -104,7 +108,6 @@ public class BlockPlacedItems extends BaseEntityBlock implements SimpleWaterlogg
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context) {
         // Used for block selection (and also rendering of the selection)
         return WorldUtils.withTile(worldIn, pos, TilePlacedItems.class, tile -> {
@@ -120,8 +123,6 @@ public class BlockPlacedItems extends BaseEntityBlock implements SimpleWaterlogg
     }
 
     @Override
-    @Deprecated
-    @SuppressWarnings("deprecation")
     public VoxelShape getCollisionShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context) {
         // Used for collision with entities
         return WorldUtils.withTile(worldIn, pos, TilePlacedItems.class,
@@ -130,8 +131,6 @@ public class BlockPlacedItems extends BaseEntityBlock implements SimpleWaterlogg
     }
 
     @Override
-    @Deprecated
-    @SuppressWarnings("deprecation")
     public VoxelShape getVisualShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context) {
         // Used for colliding with the camera (third person)
         return Shapes.empty();
@@ -151,16 +150,14 @@ public class BlockPlacedItems extends BaseEntityBlock implements SimpleWaterlogg
      * @see ChestBlock#getFluidState(BlockState)
      */
     @Override
-    @SuppressWarnings("deprecation")
     public FluidState getFluidState(BlockState state) {
         return state.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
     }
 
     /**
-     * @see AbstractGlassBlock#getShadeBrightness(BlockState, BlockGetter, BlockPos)
+     * @see TransparentBlock#getShadeBrightness(BlockState, BlockGetter, BlockPos)
      */
     @Override
-    @SuppressWarnings("deprecation")
     public float getShadeBrightness(BlockState state, BlockGetter worldIn, BlockPos pos) {
         return 1.0F;
     }
@@ -169,7 +166,6 @@ public class BlockPlacedItems extends BaseEntityBlock implements SimpleWaterlogg
      * @see ChestBlock#onRemove(BlockState, Level, BlockPos, BlockState, boolean)
      */
     @Override
-    @SuppressWarnings("deprecation")
     public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
         if (!state.is(newState.getBlock())) {
             BlockEntity tileentity = worldIn.getBlockEntity(pos);
@@ -190,11 +186,11 @@ public class BlockPlacedItems extends BaseEntityBlock implements SimpleWaterlogg
      *
      * @return -1 if no hit otherwise the closest slot
      * @see Entity#pick(double, float, boolean)
-     * @see ForgeMod#BLOCK_REACH
+     * @see Attributes#BLOCK_INTERACTION_RANGE
      */
     protected int getPickedSlot(TilePlacedItems tile, BlockPos pos, Player player) {
         if (picking.get()) return -1;
-        double blockReachDistance = Objects.requireNonNull(player.getAttribute(ForgeMod.BLOCK_REACH.get())).getValue();
+        double blockReachDistance = Objects.requireNonNull(player.getAttribute(Attributes.BLOCK_INTERACTION_RANGE)).getValue();
         float partialTicks = 0.0f;
 
         // Might have issues if player is moving fast or turning their vision fast
@@ -215,8 +211,7 @@ public class BlockPlacedItems extends BaseEntityBlock implements SimpleWaterlogg
     }
 
     @Override
-    @SuppressWarnings("deprecation")
-    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
+    public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
         if (worldIn.isClientSide) return InteractionResult.SUCCESS;
 
         TilePlacedItems tile = (TilePlacedItems) worldIn.getBlockEntity(pos);
@@ -238,7 +233,8 @@ public class BlockPlacedItems extends BaseEntityBlock implements SimpleWaterlogg
             }
             return InteractionResult.CONSUME;
         }
-        return super.use(state, worldIn, pos, player, handIn, hit);
+
+        return super.useWithoutItem(state, worldIn, pos, player, hit);
     }
 
     @Override
@@ -275,8 +271,8 @@ public class BlockPlacedItems extends BaseEntityBlock implements SimpleWaterlogg
     }
 
     @Override
-    public ItemStack getCloneItemStack(BlockState state, HitResult target, BlockGetter world, BlockPos pos, Player player) {
-        return WorldUtils.withTile(world, pos, TilePlacedItems.class, tile -> {
+    public ItemStack getCloneItemStack(BlockState state, HitResult target, LevelReader level, BlockPos pos, Player player) {
+        return WorldUtils.withTile(level, pos, TilePlacedItems.class, tile -> {
             int slot = getPickedSlot(tile, pos, player);
             return slot >= 0 ? tile.getItem(slot) : ItemStack.EMPTY;
         }, () -> ItemStack.EMPTY);
@@ -292,8 +288,7 @@ public class BlockPlacedItems extends BaseEntityBlock implements SimpleWaterlogg
         return true;
     }
 
-    @Override
-    public void initializeClient(Consumer<IClientBlockExtensions> consumer) {
+    public static void initializeClientStatic(Consumer<IClientBlockExtensions> consumer) {
         consumer.accept(new IClientBlockExtensions() {
             @Override
             public boolean addHitEffects(BlockState state, Level Level, HitResult target, ParticleEngine manager) {

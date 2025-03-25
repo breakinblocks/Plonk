@@ -40,7 +40,7 @@ public class EntityUtils {
             player.getInventory().items.set(player.getInventory().selected, stack);
         } else if (slotIn == EquipmentSlot.OFFHAND) {
             player.getInventory().offhand.set(0, stack);
-        } else if (slotIn.getType() == EquipmentSlot.Type.ARMOR) {
+        } else if (slotIn.getType() == EquipmentSlot.Type.HUMANOID_ARMOR) {
             player.getInventory().armor.set(slotIn.getIndex(), stack);
         }
     }

@@ -1,54 +1,45 @@
 package com.breakinblocks.plonk.common.packet;
 
+import com.breakinblocks.plonk.Plonk;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Supplier;
 
-import static net.minecraftforge.common.ForgeMod.BLOCK_REACH;
+public record PacketRotateTile(BlockPos pos) implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<PacketRotateTile> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(Plonk.MOD_ID, "rotate_tile"));
 
-public class PacketRotateTile extends PacketBase {
-    private BlockPos pos;
-
-    public PacketRotateTile() {
-    }
-
-    public PacketRotateTile(BlockPos pos) {
-        this.pos = pos;
-    }
-
+    public static final StreamCodec<ByteBuf, PacketRotateTile> STREAM_CODEC = StreamCodec.composite(
+            BlockPos.STREAM_CODEC,
+            PacketRotateTile::pos,
+            PacketRotateTile::new
+    );
 
     @Override
-    public PacketBase read(FriendlyByteBuf buf) {
-        pos = buf.readBlockPos();
-        return new PacketRotateTile(pos);
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 
-    @Override
-    public void write(FriendlyByteBuf buf) {
-        buf.writeBlockPos(pos);
+    public static void register(final PayloadRegistrar registrar) {
+        registrar.playToServer(TYPE, STREAM_CODEC, PacketRotateTile::handle);
     }
 
-    @Override
-    public Optional<NetworkDirection> getNetworkDirection() {
-        return Optional.of(NetworkDirection.PLAY_TO_SERVER);
-    }
-
-    @Override
-    protected void handle(Supplier<NetworkEvent.Context> ctx) {
-        ServerPlayer player = Objects.requireNonNull(ctx.get().getSender());
+    private static void handle(PacketRotateTile payload, IPayloadContext context) {
+        ServerPlayer player = (ServerPlayer) Objects.requireNonNull(context.player());
         ServerLevel world = player.serverLevel();
-        double reach = player.getAttributeValue(BLOCK_REACH.get()) + 2;
-        if (player.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) < reach * reach) {
-            BlockEntity te = world.getBlockEntity(pos);
+        double reach = player.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE) + 2;
+        if (player.distanceToSqr(payload.pos.getX() + 0.5, payload.pos.getY() + 0.5, payload.pos.getZ() + 0.5) < reach * reach) {
+            BlockEntity te = world.getBlockEntity(payload.pos);
             if (te instanceof TilePlacedItems) {
                 ((TilePlacedItems) te).rotateTile();
             }

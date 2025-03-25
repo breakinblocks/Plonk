@@ -7,14 +7,12 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraftforge.registries.RegisterEvent;
+import net.neoforged.neoforge.registries.RegisterEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-
-import static net.minecraftforge.registries.ForgeRegistry.REGISTRIES;
 
 public class RegistryBlocks {
     /**
@@ -38,8 +36,8 @@ public class RegistryBlocks {
             try {
                 if (Modifier.isStatic(f.getModifiers())) {
                     if (Block.class.isAssignableFrom(f.getType())) {
-                        ResourceLocation rl = new ResourceLocation(Plonk.MOD_ID, f.getName());
-                        LOG.info(REGISTRIES, "Registering Block: " + rl);
+                        ResourceLocation rl = ResourceLocation.fromNamespaceAndPath(Plonk.MOD_ID, f.getName());
+                        LOG.info("Registering Block: {}", rl);
                         Block block = (Block) f.get(null);
                         helper.register(rl, block);
                     }

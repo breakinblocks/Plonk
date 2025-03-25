@@ -10,6 +10,7 @@ import com.breakinblocks.plonk.common.util.bound.BoxCollection;
 import com.google.common.collect.ImmutableMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -26,9 +27,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
-import net.minecraft.world.phys.AABB;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.extensions.IBlockEntityRendererExtension;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -36,7 +35,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Objects;
 
-public class TilePlacedItems extends BlockEntity implements WorldlyContainer {
+public class TilePlacedItems extends BlockEntity implements WorldlyContainer, IBlockEntityRendererExtension<TilePlacedItems> {
 
     public static final int Tag_VERSION = 1;
 
@@ -291,11 +290,11 @@ public class TilePlacedItems extends BlockEntity implements WorldlyContainer {
      * @see ChestBlockEntity
      */
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        super.loadAdditional(tag, provider);
         TagUpgrader.upgrade(tag);
         this.tileRotation = tag.getInt(TAG_TILE_ROTATION);
-        ListTag tagItems = tag.getList(TAG_ITEMS, 10);
+        ListTag tagItems = tag.getList(TAG_ITEMS, CompoundTag.TAG_COMPOUND);
         this.contents = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
         this.contentsMeta = new ItemMeta[this.getContainerSize()];
         Arrays.fill(this.contentsMeta, ItemMeta.DEFAULT);
@@ -307,7 +306,7 @@ public class TilePlacedItems extends BlockEntity implements WorldlyContainer {
             int itemRotation = tagItem.getInt(TAG_ITEM_ROTATION);
 
             if (slot < this.contents.size()) {
-                this.contents.set(slot, ItemStack.of(tagItem));
+                this.contents.set(slot, ItemStack.parseOptional(provider, tagItem));
                 this.contentsMeta[slot] = new ItemMeta(renderType, itemRotation);
             }
         }
@@ -316,8 +315,8 @@ public class TilePlacedItems extends BlockEntity implements WorldlyContainer {
     }
 
     @Override
-    public void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    public void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        super.saveAdditional(tag, provider);
         tag.putInt(TAG_VERSION, Tag_VERSION);
         tag.putInt(TAG_TILE_ROTATION, tileRotation);
         ListTag tagItems = new ListTag();
@@ -328,8 +327,7 @@ public class TilePlacedItems extends BlockEntity implements WorldlyContainer {
                 tagItem.putByte(TAG_SLOT, (byte) slot);
                 tagItem.putInt(TAG_RENDER_TYPE, this.contentsMeta[slot].renderType);
                 tagItem.putInt(TAG_ITEM_ROTATION, this.contentsMeta[slot].rotation);
-                this.contents.get(slot).save(tagItem);
-                tagItems.add(tagItem);
+                tagItems.add(this.contents.get(slot).save(provider, tagItem));
             }
         }
 
@@ -371,17 +369,8 @@ public class TilePlacedItems extends BlockEntity implements WorldlyContainer {
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
-        return this.saveWithoutMetadata();
-    }
-
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    public AABB getRenderBoundingBox() {
-        // TODO: This doesn't work properly for custom item renders... since they can go outside the normal bounds
-        // TODO: Maybe find out a way to get the render bounding boxes for each of the items??? Bit worse fps for now...
-        // return this.contentsBoxes.getRenderBoundingBox(this);
-        return BlockEntity.INFINITE_EXTENT_AABB;
+    public CompoundTag getUpdateTag(HolderLookup.Provider provider) {
+        return this.saveWithoutMetadata(provider);
     }
 
     @Override

@@ -1,66 +1,59 @@
 package com.breakinblocks.plonk.common.packet;
 
+import com.breakinblocks.plonk.Plonk;
+import com.breakinblocks.plonk.common.registry.RegistryCodecs;
 import com.breakinblocks.plonk.common.registry.RegistryItems;
 import com.breakinblocks.plonk.common.util.EntityUtils;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Supplier;
 
 /**
  * @see ServerboundUseItemOnPacket
  */
-public class PacketPlaceItem extends PacketBase {
-    private BlockHitResult hit;
-    private int renderType;
+public record PacketPlaceItem(BlockHitResult hit, int renderType) implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<PacketPlaceItem> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(Plonk.MOD_ID, "place_item"));
 
-    public PacketPlaceItem() {
-    }
-
-    public PacketPlaceItem(BlockHitResult hit, int renderType) {
-        this.hit = hit;
-        this.renderType = renderType;
-    }
-
-    @Override
-    public PacketBase read(FriendlyByteBuf buf) {
-        hit = buf.readBlockHitResult();
-        renderType = buf.readInt();
-        return new PacketPlaceItem(hit, renderType);
-    }
+    public static final StreamCodec<FriendlyByteBuf, PacketPlaceItem> STREAM_CODEC = StreamCodec.composite(
+            RegistryCodecs.BLOCK_HIT_RESULT,
+            PacketPlaceItem::hit,
+            ByteBufCodecs.VAR_INT,
+            PacketPlaceItem::renderType,
+            PacketPlaceItem::new
+    );
 
     @Override
-    public void write(FriendlyByteBuf buf) {
-        buf.writeBlockHitResult(hit);
-        buf.writeInt(renderType);
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 
-    @Override
-    public Optional<NetworkDirection> getNetworkDirection() {
-        return Optional.of(NetworkDirection.PLAY_TO_SERVER);
+    public static void register(final PayloadRegistrar registrar) {
+        registrar.playToServer(TYPE, STREAM_CODEC, PacketPlaceItem::handle);
     }
 
     /**
      * @see ServerGamePacketListenerImpl#handleUseItemOn(ServerboundUseItemOnPacket)
      */
-    @Override
-    protected void handle(Supplier<NetworkEvent.Context> ctx) {
-        ServerPlayer player = Objects.requireNonNull(ctx.get().getSender());
+    private static void handle(PacketPlaceItem payload, IPayloadContext context) {
+        ServerPlayer player = (ServerPlayer) Objects.requireNonNull(context.player());
         ItemStack toPlace = new ItemStack(RegistryItems.placed_items, 1);
         ItemStack held = player.getMainHandItem();
-        RegistryItems.placed_items.setHeldStack(toPlace, held, renderType);
+        RegistryItems.placed_items.setHeldStack(toPlace, held, payload.renderType);
         EntityUtils.setHeldItemSilent(player, InteractionHand.MAIN_HAND, toPlace);
-        if (toPlace.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit)).consumesAction()) {
+        if (toPlace.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, payload.hit)).consumesAction()) {
             ItemStack newHeld = RegistryItems.placed_items.getHeldStack(toPlace);
             EntityUtils.setHeldItemSilent(player, InteractionHand.MAIN_HAND, newHeld);
         } else {

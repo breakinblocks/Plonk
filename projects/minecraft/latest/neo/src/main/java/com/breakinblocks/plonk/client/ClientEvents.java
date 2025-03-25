@@ -1,6 +1,5 @@
 package com.breakinblocks.plonk.client;
 
-import com.breakinblocks.plonk.Plonk;
 import com.breakinblocks.plonk.client.command.CommandClientPlonk;
 import com.breakinblocks.plonk.client.registry.RegistryTESRs;
 import com.breakinblocks.plonk.client.render.tile.TESRPlacedItems;
@@ -20,15 +19,16 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.server.ServerStartingEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.InputEvent;
+import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import static com.mojang.blaze3d.platform.InputConstants.Type.KEYSYM;
-import static net.minecraftforge.client.settings.KeyConflictContext.IN_GAME;
+import static net.neoforged.neoforge.client.settings.KeyConflictContext.IN_GAME;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_P;
 
 public class ClientEvents {
@@ -38,8 +38,8 @@ public class ClientEvents {
         modEventBus.addListener(ClientEvents::setupClient);
         modEventBus.addListener(ClientEvents::onRegisterKeyMappings);
 
-        MinecraftForge.EVENT_BUS.addListener(ClientEvents::onKeyInput);
-        MinecraftForge.EVENT_BUS.addListener(ClientEvents::serverStarting);
+        NeoForge.EVENT_BUS.addListener(ClientEvents::onKeyInput);
+        NeoForge.EVENT_BUS.addListener(ClientEvents::serverStarting);
     }
 
     public static void setupClient(FMLClientSetupEvent event) {
@@ -65,7 +65,7 @@ public class ClientEvents {
                         RegistryItems.placed_items.setHeldStack(toPlace, held, renderType);
                         EntityUtils.setHeldItemSilent(player, InteractionHand.MAIN_HAND, toPlace);
                         if (toPlace.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit)).consumesAction()) {
-                            Plonk.CHANNEL.sendToServer(new PacketPlaceItem(hit, renderType));
+                            PacketDistributor.sendToServer(new PacketPlaceItem(hit, renderType));
                             ItemStack newHeld = RegistryItems.placed_items.getHeldStack(toPlace);
                             EntityUtils.setHeldItemSilent(player, InteractionHand.MAIN_HAND, newHeld);
                         } else {
@@ -85,7 +85,7 @@ public class ClientEvents {
         BlockEntity te = world.getBlockEntity(pos);
         if (te instanceof TilePlacedItems) {
             ((TilePlacedItems) te).rotateTile();
-            Plonk.CHANNEL.sendToServer(new PacketRotateTile(pos));
+            PacketDistributor.sendToServer(new PacketRotateTile(pos));
             return true;
         }
         return false;

@@ -20,7 +20,7 @@ public class PlonkTags {
 
         @SuppressWarnings("SameParameterValue")
         private static TagKey<Item> tag(String name) {
-            return ItemTags.create(new ResourceLocation(Plonk.MOD_ID, name));
+            return ItemTags.create(ResourceLocation.fromNamespaceAndPath(Plonk.MOD_ID, name));
         }
     }
 }

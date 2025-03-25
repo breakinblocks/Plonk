@@ -1,20 +1,19 @@
 package com.breakinblocks.plonk.common.util;
 
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class ItemUtils {
-    private static final ItemStack REFERENCE = new ItemStack(Items.AIR);
-
     /**
      * Drop item on an entity
      *
@@ -68,7 +67,7 @@ public class ItemUtils {
                 continue;
             }
             ItemStack current = inv.getItem(slot);
-            if (!current.isEmpty() && !ItemStack.isSameItemSameTags(current, remainder)) continue;
+            if (!current.isEmpty() && !ItemStack.isSameItemSameComponents(current, remainder)) continue;
             int toTransfer = Math.min(current.getCount() + remainder.getCount(), stackSizeLimit) - current.getCount();
             if (toTransfer <= 0) continue;
             if (current.isEmpty()) {
@@ -97,7 +96,7 @@ public class ItemUtils {
      * @return maximum stack size of REFERENCE
      */
     public static int getMaxStackSize() {
-        return REFERENCE.getMaxStackSize();
+        return Objects.requireNonNull(DataComponents.COMMON_ITEM_COMPONENTS.get(DataComponents.MAX_STACK_SIZE));
     }
 
     /**
@@ -106,9 +105,8 @@ public class ItemUtils {
      * @param stack target stack
      * @return Item's Identifier
      */
-    @Nullable
     public static ResourceLocation getIdentifier(ItemStack stack) {
-        return ForgeRegistries.ITEMS.getKey(stack.getItem());
+        return BuiltInRegistries.ITEM.getKey(stack.getItem());
     }
 
     public static class InsertStackResult {

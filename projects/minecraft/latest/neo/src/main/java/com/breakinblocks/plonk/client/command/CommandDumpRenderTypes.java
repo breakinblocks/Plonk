@@ -12,14 +12,14 @@ import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joml.Matrix4f;
@@ -40,6 +40,7 @@ import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 public class CommandDumpRenderTypes implements IPlonkCommand {
     private static final Logger LOG = LogManager.getLogger();
     private static final ItemRenderer itemRenderer = Minecraft.getInstance().getItemRenderer();
+    private static final int MAX_CELL_LENGTH = 50000;
 
     private static LinkedHashSet<ItemStackRef> getAllStacks() {
         LinkedHashSet<ItemStackRef> items = new LinkedHashSet<>();
@@ -51,14 +52,43 @@ public class CommandDumpRenderTypes implements IPlonkCommand {
     }
 
     /**
-     * modid:item[{nbt}]
+     * modid:item[{components}]
      */
     private static String describeStack(ItemStack stack) {
         StringBuilder build = new StringBuilder();
-        build.append(ForgeRegistries.ITEMS.getKey(stack.getItem()));
+        build.append(BuiltInRegistries.ITEM.getKey(stack.getItem()));
 
-        Optional.ofNullable(stack.getTag())
-                .ifPresent(build::append);
+        DataComponentMap dataComponentMap = stack.getComponents();
+        DataComponentPatch dataComponentPatch = stack.getComponentsPatch();
+        if (!dataComponentPatch.isEmpty()) {
+            final boolean[] first = {true};
+
+            dataComponentMap.stream().forEach(component -> {
+                if (component.type().isTransient()) {
+                    return;
+                }
+
+                Optional<?> idk = dataComponentPatch.get(component.type());
+
+                //noinspection OptionalAssignedToNull
+                if (idk == null || idk.isEmpty()) {
+                    return;
+                }
+
+                if (first[0]) {
+                    build.append('[');
+                    first[0] = false;
+                } else {
+                    build.append(',');
+                }
+
+                build.append(component);
+            });
+
+            if (!first[0]) {
+                build.append(']');
+            }
+        }
         return build.toString();
     }
 
@@ -167,9 +197,17 @@ public class CommandDumpRenderTypes implements IPlonkCommand {
         StringBuilder output = new StringBuilder();
         output.append("stacks\t");
         output.append(renderDataHeaders);
-        data.keySet().forEach(k -> output
-                .append("\n").append(String.join(",", data.get(k)))
-                .append("\t").append(k)
+        data.keySet().forEach(k -> {
+                    String stacks = String.join(",", data.get(k));
+
+                    if (stacks.length() > MAX_CELL_LENGTH) {
+                        stacks = stacks.substring(0, MAX_CELL_LENGTH);
+                    }
+
+                    output
+                            .append("\n").append(stacks)
+                            .append("\t").append(k);
+                }
         );
         LOG.info(output);
         sender.sendSuccess(() -> Component.literal(
@@ -186,7 +224,7 @@ public class CommandDumpRenderTypes implements IPlonkCommand {
     }
 
     /**
-     * Based on item and nbt only
+     * Based on item and components only
      */
     private static class ItemStackRef {
 
@@ -203,18 +241,13 @@ public class CommandDumpRenderTypes implements IPlonkCommand {
 
         @Override
         public int hashCode() {
-            int result = stack.getItem().hashCode();
-            CompoundTag tag = stack.getTag();
-            result = 31 * result + (tag == null ? 7 : tag.hashCode());
-            return result;
+            return ItemStack.hashItemAndComponents(stack);
         }
 
         @Override
         public boolean equals(Object obj) {
-            if (!(obj instanceof ItemStackRef)) return false;
-            ItemStackRef o = (ItemStackRef) obj;
-            if (stack.getItem() != o.stack.getItem()) return false;
-            return Objects.equals(stack.getTag(), o.stack.getTag());
+            if (!(obj instanceof ItemStackRef o)) return false;
+            return ItemStack.isSameItemSameComponents(stack, o.stack);
         }
     }
 }

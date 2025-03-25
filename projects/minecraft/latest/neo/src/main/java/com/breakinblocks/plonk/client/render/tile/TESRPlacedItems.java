@@ -23,6 +23,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.phys.AABB;
 import org.joml.Matrix4f;
 
 import javax.annotation.Nullable;
@@ -68,6 +69,14 @@ public class TESRPlacedItems implements BlockEntityRenderer<TilePlacedItems> {
         if (blockRot - EPS <= hRot && hRot <= blockRot + EPS)
             return RENDER_TYPE_BLOCK;
         return RENDER_TYPE_ITEM;
+    }
+
+    @Override
+    public AABB getRenderBoundingBox(TilePlacedItems blockEntity) {
+        // TODO: This doesn't work properly for custom item renders... since they can go outside the normal bounds
+        // TODO: Maybe find out a way to get the render bounding boxes for each of the items??? Bit worse fps for now...
+        // return blockEntity.contentsBoxes.getRenderBoundingBox(blockEntity);
+        return AABB.INFINITE;
     }
 
     /**
