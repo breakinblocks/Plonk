@@ -163,25 +163,6 @@ public class BlockPlacedItems extends BaseEntityBlock implements SimpleWaterlogg
     }
 
     /**
-     * @see ChestBlock#onRemove(BlockState, Level, BlockPos, BlockState, boolean)
-     */
-    @Override
-    protected void preRemoveSideEffects(BlockPos pos, BlockState state) {
-        if (!state.is(newState.getBlock())) {
-            BlockEntity tileentity = worldIn.getBlockEntity(pos);
-            if (tileentity instanceof Container) {
-                // Need this to prevent dupes: See MinecraftForge#7609
-                if (!worldIn.restoringBlockSnapshots) {
-                    Containers.dropContents(worldIn, pos, (Container) tileentity);
-                }
-                worldIn.updateNeighbourForOutputSignal(pos, this);
-            }
-
-            super.preRemoveSideEffects(state, worldIn, pos, newState, isMoving);
-        }
-    }
-
-    /**
      * This can be called server side so needs to be ray-traced again
      *
      * @return -1 if no hit otherwise the closest slot
@@ -212,7 +193,7 @@ public class BlockPlacedItems extends BaseEntityBlock implements SimpleWaterlogg
 
     @Override
     public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
-        if (worldIn.isClientSide) return InteractionResult.SUCCESS;
+        if (worldIn.isClientSide()) return InteractionResult.SUCCESS;
 
         TilePlacedItems tile = (TilePlacedItems) worldIn.getBlockEntity(pos);
         if (tile == null) return InteractionResult.SUCCESS;
@@ -271,7 +252,7 @@ public class BlockPlacedItems extends BaseEntityBlock implements SimpleWaterlogg
     }
 
     @Override
-    public ItemStack getCloneItemStack(BlockState state, HitResult target, LevelReader level, BlockPos pos, Player player) {
+    public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData, Player player) {
         return WorldUtils.withTile(level, pos, TilePlacedItems.class, tile -> {
             int slot = getPickedSlot(tile, pos, player);
             return slot >= 0 ? tile.getItem(slot) : ItemStack.EMPTY;

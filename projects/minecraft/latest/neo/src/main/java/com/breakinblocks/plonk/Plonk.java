@@ -36,7 +36,7 @@ public class Plonk {
         modEventBus.addListener(PlonkConfig::refresh);
         modEventBus.addListener(DataGenerators::gatherData);
 
-        if (FMLEnvironment.dist.isClient()) {
+        if (FMLEnvironment.getDist().isClient()) {
             ClientEvents.init(modEventBus);
         }
 

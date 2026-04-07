@@ -5,6 +5,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.permissions.PermissionCheck;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 
@@ -13,8 +14,8 @@ public interface IPlonkCommand {
 
     String getUsage(CommandSourceStack sender);
 
-    default int getRequiredPermissionLevel() {
-        return 4;
+    default PermissionCheck getPermissionCheck() {
+        return Commands.LEVEL_OWNERS;
     }
 
     default int sendUsage(CommandSourceStack source, int exitCode) {
@@ -24,7 +25,7 @@ public interface IPlonkCommand {
 
     default LiteralArgumentBuilder<CommandSourceStack> build() {
         return Commands.literal(getName())
-                .requires(source -> source.hasPermission(getRequiredPermissionLevel()))
+                .requires(Commands.hasPermission(getPermissionCheck()))
                 .executes(context -> sendUsage(context.getSource(), SINGLE_SUCCESS));
     }
 

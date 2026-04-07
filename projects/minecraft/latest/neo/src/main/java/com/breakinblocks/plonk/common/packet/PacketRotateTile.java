@@ -36,7 +36,7 @@ public record PacketRotateTile(BlockPos pos) implements CustomPacketPayload {
 
     private static void handle(PacketRotateTile payload, IPayloadContext context) {
         ServerPlayer player = (ServerPlayer) Objects.requireNonNull(context.player());
-        ServerLevel world = player.serverLevel();
+        ServerLevel world = player.level();
         double reach = player.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE) + 2;
         if (player.distanceToSqr(payload.pos.getX() + 0.5, payload.pos.getY() + 0.5, payload.pos.getZ() + 0.5) < reach * reach) {
             BlockEntity te = world.getBlockEntity(payload.pos);

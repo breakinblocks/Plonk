@@ -1,5 +1,6 @@
 package com.breakinblocks.plonk.client;
 
+import com.breakinblocks.plonk.Plonk;
 import com.breakinblocks.plonk.client.command.CommandClientPlonk;
 import com.breakinblocks.plonk.client.registry.RegistryTESRs;
 import com.breakinblocks.plonk.client.render.tile.TESRPlacedItems;
@@ -12,6 +13,7 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
@@ -23,16 +25,17 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 import static com.mojang.blaze3d.platform.InputConstants.Type.KEYSYM;
 import static net.neoforged.neoforge.client.settings.KeyConflictContext.IN_GAME;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_P;
 
 public class ClientEvents {
-    public static final KeyMapping KEY_PLACE = new KeyMapping("key.plonk.place", IN_GAME, KEYSYM, GLFW_KEY_P, "key.categories.plonk");
+    public static final KeyMapping.Category PLONK_CATEGORY = new KeyMapping.Category(Identifier.fromNamespaceAndPath(Plonk.MOD_ID, "plonk"));
+    public static final KeyMapping KEY_PLACE = new KeyMapping("key.plonk.place", IN_GAME, KEYSYM, GLFW_KEY_P, PLONK_CATEGORY);
 
     public static void init(IEventBus modEventBus) {
         modEventBus.addListener(ClientEvents::setupClient);
@@ -47,6 +50,7 @@ public class ClientEvents {
     }
 
     public static void onRegisterKeyMappings(RegisterKeyMappingsEvent event) {
+        event.registerCategory(PLONK_CATEGORY);
         event.register(ClientEvents.KEY_PLACE);
     }
 
@@ -60,12 +64,12 @@ public class ClientEvents {
                     BlockHitResult hit = (BlockHitResult) hitRaw;
                     ItemStack held = player.getMainHandItem();
                     if (!held.isEmpty()) {
-                        int renderType = TESRPlacedItems.getRenderTypeFromStack(held);
+                        int renderType = TESRPlacedItems.getRenderTypeFromStack(held, player.level(), player, player.getId());
                         ItemStack toPlace = new ItemStack(RegistryItems.placed_items, 1);
                         RegistryItems.placed_items.setHeldStack(toPlace, held, renderType);
                         EntityUtils.setHeldItemSilent(player, InteractionHand.MAIN_HAND, toPlace);
                         if (toPlace.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit)).consumesAction()) {
-                            PacketDistributor.sendToServer(new PacketPlaceItem(hit, renderType));
+                            ClientPacketDistributor.sendToServer(new PacketPlaceItem(hit, renderType));
                             ItemStack newHeld = RegistryItems.placed_items.getHeldStack(toPlace);
                             EntityUtils.setHeldItemSilent(player, InteractionHand.MAIN_HAND, newHeld);
                         } else {
@@ -85,7 +89,7 @@ public class ClientEvents {
         BlockEntity te = world.getBlockEntity(pos);
         if (te instanceof TilePlacedItems) {
             ((TilePlacedItems) te).rotateTile();
-            PacketDistributor.sendToServer(new PacketRotateTile(pos));
+            ClientPacketDistributor.sendToServer(new PacketRotateTile(pos));
             return true;
         }
         return false;

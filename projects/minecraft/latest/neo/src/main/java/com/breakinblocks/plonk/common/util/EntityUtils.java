@@ -30,18 +30,12 @@ public class EntityUtils {
      * Silent version of {@link Player#setItemSlot(EquipmentSlot, ItemStack)}
      *
      * @param player target
-     * @param slotIn equipment slot to set
-     * @param stack  stack to set
+     * @param slot equipment slot to set
+     * @param itemStack  stack to set
      * @see Player#setItemSlot(EquipmentSlot, ItemStack)
      */
-    public static void setItemStackToSlotSilent(Player player, EquipmentSlot slotIn, ItemStack stack) {
-        player.verifyEquippedItem(stack);
-        if (slotIn == EquipmentSlot.MAINHAND) {
-            player.getInventory().items.set(player.getInventory().selected, stack);
-        } else if (slotIn == EquipmentSlot.OFFHAND) {
-            player.getInventory().offhand.set(0, stack);
-        } else if (slotIn.getType() == EquipmentSlot.Type.HUMANOID_ARMOR) {
-            player.getInventory().armor.set(slotIn.getIndex(), stack);
-        }
+    public static void setItemStackToSlotSilent(Player player, EquipmentSlot slot, ItemStack itemStack) {
+        // Not sure if it's bad to say it's in a transaction when it isn't, but that does prevent the equip sound.
+        player.setItemSlot(slot, itemStack, true);
     }
 }

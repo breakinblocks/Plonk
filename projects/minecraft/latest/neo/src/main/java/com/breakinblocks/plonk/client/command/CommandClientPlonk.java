@@ -4,6 +4,8 @@ import com.breakinblocks.plonk.common.command.IPlonkCommand;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.server.permissions.PermissionCheck;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -31,8 +33,8 @@ public class CommandClientPlonk implements IPlonkCommand {
     }
 
     @Override
-    public int getRequiredPermissionLevel() {
-        return 0;
+    public PermissionCheck getPermissionCheck() {
+        return Commands.LEVEL_ALL;
     }
 
     @Override

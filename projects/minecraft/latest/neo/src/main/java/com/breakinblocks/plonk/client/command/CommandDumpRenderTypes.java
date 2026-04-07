@@ -8,14 +8,15 @@ import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.entity.ItemRenderer;
-import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.renderer.block.BlockModelResolver;
+import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.permissions.PermissionCheck;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -30,7 +31,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -39,14 +39,15 @@ import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 
 public class CommandDumpRenderTypes implements IPlonkCommand {
     private static final Logger LOG = LogManager.getLogger();
-    private static final ItemRenderer itemRenderer = Minecraft.getInstance().getItemRenderer();
+    private static final BlockModelResolver blockModelResolver = Minecraft.getInstance().getBlockModelResolver();
+    private static final ItemModelResolver itemModelResolver = Minecraft.getInstance().getItemModelResolver();
     private static final int MAX_CELL_LENGTH = 50000;
 
     private static LinkedHashSet<ItemStackRef> getAllStacks() {
         LinkedHashSet<ItemStackRef> items = new LinkedHashSet<>();
 
-        Objects.requireNonNull(BuiltInRegistries.CREATIVE_MODE_TAB.get(CreativeModeTabs.SEARCH))
-                .getDisplayItems().stream().map(ItemStackRef::new).forEach(items::add);
+        BuiltInRegistries.CREATIVE_MODE_TAB.get(CreativeModeTabs.SEARCH)
+                .ifPresent(tab -> tab.value().getDisplayItems().stream().map(ItemStackRef::new).forEach(items::add));
 
         return items;
     }
@@ -68,7 +69,7 @@ public class CommandDumpRenderTypes implements IPlonkCommand {
                     return;
                 }
 
-                Optional<?> idk = dataComponentPatch.get(component.type());
+                Optional<?> idk = dataComponentPatch.getPatch(component.type());
 
                 //noinspection OptionalAssignedToNull
                 if (idk == null || idk.isEmpty()) {
@@ -96,15 +97,14 @@ public class CommandDumpRenderTypes implements IPlonkCommand {
      * For each transform, it'll describe the (translation, scale, rotation) and (hS, hRot)
      */
     private static Stream<Map.Entry<String, String>> getRenderData(ItemStack stack) {
-        BakedModel model = itemRenderer.getModel(stack, null, null, 0);
         ItemDisplayContext[] types = new ItemDisplayContext[]{
                 ItemDisplayContext.FIXED,
                 ItemDisplayContext.GUI
         };
         Map<String, Matrix4f> baseTransforms = Arrays.stream(types).collect(Collectors.toMap(
                 type -> type.name().toLowerCase(Locale.ROOT),
-                type -> new Matrix4f(RenderUtils.getModelTransformMatrix(model, type)),
-                (a, b) -> b,
+                type -> new Matrix4f(RenderUtils.getModelTransformMatrix(stack, type, null, null, 0)),
+                (_, b) -> b,
                 LinkedHashMap::new
         ));
         Map<String, Matrix4f> transforms = new LinkedHashMap<>();
@@ -164,7 +164,7 @@ public class CommandDumpRenderTypes implements IPlonkCommand {
     @Override
     public LiteralArgumentBuilder<CommandSourceStack> build() {
         return Commands.literal(getName())
-                .requires(source -> source.hasPermission(getRequiredPermissionLevel()))
+                .requires(Commands.hasPermission(getPermissionCheck()))
                 .executes(context -> execute(context.getSource()));
     }
 
@@ -175,7 +175,7 @@ public class CommandDumpRenderTypes implements IPlonkCommand {
         final String[] renderDataHeadersTemp = {""};
         getAllStacks().stream().map(ref -> ref.stack).forEachOrdered(stack -> {
             LinkedHashMap<String, String> renderData = Stream.concat(
-                    Stream.of(new AbstractMap.SimpleEntry<>("renderType", String.valueOf(TESRPlacedItems.getRenderTypeFromStack(stack)))),
+                    Stream.of(new AbstractMap.SimpleEntry<>("renderType", String.valueOf(TESRPlacedItems.getRenderTypeFromStack(stack, null, null, 0)))),
                     getRenderData(stack)
             ).collect(Collectors.toMap(
                     Map.Entry::getKey,
@@ -219,8 +219,8 @@ public class CommandDumpRenderTypes implements IPlonkCommand {
     }
 
     @Override
-    public int getRequiredPermissionLevel() {
-        return 0;
+    public PermissionCheck getPermissionCheck() {
+        return Commands.LEVEL_ALL;
     }
 
     /**

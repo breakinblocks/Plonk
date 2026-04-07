@@ -2,6 +2,7 @@ package com.breakinblocks.plonk.common.tile;
 
 import com.breakinblocks.plonk.common.block.BlockPlacedItems;
 import com.breakinblocks.plonk.common.config.PlonkConfig;
+import com.breakinblocks.plonk.common.item.ItemStackPlaced;
 import com.breakinblocks.plonk.common.registry.RegistryBlocks;
 import com.breakinblocks.plonk.common.registry.RegistryTileEntities;
 import com.breakinblocks.plonk.common.util.ItemUtils;
@@ -21,7 +22,6 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.ContainerHelper;
-import net.minecraft.world.ItemStackWithSlot;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.ItemOwner;
 import net.minecraft.world.entity.player.Player;
@@ -34,7 +34,6 @@ import net.minecraft.world.level.block.entity.ShelfBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.storage.TagValueInput;
-import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
@@ -301,29 +300,23 @@ public class TilePlacedItems extends BlockEntity implements WorldlyContainer, IB
 
     /**
      * @see ChestBlockEntity
+     * @see ContainerHelper#loadAllItems(ValueInput, NonNullList)
      */
     @Override
-    public void loadAdditional(ValueInput input) {
+    protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         try (ProblemReporter.ScopedCollector problemReporter = new ProblemReporter.ScopedCollector(this.problemPath(), LOGGER)) {
             input = TagUpgrader.upgrade(input, problemReporter, Objects.requireNonNull(level).registryAccess());
         }
         this.tileRotation = input.getIntOr(TAG_TILE_ROTATION, 0);
         this.contents = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
-        ContainerHelper.loadAllItems(input, this.contents);
-        ValueInput.ValueInputList tagItems = input.childrenListOrEmpty(TAG_ITEMS);
         this.contentsMeta = new ItemMeta[this.getContainerSize()];
         Arrays.fill(this.contentsMeta, ItemMeta.DEFAULT);
 
-        for (ValueInput tagItem : tagItems) {
-            CompoundTag tagItem = tagItems.getCompound(i);
-            int slot = tagItem.getByte(TAG_SLOT) & 255;
-            int renderType = tagItem.getInt(TAG_RENDER_TYPE);
-            int itemRotation = tagItem.getInt(TAG_ITEM_ROTATION);
-
-            if (slot < this.contents.size()) {
-                this.contents.set(slot, ItemStack.parseOptional(provider, tagItem));
-                this.contentsMeta[slot] = new ItemMeta(renderType, itemRotation);
+        for (ItemStackPlaced item : input.listOrEmpty(TAG_ITEMS, ItemStackPlaced.CODEC)) {
+            if (item.isValidInContainer(this.contents.size())) {
+                this.contents.set(item.slot(), item.stack());
+                this.contentsMeta[item.slot()] = new ItemMeta(item.renderType(), item.itemRotation());
             }
         }
 
@@ -331,6 +324,7 @@ public class TilePlacedItems extends BlockEntity implements WorldlyContainer, IB
     }
 
     /**
+     * @see ChestBlockEntity
      * @see ContainerHelper#saveAllItems(ValueOutput, NonNullList)
      */
     @Override
@@ -338,20 +332,18 @@ public class TilePlacedItems extends BlockEntity implements WorldlyContainer, IB
         super.saveAdditional(output);
         output.putInt(TAG_VERSION, Tag_VERSION);
         output.putInt(TAG_TILE_ROTATION, tileRotation);
-        output.list(TAG_ITEMS, ItemStackWithSlot.CODEC);
-        ListTag tagItems = new ListTag();
+        ValueOutput.TypedOutputList<ItemStackPlaced> tagItems = output.list(TAG_ITEMS, ItemStackPlaced.CODEC);
 
         for (int slot = 0; slot < this.contents.size(); slot++) {
             if (!this.contents.get(slot).isEmpty()) {
-                CompoundTag tagItem = new CompoundTag();
-                tagItem.putByte(TAG_SLOT, (byte) slot);
-                tagItem.putInt(TAG_RENDER_TYPE, this.contentsMeta[slot].renderType);
-                tagItem.putInt(TAG_ITEM_ROTATION, this.contentsMeta[slot].rotation);
-                tagItems.add(this.contents.get(slot).save(provider, tagItem));
+                tagItems.add(new ItemStackPlaced(
+                        slot,
+                        this.contentsMeta[slot].renderType,
+                        this.contentsMeta[slot].rotation,
+                        this.contents.get(slot)
+                ));
             }
         }
-
-        tag.put(TAG_ITEMS, tagItems);
     }
 
     public void clientTick() {
