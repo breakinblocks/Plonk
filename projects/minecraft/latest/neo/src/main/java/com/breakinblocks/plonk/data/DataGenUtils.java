@@ -1,18 +1,18 @@
 package com.breakinblocks.plonk.data;
 
 import com.breakinblocks.plonk.Plonk;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class DataGenUtils {
-    public static ResourceLocation minecraft(String path) {
-        return ResourceLocation.fromNamespaceAndPath("minecraft", path);
+    public static Identifier minecraft(String path) {
+        return Identifier.fromNamespaceAndPath("minecraft", path);
     }
 
-    public static ResourceLocation plonk(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Plonk.MOD_ID, path);
+    public static Identifier plonk(String path) {
+        return Identifier.fromNamespaceAndPath(Plonk.MOD_ID, path);
     }
 
-    public static ResourceLocation carryOn(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Plonk.CARRY_ON_MOD_ID, path);
+    public static Identifier carryOn(String path) {
+        return Identifier.fromNamespaceAndPath(Plonk.CARRY_ON_MOD_ID, path);
     }
 }

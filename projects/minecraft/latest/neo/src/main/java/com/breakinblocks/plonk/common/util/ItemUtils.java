@@ -2,7 +2,7 @@ package com.breakinblocks.plonk.common.util;
 
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -105,7 +105,7 @@ public class ItemUtils {
      * @param stack target stack
      * @return Item's Identifier
      */
-    public static ResourceLocation getIdentifier(ItemStack stack) {
+    public static Identifier getIdentifier(ItemStack stack) {
         return BuiltInRegistries.ITEM.getKey(stack.getItem());
     }
 

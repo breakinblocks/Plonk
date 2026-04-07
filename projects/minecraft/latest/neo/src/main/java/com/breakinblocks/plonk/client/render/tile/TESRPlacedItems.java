@@ -1,5 +1,6 @@
 package com.breakinblocks.plonk.client.render.tile;
 
+import com.breakinblocks.plonk.client.render.tile.state.PlacedItemsRenderState;
 import com.breakinblocks.plonk.client.util.RenderUtils;
 import com.breakinblocks.plonk.common.block.BlockPlacedItems;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
@@ -9,21 +10,25 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.block.BlockModelResolver;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.blockentity.ShulkerBoxRenderer;
 import net.minecraft.client.renderer.entity.ItemFrameRenderer;
-import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.item.ItemModelResolver;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
 import javax.annotation.Nullable;
@@ -31,11 +36,12 @@ import javax.annotation.Nullable;
 import static com.breakinblocks.plonk.common.tile.TilePlacedItems.RENDER_TYPE_BLOCK;
 import static com.breakinblocks.plonk.common.tile.TilePlacedItems.RENDER_TYPE_ITEM;
 
-public class TESRPlacedItems implements BlockEntityRenderer<TilePlacedItems> {
+public class TESRPlacedItems implements BlockEntityRenderer<TilePlacedItems, PlacedItemsRenderState> {
 
-    public static final DirectionProperty FACING = BlockPlacedItems.FACING;
+    public static final EnumProperty<Direction> FACING = BlockPlacedItems.FACING;
     private static final Minecraft mc = Minecraft.getInstance();
-    private static final ItemRenderer itemRenderer = mc.getItemRenderer();
+    private static final BlockModelResolver blockModelResolver = mc.getBlockModelResolver();
+    private static final ItemModelResolver itemModelResolver = mc.getItemModelResolver();
 
     private static final double EPS = 0.001;
 
@@ -43,7 +49,7 @@ public class TESRPlacedItems implements BlockEntityRenderer<TilePlacedItems> {
     }
 
     public static int getRenderTypeFromStack(ItemStack itemstack) {
-        BakedModel model = itemRenderer.getModel(itemstack, null, null, 0);
+        BakedModel model = itemModelResolver.getModel(itemstack, null, null, 0);
         Matrix4f matrixFixed = RenderUtils.getModelTransformMatrix(model, ItemDisplayContext.FIXED);
         Matrix4f matrixGui = RenderUtils.getModelTransformMatrix(model, ItemDisplayContext.GUI);
         Matrix4f difference = MatrixUtils.difference(matrixFixed, matrixGui);
@@ -79,11 +85,23 @@ public class TESRPlacedItems implements BlockEntityRenderer<TilePlacedItems> {
         return AABB.INFINITE;
     }
 
+    @Override
+    public PlacedItemsRenderState createRenderState() {
+        return new PlacedItemsRenderState();
+    }
+
+    @Override
+    public void extractRenderState(TilePlacedItems blockEntity, PlacedItemsRenderState state, float partialTicks, Vec3 cameraPosition, ModelFeatureRenderer.@org.jspecify.annotations.Nullable CrumblingOverlay breakProgress) {
+        BlockEntityRenderer.super.extractRenderState(blockEntity, state, partialTicks, cameraPosition, breakProgress);
+        state.rotation = blockEntity.getTileRotation();
+        itemModelResolver.updateForNonLiving(state.item0, blockEntity.getItem(0), ItemDisplayContext.FIXED, );
+    }
+
     /**
      * @see ShulkerBoxRenderer
      */
     @Override
-    public void render(TilePlacedItems tileEntityIn, float partialTicks, PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn) {
+    public void submit(PlacedItemsRenderState state, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, CameraRenderState camera) {
         // See Shulker Box Renderer
         Direction facing = Direction.UP;
         if (tileEntityIn.hasLevel()) {
@@ -214,7 +232,7 @@ public class TESRPlacedItems implements BlockEntityRenderer<TilePlacedItems> {
             case RENDER_TYPE_BLOCK: {
                 matrixStackIn.translate(0f, 0.25f, 0f);
 
-                itemRenderer.renderStatic(stack, ItemDisplayContext.FIXED, combinedLightIn, OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, level, seed);
+                itemModelResolver.renderStatic(stack, ItemDisplayContext.FIXED, combinedLightIn, OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, level, seed);
             }
             break;
             case RENDER_TYPE_ITEM:
@@ -224,7 +242,7 @@ public class TESRPlacedItems implements BlockEntityRenderer<TilePlacedItems> {
                 matrixStackIn.mulPose(Axis.XP.rotationDegrees(90f));
                 if (halfSize)
                     matrixStackIn.scale(0.5F, 0.5F, 0.5F);
-                itemRenderer.renderStatic(stack, ItemDisplayContext.FIXED, combinedLightIn, OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, level, seed);
+                itemModelResolver.renderStatic(stack, ItemDisplayContext.FIXED, combinedLightIn, OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, level, seed);
         }
         //RenderHelper.disableStandardItemLighting();
         //GlStateManager.popAttributes();

@@ -2,7 +2,9 @@ package com.breakinblocks.plonk.common.registry;
 
 import com.breakinblocks.plonk.Plonk;
 import com.breakinblocks.plonk.common.block.BlockPlacedItems;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
@@ -20,6 +22,7 @@ public class RegistryBlocks {
      */
     public static final BlockPlacedItems placed_items = new BlockPlacedItems(BlockBehaviour.Properties
             .of()
+            .setId(ResourceKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(Plonk.MOD_ID, "placed_items")))
             .strength(0.3F)
             .sound(SoundType.STONE)
             .noOcclusion()
@@ -36,10 +39,10 @@ public class RegistryBlocks {
             try {
                 if (Modifier.isStatic(f.getModifiers())) {
                     if (Block.class.isAssignableFrom(f.getType())) {
-                        ResourceLocation rl = ResourceLocation.fromNamespaceAndPath(Plonk.MOD_ID, f.getName());
-                        LOG.info("Registering Block: {}", rl);
+                        Identifier id = Identifier.fromNamespaceAndPath(Plonk.MOD_ID, f.getName());
+                        LOG.info("Registering Block: {}", id);
                         Block block = (Block) f.get(null);
-                        helper.register(rl, block);
+                        helper.register(id, block);
                     }
                 }
             } catch (IllegalAccessException e) {

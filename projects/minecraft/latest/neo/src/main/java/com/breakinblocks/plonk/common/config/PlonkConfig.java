@@ -2,7 +2,7 @@ package com.breakinblocks.plonk.common.config;
 
 import com.breakinblocks.plonk.common.tag.PlonkTags;
 import com.breakinblocks.plonk.common.util.ItemUtils;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.fml.config.IConfigSpec;
 import net.neoforged.fml.config.ModConfig;
@@ -59,7 +59,7 @@ public class PlonkConfig {
     private static class Server {
         public final IntValue maxStackSize;
         private final ConfigValue<List<? extends String>> unplaceableItems;
-        public Set<ResourceLocation> unplaceableItemsSet = Collections.emptySet();
+        public Set<Identifier> unplaceableItemsSet = Collections.emptySet();
 
         Server(ModConfigSpec.Builder builder) {
             maxStackSize = builder
@@ -70,12 +70,12 @@ public class PlonkConfig {
                             "You can also use the " + PlonkTags.Items.UNPLACEABLE.location() + " item tag as well.")
                     .defineListAllowEmpty("unplaceableItems", Collections.emptyList(),
                             () -> "",
-                            o -> o instanceof String && ResourceLocation.tryParse((String) o) != null);
+                            o -> o instanceof String && Identifier.tryParse((String) o) != null);
         }
 
         public void refresh() {
             unplaceableItemsSet = unplaceableItems.get().stream()
-                    .map(ResourceLocation::parse)
+                    .map(Identifier::parse)
                     .collect(Collectors.toSet());
         }
     }

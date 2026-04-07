@@ -3,7 +3,7 @@ package com.breakinblocks.plonk.common.registry;
 import com.breakinblocks.plonk.Plonk;
 import com.breakinblocks.plonk.common.item.ItemBlockPlacedItems;
 import net.minecraft.core.component.DataComponentType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,7 +25,7 @@ public class RegistryDataComponents {
             try {
                 if (Modifier.isStatic(f.getModifiers())) {
                     if (DataComponentType.class.isAssignableFrom(f.getType())) {
-                        ResourceLocation rl = ResourceLocation.fromNamespaceAndPath(Plonk.MOD_ID, f.getName().toLowerCase(Locale.ROOT));
+                        Identifier rl = Identifier.fromNamespaceAndPath(Plonk.MOD_ID, f.getName().toLowerCase(Locale.ROOT));
                         LOG.info("Registering Data Component Type: {}", rl);
                         DataComponentType<?> dataComponentType = (DataComponentType<?>) f.get(null);
                         helper.register(rl, dataComponentType);

@@ -2,7 +2,7 @@ package com.breakinblocks.plonk.common.registry;
 
 import com.breakinblocks.plonk.Plonk;
 import com.breakinblocks.plonk.common.tile.TilePlacedItems;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import org.apache.logging.log4j.LogManager;
@@ -12,7 +12,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
 public class RegistryTileEntities {
-    public static final BlockEntityType<TilePlacedItems> placed_items = BlockEntityType.Builder.of(TilePlacedItems::new, RegistryBlocks.placed_items).build(null);
+    public static final BlockEntityType<TilePlacedItems> placed_items = new BlockEntityType<>(TilePlacedItems::new, RegistryBlocks.placed_items);
     private static final Logger LOG = LogManager.getLogger();
 
     public static void init(RegisterEvent.RegisterHelper<BlockEntityType<?>> helper) {
@@ -20,10 +20,10 @@ public class RegistryTileEntities {
             try {
                 if (Modifier.isStatic(f.getModifiers())) {
                     if (f.getType() == BlockEntityType.class) {
-                        ResourceLocation rl = ResourceLocation.fromNamespaceAndPath(Plonk.MOD_ID, f.getName());
-                        LOG.info("Registering BlockEntity: {}", rl);
+                        Identifier id = Identifier.fromNamespaceAndPath(Plonk.MOD_ID, f.getName());
+                        LOG.info("Registering BlockEntity: {}", id);
                         BlockEntityType<?> type = (BlockEntityType<?>) f.get(null);
-                        helper.register(rl, type);
+                        helper.register(id, type);
                     }
                 }
             } catch (IllegalAccessException e) {

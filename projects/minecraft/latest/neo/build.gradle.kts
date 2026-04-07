@@ -1,13 +1,13 @@
 @file:Suppress("PropertyName")
 
+val mod_id: String by project
 val mod_version: String by project
 val minecraft_version: String by project
 val minecraft_version_range_supported: String by project
-val neo_loader_version_range_supported: String by project
 val neo_version: String by project
 val neo_version_range_supported: String by project
-val mappings_channel: String by project
 val mappings_version: String by project
+val mappings_minecraft_version: String by project
 
 plugins {
     id("net.kyori.blossom")
@@ -23,9 +23,9 @@ sourceSets {
         runtimeClasspath += generated.output
         blossom {
             resources {
+                property("mod_id", mod_id)
                 property("mod_version", mod_version)
                 property("minecraft_version_range_supported", minecraft_version_range_supported)
-                property("neo_loader_version_range_supported", neo_loader_version_range_supported)
                 property("neo_version_range_supported", neo_version_range_supported)
             }
         }
@@ -36,15 +36,31 @@ neoForge {
     version = neo_version
     validateAccessTransformers = true
 
+    parchment {
+        mappingsVersion = mappings_version
+        minecraftVersion = mappings_minecraft_version
+    }
+
     runs {
         create("client") {
             client()
-        }
-        create("data") {
-            data()
+            systemProperty("neoforge.enabledGameTestNamespaces", mod_id)
         }
         create("server") {
             server()
+            systemProperty("neoforge.enabledGameTestNamespaces", mod_id)
+        }
+        create("gameTestServer") {
+            type = "gameTestServer"
+            systemProperty("neoforge.enabledGameTestNamespaces", mod_id)
+        }
+        create("data") {
+            clientData()
+            programArguments.addAll("--mod", mod_id, "--all", "--output", file("src/generated/resources/").getAbsolutePath(), "--existing", file("src/main/resources/").getAbsolutePath())
+        }
+        configureEach {
+            systemProperty("forge.logging.markers", "REGISTRIES")
+            logLevel = org.slf4j.event.Level.DEBUG
         }
     }
 

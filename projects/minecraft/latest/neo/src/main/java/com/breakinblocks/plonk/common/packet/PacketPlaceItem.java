@@ -9,7 +9,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.InteractionHand;
@@ -25,7 +25,7 @@ import java.util.Objects;
  * @see ServerboundUseItemOnPacket
  */
 public record PacketPlaceItem(BlockHitResult hit, int renderType) implements CustomPacketPayload {
-    public static final CustomPacketPayload.Type<PacketPlaceItem> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(Plonk.MOD_ID, "place_item"));
+    public static final CustomPacketPayload.Type<PacketPlaceItem> TYPE = new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(Plonk.MOD_ID, "place_item"));
 
     public static final StreamCodec<FriendlyByteBuf, PacketPlaceItem> STREAM_CODEC = StreamCodec.composite(
             RegistryCodecs.BLOCK_HIT_RESULT,

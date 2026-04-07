@@ -5,9 +5,11 @@ import com.breakinblocks.plonk.common.config.PlonkConfig;
 import com.breakinblocks.plonk.common.registry.RegistryBlocks;
 import com.breakinblocks.plonk.common.registry.RegistryTileEntities;
 import com.breakinblocks.plonk.common.util.ItemUtils;
+import com.breakinblocks.plonk.common.util.NBTUtils;
 import com.breakinblocks.plonk.common.util.bound.Box;
 import com.breakinblocks.plonk.common.util.bound.BoxCollection;
 import com.google.common.collect.ImmutableMap;
+import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -17,29 +19,40 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.ItemStackWithSlot;
 import net.minecraft.world.WorldlyContainer;
+import net.minecraft.world.entity.ItemOwner;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.minecraft.world.level.block.entity.ShelfBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.extensions.IBlockEntityRendererExtension;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Objects;
 
-public class TilePlacedItems extends BlockEntity implements WorldlyContainer, IBlockEntityRendererExtension<TilePlacedItems> {
+/**
+ * @see ShelfBlockEntity
+ */
+public class TilePlacedItems extends BlockEntity implements WorldlyContainer, IBlockEntityRendererExtension<TilePlacedItems>, ItemOwner {
 
     public static final int Tag_VERSION = 1;
 
-    public static final DirectionProperty FACING = BlockPlacedItems.FACING;
+    public static final EnumProperty<Direction> FACING = BlockPlacedItems.FACING;
     public static final float HEIGHT_PLATE = 1.0f / 32f;
     public static final float HEIGHT_ITEM = 1.0f / 16f * 1.5f;
     public static final float HEIGHT_BLOCK = 1.0f / 2f;
@@ -82,7 +95,7 @@ public class TilePlacedItems extends BlockEntity implements WorldlyContainer, IB
     public static final int RENDER_TYPE_BLOCK = 1;
     public static final int RENDER_TYPE_ITEM = 0;
     public static final int ITEM_ROTATION_COUNT = 16;
-    private static final Logger LOG = LogManager.getLogger();
+    private static final Logger LOGGER = LogUtils.getLogger();
 
     boolean needsCleaning = true;
     private int tileRotation = 0;
@@ -290,16 +303,19 @@ public class TilePlacedItems extends BlockEntity implements WorldlyContainer, IB
      * @see ChestBlockEntity
      */
     @Override
-    public void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
-        super.loadAdditional(tag, provider);
-        TagUpgrader.upgrade(tag);
-        this.tileRotation = tag.getInt(TAG_TILE_ROTATION);
-        ListTag tagItems = tag.getList(TAG_ITEMS, CompoundTag.TAG_COMPOUND);
+    public void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        try (ProblemReporter.ScopedCollector problemReporter = new ProblemReporter.ScopedCollector(this.problemPath(), LOGGER)) {
+            input = TagUpgrader.upgrade(input, problemReporter, Objects.requireNonNull(level).registryAccess());
+        }
+        this.tileRotation = input.getIntOr(TAG_TILE_ROTATION, 0);
         this.contents = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
+        ContainerHelper.loadAllItems(input, this.contents);
+        ValueInput.ValueInputList tagItems = input.childrenListOrEmpty(TAG_ITEMS);
         this.contentsMeta = new ItemMeta[this.getContainerSize()];
         Arrays.fill(this.contentsMeta, ItemMeta.DEFAULT);
 
-        for (int i = 0; i < tagItems.size(); i++) {
+        for (ValueInput tagItem : tagItems) {
             CompoundTag tagItem = tagItems.getCompound(i);
             int slot = tagItem.getByte(TAG_SLOT) & 255;
             int renderType = tagItem.getInt(TAG_RENDER_TYPE);
@@ -314,11 +330,15 @@ public class TilePlacedItems extends BlockEntity implements WorldlyContainer, IB
         this.needsCleaning = true;
     }
 
+    /**
+     * @see ContainerHelper#saveAllItems(ValueOutput, NonNullList)
+     */
     @Override
-    public void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
-        super.saveAdditional(tag, provider);
-        tag.putInt(TAG_VERSION, Tag_VERSION);
-        tag.putInt(TAG_TILE_ROTATION, tileRotation);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        output.putInt(TAG_VERSION, Tag_VERSION);
+        output.putInt(TAG_TILE_ROTATION, tileRotation);
+        output.list(TAG_ITEMS, ItemStackWithSlot.CODEC);
         ListTag tagItems = new ListTag();
 
         for (int slot = 0; slot < this.contents.size(); slot++) {
@@ -431,14 +451,6 @@ public class TilePlacedItems extends BlockEntity implements WorldlyContainer, IB
     }
 
     @Override
-    public void startOpen(Player player) {
-    }
-
-    @Override
-    public void stopOpen(Player player) {
-    }
-
-    @Override
     public boolean canPlaceItem(int slot, ItemStack stack) {
         return PlonkConfig.canPlace(stack);
     }
@@ -514,6 +526,21 @@ public class TilePlacedItems extends BlockEntity implements WorldlyContainer, IB
         return result.remainder;
     }
 
+    @Override
+    public Level level() {
+        return this.getLevel();
+    }
+
+    @Override
+    public Vec3 position() {
+        return this.position();
+    }
+
+    @Override
+    public float getVisualRotationYInDegrees() {
+        return 0;
+    }
+
     public static final class ItemMeta {
         public static final ItemMeta DEFAULT = new ItemMeta(0, 0);
         public final int renderType;
@@ -546,19 +573,24 @@ public class TilePlacedItems extends BlockEntity implements WorldlyContainer, IB
                 .put(0, TagUpgrader::upgradeFrom0To1)
                 .build();
 
-        public static void upgrade(CompoundTag tag) {
-            int tileVersion = tag.getInt(TAG_VERSION); // Defaults to 0 if it doesn't exist
-            while (tileVersion < Tag_VERSION && UPGRADES.containsKey(tileVersion)) {
-                UPGRADES.get(tileVersion).apply(tag);
-                tileVersion = tag.getInt(TAG_VERSION);
+        public static ValueInput upgrade(ValueInput input, ProblemReporter problemReporter, HolderLookup.Provider provider) {
+            int tileVersion = input.getIntOr(TAG_VERSION, 0); // Defaults to 0 if it doesn't exist
+            Upgrade upgrade;
+            CompoundTag tag = null;
+            while (tileVersion < Tag_VERSION && (upgrade = UPGRADES.get(tileVersion)) != null) {
+                tag = tag == null ? NBTUtils.toTag(input) : tag;
+                upgrade.apply(tag);
+                tileVersion = input.getIntOr(TAG_VERSION, 0);
             }
             if (tileVersion < Tag_VERSION) {
                 // Couldn't be upgraded which shouldn't happen
                 throw new RuntimeException("Failed to upgrade an existing tile!");
             } else if (tileVersion > Tag_VERSION) {
                 // Mod being downgraded
-                LOG.warn("Placed Items tile version " + tileVersion + " > " + Tag_VERSION + " (current). Potential loss of data.");
+                LOGGER.warn("Placed Items tile version " + tileVersion + " > " + Tag_VERSION + " (current). Potential loss of data.");
             }
+
+            return tag == null ? input : TagValueInput.create(problemReporter, provider, tag);
         }
 
         public static void upgradeFrom0To1(CompoundTag tag) {
@@ -570,11 +602,13 @@ public class TilePlacedItems extends BlockEntity implements WorldlyContainer, IB
             final String TAG_ITEM_ROTATION = "ItemRotation";
             tag.putInt(TAG_VERSION, 1);
             tag.putInt(TAG_TILE_ROTATION, 0);
-            ListTag tagItems = tag.getList(TAG_ITEMS, 10);
+            ListTag tagItems = tag.getListOrEmpty(TAG_ITEMS);
+            tag.put(TAG_ITEMS, tagItems);
             for (int i = 0; i < tagItems.size(); i++) {
-                CompoundTag tagItem = tagItems.getCompound(i);
+                CompoundTag tagItem = tagItems.getCompoundOrEmpty(i);
+                tagItems.set(i, tagItem);
                 if (tagItem.contains(TAG_IS_BLOCK)) {
-                    boolean isBlock = tagItem.getBoolean(TAG_IS_BLOCK);
+                    boolean isBlock = tagItem.getBooleanOr(TAG_IS_BLOCK, false);
                     tagItem.putInt(TAG_RENDER_TYPE, isBlock ? 1 : 0);
                 }
                 tagItem.putInt(TAG_ITEM_ROTATION, 0);

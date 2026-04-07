@@ -27,7 +27,7 @@ pluginManagement {
 
                 "net.neoforged.moddev" -> {
                     // https://projects.neoforged.net/neoforged/ModDevGradle
-                    useModule("net.neoforged:moddev-gradle:2.0.79")
+                    useModule("net.neoforged:moddev-gradle:2.0.141")
                 }
             }
         }
@@ -63,6 +63,8 @@ pluginManagement {
 rootProject.name = "plonk"
 
 include("projects:minecraft:latest:neo")
+
+//include("projects:minecraft:v1.21.1:neo")
 
 //include("projects:minecraft:v1.20.1:forge")
 
