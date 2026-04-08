@@ -6,14 +6,11 @@ import net.minecraft.client.renderer.blockentity.state.CampfireRenderState;
 import net.minecraft.client.renderer.entity.state.ItemFrameRenderState;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.core.Direction;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 
 /**
  * @see ItemFrameRenderState
  * @see CampfireRenderState
  */
-@OnlyIn(Dist.CLIENT)
 public class PlacedItemsRenderState extends BlockEntityRenderState {
     public Direction direction = Direction.NORTH;
     public double tileRotationAngle = 0.0d;
