@@ -13,14 +13,14 @@ description = "Place items in the world like item frames but on any surface"
 
 [[dependencies.plonk]]
 modId = "neoforge"
-type="required"
+type = "required"
 versionRange = "{{ neo_version_range_supported }}"
 ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies.plonk]]
 modId = "minecraft"
-type="required"
+type = "required"
 versionRange = "{{ minecraft_version_range_supported }}"
 ordering = "AFTER"
 side = "BOTH"

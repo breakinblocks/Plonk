@@ -50,7 +50,7 @@ neoForge {
 
     mods {
         create("plonk") {
-            sourceNames.forEach { name -> sourceSet(sourceSets[name])}
+            sourceNames.forEach { name -> sourceSet(sourceSets[name]) }
         }
     }
 }

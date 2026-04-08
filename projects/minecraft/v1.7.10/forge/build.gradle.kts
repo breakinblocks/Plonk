@@ -1,5 +1,6 @@
 @file:Suppress("PropertyName")
 
+import CreateStartFixedTask.Companion.makeAccessible
 import com.google.common.collect.ImmutableMap
 import net.minecraftforge.gradle.delayed.DelayedFile
 import net.minecraftforge.gradle.tasks.CreateStartTask

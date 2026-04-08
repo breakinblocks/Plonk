@@ -9,13 +9,11 @@ import com.breakinblocks.plonk.common.util.MatrixUtils;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.block.BlockModelResolver;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.blockentity.ShulkerBoxRenderer;
-import net.minecraft.client.renderer.entity.ItemFrameRenderer;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
@@ -23,11 +21,9 @@ import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.ItemOwner;
-import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -98,7 +94,7 @@ public class TESRPlacedItems implements BlockEntityRenderer<TilePlacedItems, Pla
     @Override
     public void extractRenderState(TilePlacedItems blockEntity, PlacedItemsRenderState state, float partialTicks, Vec3 cameraPosition, ModelFeatureRenderer.@org.jspecify.annotations.Nullable CrumblingOverlay breakProgress) {
         BlockEntityRenderer.super.extractRenderState(blockEntity, state, partialTicks, cameraPosition, breakProgress);
-        int seed = (int)blockEntity.getBlockPos().asLong();
+        int seed = (int) blockEntity.getBlockPos().asLong();
         state.direction = blockEntity.getBlockState().getValueOrElse(BlockPlacedItems.FACING, Direction.UP);
         state.tileRotationAngle = blockEntity.getTileRotationAngle();
         int size = blockEntity.getContainerSize();
@@ -205,11 +201,11 @@ public class TESRPlacedItems implements BlockEntityRenderer<TilePlacedItems, Pla
      * Render item at location facing up
      * Refer to ItemFrame rendering
      *
-     * @param poseStack             transformation matrix stack
-     * @param submitNodeCollector   idk what this is
-     * @param stack                 ItemStack to render
-     * @param meta                  Metadata for the stack
-     * @param halfSize              If items should be rendered at half size (blocks are always rendered half size)
+     * @param poseStack           transformation matrix stack
+     * @param submitNodeCollector idk what this is
+     * @param stack               ItemStack to render
+     * @param meta                Metadata for the stack
+     * @param halfSize            If items should be rendered at half size (blocks are always rendered half size)
      */
     public void renderStack(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int lightCoords, ItemStackRenderState stack, ItemMeta meta, boolean halfSize) {
         if (stack.isEmpty()) return;

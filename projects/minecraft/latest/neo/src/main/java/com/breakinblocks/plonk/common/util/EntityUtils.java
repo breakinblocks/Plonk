@@ -29,9 +29,9 @@ public class EntityUtils {
     /**
      * Silent version of {@link Player#setItemSlot(EquipmentSlot, ItemStack)}
      *
-     * @param player target
-     * @param slot equipment slot to set
-     * @param itemStack  stack to set
+     * @param player    target
+     * @param slot      equipment slot to set
+     * @param itemStack stack to set
      * @see Player#setItemSlot(EquipmentSlot, ItemStack)
      */
     public static void setItemStackToSlotSilent(Player player, EquipmentSlot slot, ItemStack itemStack) {

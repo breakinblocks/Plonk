@@ -56,7 +56,15 @@ neoForge {
         }
         create("data") {
             clientData()
-            programArguments.addAll("--mod", mod_id, "--all", "--output", file("src/generated/resources/").getAbsolutePath(), "--existing", file("src/main/resources/").getAbsolutePath())
+            programArguments.addAll(
+                "--mod",
+                mod_id,
+                "--all",
+                "--output",
+                file("src/generated/resources/").getAbsolutePath(),
+                "--existing",
+                file("src/main/resources/").getAbsolutePath()
+            )
         }
         configureEach {
             systemProperty("forge.logging.markers", "REGISTRIES")
@@ -66,7 +74,7 @@ neoForge {
 
     mods {
         create("plonk") {
-            sourceNames.forEach { name -> sourceSet(sourceSets[name])}
+            sourceNames.forEach { name -> sourceSet(sourceSets[name]) }
         }
     }
 }
