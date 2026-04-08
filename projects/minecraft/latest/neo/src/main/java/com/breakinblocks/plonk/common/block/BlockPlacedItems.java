@@ -50,6 +50,7 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.EntityCollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.neoforged.neoforge.client.event.ExtractBlockOutlineRenderStateEvent;
 import net.neoforged.neoforge.client.extensions.common.IClientBlockExtensions;
 
 import javax.annotation.Nullable;
@@ -66,7 +67,7 @@ public class BlockPlacedItems extends BaseEntityBlock implements SimpleWaterlogg
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
     /**
      * This is such a hack. Find a better way to do this eventually please???
-     * The issue with handling the {@link RenderHighlightEvent.Block} event is that
+     * The issue with handling the {@link ExtractBlockOutlineRenderStateEvent} event is that
      * it would break with other mods that add a custom block highlight...
      */
     private final ThreadLocal<Boolean> picking = ThreadLocal.withInitial(() -> false);
@@ -92,12 +93,14 @@ public class BlockPlacedItems extends BaseEntityBlock implements SimpleWaterlogg
 
     @Override
     public RenderShape getRenderShape(BlockState state) {
-        return RenderShape.MODEL;
+        // To debug, change this back to MODEL.
+        return RenderShape.INVISIBLE;
     }
 
     /**
      * @see ChestBlock#updateShape(BlockState, LevelReader, ScheduledTickAccess, BlockPos, Direction, BlockPos, BlockState, RandomSource)
      */
+    @SuppressWarnings("JavadocReference")
     @Override
     protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos, Direction directionToNeighbour, BlockPos neighbourPos, BlockState neighbourState, RandomSource random) {
         if (state.getValue(WATERLOGGED)) {
@@ -149,6 +152,7 @@ public class BlockPlacedItems extends BaseEntityBlock implements SimpleWaterlogg
     /**
      * @see ChestBlock#getFluidState(BlockState)
      */
+    @SuppressWarnings("JavadocReference")
     @Override
     protected FluidState getFluidState(BlockState state) {
         return state.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
@@ -157,6 +161,7 @@ public class BlockPlacedItems extends BaseEntityBlock implements SimpleWaterlogg
     /**
      * @see TransparentBlock#getShadeBrightness(BlockState, BlockGetter, BlockPos)
      */
+    @SuppressWarnings("JavadocReference")
     @Override
     public float getShadeBrightness(BlockState state, BlockGetter worldIn, BlockPos pos) {
         return 1.0F;

@@ -19,4 +19,5 @@ public class PlacedItemsRenderState extends BlockEntityRenderState {
     public double tileRotationAngle = 0.0d;
     public ItemStackRenderState[] items = new ItemStackRenderState[0];
     public TilePlacedItems.ItemMeta[] itemMetas = new TilePlacedItems.ItemMeta[0];
+    public int numItems = 0;
 }

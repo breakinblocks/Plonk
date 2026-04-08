@@ -29,9 +29,8 @@
       ]
     }
   ],
-  "render_type": "minecraft:cutout",
   "textures": {
     "all": "plonk:block/placed_items",
-    "particle": "#all"
+    "particle": "plonk:block/placed_items"
   }
 }

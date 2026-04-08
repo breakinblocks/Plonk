@@ -2,11 +2,11 @@
   "values": [
     "plonk:placed_items",
     {
-      "id": "carryon:entity_item",
+      "id": "#carryon:entity_item",
       "required": false
     },
     {
-      "id": "carryon:tile_item",
+      "id": "#carryon:tile_item",
       "required": false
     }
   ]

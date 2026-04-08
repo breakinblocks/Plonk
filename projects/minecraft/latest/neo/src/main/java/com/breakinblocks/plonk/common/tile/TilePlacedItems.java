@@ -306,7 +306,8 @@ public class TilePlacedItems extends BlockEntity implements WorldlyContainer, IB
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         try (ProblemReporter.ScopedCollector problemReporter = new ProblemReporter.ScopedCollector(this.problemPath(), LOGGER)) {
-            input = TagUpgrader.upgrade(input, problemReporter, Objects.requireNonNull(level).registryAccess());
+            //noinspection deprecation
+            input = TagUpgrader.upgrade(input, problemReporter, input.lookup());
         }
         this.tileRotation = input.getIntOr(TAG_TILE_ROTATION, 0);
         this.contents = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);

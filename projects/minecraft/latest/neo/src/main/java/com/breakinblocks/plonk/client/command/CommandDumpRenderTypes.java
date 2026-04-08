@@ -7,9 +7,6 @@ import com.breakinblocks.plonk.common.util.MatrixUtils;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.block.BlockModelResolver;
-import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.component.DataComponentMap;
@@ -39,8 +36,6 @@ import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 
 public class CommandDumpRenderTypes implements IPlonkCommand {
     private static final Logger LOG = LogManager.getLogger();
-    private static final BlockModelResolver blockModelResolver = Minecraft.getInstance().getBlockModelResolver();
-    private static final ItemModelResolver itemModelResolver = Minecraft.getInstance().getItemModelResolver();
     private static final int MAX_CELL_LENGTH = 50000;
 
     private static LinkedHashSet<ItemStackRef> getAllStacks() {

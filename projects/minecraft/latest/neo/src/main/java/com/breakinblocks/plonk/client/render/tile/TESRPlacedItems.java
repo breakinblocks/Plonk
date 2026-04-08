@@ -110,6 +110,9 @@ public class TESRPlacedItems implements BlockEntityRenderer<TilePlacedItems, Pla
             itemModelResolver.updateForTopItem(itemState, blockEntity.getItem(slot), ItemDisplayContext.FIXED, blockEntity.level(), blockEntity, seed + slot);
             state.items[slot] = itemState;
             state.itemMetas[slot] = itemMetas.length <= size ? itemMetas[slot] : ItemMeta.DEFAULT;
+            if (!state.items[slot].isEmpty()) {
+                state.numItems = slot + 1;
+            }
         }
     }
 
@@ -163,7 +166,7 @@ public class TESRPlacedItems implements BlockEntityRenderer<TilePlacedItems, Pla
         poseStack.mulPose(Axis.YP.rotationDegrees((float) -state.tileRotationAngle));
         ItemStackRenderState[] contents = state.items;
         ItemMeta[] contentsMeta = state.itemMetas;
-        int num = contents.length;
+        int num = state.numItems;
         if (num > 0) {
             boolean halfSize = num > 1;
             for (int slot = 0; slot < num; slot++) {
