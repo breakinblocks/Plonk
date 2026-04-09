@@ -1,6 +1,6 @@
 # Changelog
 
-## [NEXT]
+## [10.0.9] - 2026-04-09
 
 - Actually fix key config category...
 
