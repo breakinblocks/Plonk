@@ -1,6 +1,6 @@
 # Changelog
 
-## [NEXT]
+## [10.0.8] - 2026-04-09
 
 - Fixed key config category localization key.
 - Added support for Jade to show currently selected item.
