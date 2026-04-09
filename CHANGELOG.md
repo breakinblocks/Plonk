@@ -3,6 +3,7 @@
 ## [NEXT]
 
 - Fixed key config category localization key.
+- Added support for Jade to show currently selected item.
 
 ## [10.0.7] - 2026-04-09
 

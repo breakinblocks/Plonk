@@ -8,6 +8,8 @@ val neo_version: String by project
 val neo_version_range_supported: String by project
 val mappings_version: String by project
 val mappings_minecraft_version: String by project
+val modrinth_jei_version: String by project
+val modrinth_jade_version: String by project
 
 plugins {
     id("net.kyori.blossom")
@@ -80,6 +82,8 @@ neoForge {
 }
 
 dependencies {
+    implementation("maven.modrinth:jei:${modrinth_jei_version}")
+    implementation("maven.modrinth:jade:${modrinth_jade_version}")
 }
 
 tasks.named<Jar>("jar") {
