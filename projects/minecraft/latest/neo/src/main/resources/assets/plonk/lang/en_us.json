@@ -1,6 +1,6 @@
 {
   "block.plonk.placed_items": "Placed Items",
-  "key.categories.plonk": "Plonk",
+  "key.category.plonk.main": "Plonk",
   "key.plonk.place": "Place Item",
   "placeholder.plonk": "PLACEHOLDER"
 }

@@ -1,5 +1,9 @@
 # Changelog
 
+## [NEXT]
+
+- Actually fix key config category...
+
 ## [10.0.8] - 2026-04-09
 
 - Fixed key config category localization key.

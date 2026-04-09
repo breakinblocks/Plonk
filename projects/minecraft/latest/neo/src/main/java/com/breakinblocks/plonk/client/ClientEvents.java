@@ -34,7 +34,7 @@ import static net.neoforged.neoforge.client.settings.KeyConflictContext.IN_GAME;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_P;
 
 public class ClientEvents {
-    public static final KeyMapping.Category PLONK_CATEGORY = new KeyMapping.Category(Identifier.withDefaultNamespace("plonk"));
+    public static final KeyMapping.Category PLONK_CATEGORY = new KeyMapping.Category(Identifier.fromNamespaceAndPath(Plonk.MOD_ID, "main"));
     public static final KeyMapping KEY_PLACE = new KeyMapping("key.plonk.place", IN_GAME, KEYSYM, GLFW_KEY_P, PLONK_CATEGORY);
 
     public static void init(IEventBus modEventBus) {
