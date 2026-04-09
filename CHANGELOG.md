@@ -1,5 +1,9 @@
 # Changelog
 
+## [NEXT]
+
+- Fixed key config category localization key.
+
 ## [10.0.7] - 2026-04-09
 
 - Ported to Minecraft 26.1.1 for NeoForge.
