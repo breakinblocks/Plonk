@@ -10,7 +10,6 @@ import snownee.jade.api.WailaPlugin;
 public class PlonkJadePlugin implements IWailaPlugin {
     @Override
     public void register(IWailaCommonRegistration registration) {
-        IWailaPlugin.super.register(registration);
         registration.blockOperations().pick(BuiltInRegistries.BLOCK.getResourceKey(RegistryBlocks.placed_items).orElseThrow());
     }
 }
